@@ -8,15 +8,18 @@ public class Player : MonoBehaviour
 
     public Camera cam;
 
+    [HideInInspector]
+    public bool shooting, placing;
+
+    private TurretBehaviour activeTurret;
+    private Transform activeTurretTransform;
+
+    [HideInInspector]
+    public Color activeColor;
+
     private void Awake()
     {
         gm = FindObjectOfType<Gamemode>();
-    }
-
-    // Start is called before the first frame update
-    void Start()
-    {
-        
     }
 
     // Update is called once per frame
@@ -26,23 +29,73 @@ public class Player : MonoBehaviour
         {
             Plan();
         }
+
+        if (Input.GetMouseButton(0))
+        {
+            Shoot();
+        }
+
+        if (Input.GetKeyDown(KeyCode.Alpha1))
+        {
+            activeColor = Color.white;
+        }
+
+        if (Input.GetKeyDown(KeyCode.Alpha2))
+        {
+            activeColor = Color.blue;
+        }
+
+        if (Input.GetKeyDown(KeyCode.Alpha1))
+        {
+            activeColor = Color.black;
+        }
+
+        if (Input.GetKeyDown(KeyCode.Alpha2))
+        {
+            activeColor = Color.red;
+        }
+
+        if (Input.GetKeyDown(KeyCode.Alpha1))
+        {
+            activeColor = Color.green;
+        }
     }
 
     void Plan()
     {
-        Ray ray = cam.ViewportPointToRay(new Vector3(0.5F, 0.5F, 0));
-        RaycastHit hit;
-        if (Physics.Raycast(ray, out hit))
+        if (!placing)
         {
-            if (hit.transform.tag == "Ground")
+            Ray ray = cam.ViewportPointToRay(new Vector3(0.5F, 0.5F, 0));
+            RaycastHit hit;
+            if (Physics.Raycast(ray, out hit))
             {
-                Instantiate(gm.turrets[0].turretObj, hit.transform.position, Quaternion.identity);
-                Debug.Log(hit.transform);
+                if (hit.transform.tag == "Ground")
+                {
+                    StartCoroutine(gm.StartPlaceCD(gm.placingTimeCD));
+
+                    GameObject go = Instantiate(gm.turrets[0].turretObj, hit.point, Quaternion.identity);
+                    go.transform.rotation = transform.rotation;
+                    activeTurret = go.GetComponent<TurretBehaviour>();
+                    activeTurretTransform = go.transform;
+                }
+            }
+        }
+    }
+
+    void Shoot()
+    {
+        if (!shooting)
+        {
+            StartCoroutine(gm.StartShootCD(gm.reloadTime));
+
+            // Shoot from turret
+            if (activeTurret)
+            {
+                Instantiate(gm.bulletsObj, activeTurretTransform.position, activeTurretTransform.rotation);
             }
 
+            // Shoot from player
+            Instantiate(gm.bulletsObj, gm.playerBulletSpawner.position, transform.rotation);
         }
-
-        else
-            print("I'm looking at nothing!");
     }
 }
