@@ -15,14 +15,19 @@ public class AttackBar : MonoBehaviour
     public List<Transform> checkPoints = new List<Transform>();
     public List<Transform> spawnPoints = new List<Transform>();
 
-    private Transform nearestCheckPoint;
+    public Transform nearestCheckPoint;
     private Transform oldNearestCheckPoint;
+
     private float nearestCheckPointDist;
 
-    private Vector2 initialPos;
-    private Vector2 nextPos;
+    private int index;
 
-    private bool incCheckPoints;
+    public Vector2 initialPos;
+    public Vector2 nextPos;
+
+    public bool incCheckPoints;
+
+
 
     // Start is called before the first frame update
     void Awake()
@@ -56,7 +61,7 @@ public class AttackBar : MonoBehaviour
     {
         int rand = Random.Range(0, spawnPoints.Count);
 
-        hitMarker.transform.position = spawnPoints[rand].transform.position;
+        hitMarker.transform.localPosition = spawnPoints[rand].transform.localPosition;
 
         Debug.Log("rand = " + rand);
         Debug.Log("Spawnpoints count = " + spawnPoints.Count);
@@ -65,36 +70,38 @@ public class AttackBar : MonoBehaviour
 
     private void Update()
     {
+        ChooseNextCheckPoint();
+
         if (nearestCheckPoint)
         {
-            ChooseNextCheckPoint();
+            FindDistanceToNearestCheckPoint();
         }
     }
+
     public void FindNearestCheckPoint()
     {
-        Transform nearestTarget = null;
-        float closestDistanceSqr = Mathf.Infinity;
-        Vector3 currentPosition = hitMarker.transform.position;
-        foreach (Transform potentialTarget in checkPoints)
+        Transform tMin = null;
+        float minDist = Mathf.Infinity;
+        Vector3 currentPosition = hitMarker.transform.localPosition;
+        foreach (Transform t in checkPoints)
         {
-            Vector3 directionToTarget = potentialTarget.position - currentPosition;
-            float dSqrToTarget = directionToTarget.sqrMagnitude;
-            if (dSqrToTarget < closestDistanceSqr)
+            float dist = Vector2.Distance(t.position, currentPosition);
+
+            if (dist < minDist)
             {
-                closestDistanceSqr = dSqrToTarget;
-                nearestTarget = potentialTarget;
+                tMin = t;
+                minDist = dist;
+            }
+
+            if (nearestCheckPoint)
+            {
+                oldNearestCheckPoint = nearestCheckPoint;
             }
         }
 
-        if (nearestCheckPoint)
-        {
-            oldNearestCheckPoint = nearestCheckPoint;
-        }
+            nearestCheckPoint = tMin;
 
-        nearestCheckPoint = nearestTarget;
-        nearestCheckPointDist = closestDistanceSqr;
-
-        if (nearestCheckPoint.transform.position.x > hitMarker.transform.position.x)
+        if (nearestCheckPoint.transform.localPosition.x > hitMarker.transform.localPosition.x)
         {
             incCheckPoints = true;
         }
@@ -103,20 +110,28 @@ public class AttackBar : MonoBehaviour
             incCheckPoints = false;
         }
 
+        Debug.Log("incCheckPoints " + incCheckPoints);
+        Debug.Log("nearestTarget " + nearestCheckPoint);
+        Debug.Log("nearestTargetDist " + nearestCheckPointDist);
+    }
+
+    float FindDistanceToNearestCheckPoint()
+    {
+        return Vector2.Distance(nearestCheckPoint.transform.localPosition, hitMarker.transform.localPosition);
     }
 
     void SetMoveTowardValues()
     {
         // At the start of this function, set the values for starting and ending positions for the hit marker's path
-        if (oldNearestCheckPoint != nearestCheckPoint)
-        {
-            oldNearestCheckPoint = nearestCheckPoint;
-            initialPos = hitMarker.transform.position;
-        }
 
-        if (nextPos == null)
+        initialPos = hitMarker.transform.localPosition;
+
+        Debug.Log("5");
+
+        if (nextPos == new Vector2(0,0))
         {
-            nextPos = nearestCheckPoint.transform.position;
+            Debug.Log("next pos = " + nextPos);
+            nextPos = nearestCheckPoint.transform.localPosition;
         }
     }
 
@@ -128,24 +143,40 @@ public class AttackBar : MonoBehaviour
             return;
         }
 
+        if (nearestCheckPoint)
+        {
+            nearestCheckPointDist = FindDistanceToNearestCheckPoint();
+            Debug.Log(FindDistanceToNearestCheckPoint() + " " + gm.minDistCheckPoint);
+        }
+
         // ChooseNextCheckPoint
         if (nearestCheckPointDist <= gm.minDistCheckPoint)
         {
+            if (!nearestCheckPoint)
+            {
+                return;
+            }
+
+            else
+            {
+                index = checkPoints.IndexOf(nearestCheckPoint);
+
+                Debug.Log(index);
+            }
+
             SetMoveTowardValues();
-
-            int index = checkPoints.IndexOf(nearestCheckPoint);
-
             // If there is another checkpoint in the list, increasing the index of the list, 
             // then set the next checkpoint to the nextPos for the hit marker
 
-            switch(incCheckPoints)
+            switch (incCheckPoints)
             {
                 case true:
 
                     // set the nextPos to the next checkpoint in the list, incrementally
                     if (checkPoints[index + 1])
                     {
-                        nextPos = checkPoints[index + 1].transform.position;
+                        nextPos = checkPoints[index + 1].transform.localPosition;
+                        Debug.Log("1");
                         return;
                     }
 
@@ -153,8 +184,8 @@ public class AttackBar : MonoBehaviour
                     else if (index == checkPoints.Count - 1)
                     {
                         incCheckPoints = false;
-
-                        nextPos = checkPoints[index - 1].transform.position;
+                        Debug.Log("2");
+                        nextPos = checkPoints[index - 1].transform.localPosition;
                     }
 
                     break;
@@ -164,16 +195,18 @@ public class AttackBar : MonoBehaviour
                     // set the nextPos to the next checkpoint in the list, decrementally
                     if (checkPoints[index - 1])
                     {
-                        nextPos = checkPoints[index - 1].transform.position;
+                        nextPos = checkPoints[index - 1].transform.localPosition;
+                        Debug.Log("3");
                         return;
                     }
 
                     // If the start of the list is reached, set the nextPos to the checkpoint next to the current one
                     else if (index == 0)
                     {
+                        Debug.Log("4");
                         incCheckPoints = true;
 
-                        nextPos = checkPoints[index + 1].transform.position;
+                        nextPos = checkPoints[index + 1].transform.localPosition;
                     }
                     break;
             }
@@ -181,6 +214,6 @@ public class AttackBar : MonoBehaviour
         }
 
         float step = speed * Time.deltaTime;
-        hitMarker.transform.position = Vector2.MoveTowards(initialPos, nextPos, step);
+        hitMarker.transform.localPosition = Vector2.MoveTowards(initialPos, nextPos, step);
     }
 }
