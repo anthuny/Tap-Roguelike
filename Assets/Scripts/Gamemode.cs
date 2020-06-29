@@ -5,17 +5,41 @@ using UnityEngine.UI;
 
 public class Gamemode : MonoBehaviour
 {
-    private AttackBar attackBarScript;
+    [HideInInspector]
+    public AttackBar attackBarScript;
 
     [Tooltip("The minimum distance the hit marker must be to the nearest checkpoint before the next checkpoint is made the next target")]
     public float minDistCheckPoint;
+
+    public float timeTillBarResumes;
+    public float timeTillBarTurnsInvis;
+
+    [Header("Developer Mode")]
+    public bool devMode;
+
+    [HideInInspector]
+    public bool attackDetected;
 
     // Start is called before the first frame update
     void Start()
     {
         InitialLaunch();
+        FindCheckPointPositions();
+
+        attackBarScript.DisableBarVisuals();
     }
 
+    void FindCheckPointPositions()
+    {
+        if (devMode)
+        {
+            for (int i = 0; i < attackBarScript.checkPoints.Count; i++)
+            {
+                Debug.Log("Checkpoint " + (i+1) + "'s position = " + attackBarScript.checkPoints[i].transform.position);
+            }
+        }
+
+    }
     public void InitialLaunch()
     {
         Screen.fullScreen = true;
@@ -34,10 +58,22 @@ public class Gamemode : MonoBehaviour
     {
         if(Input.GetKeyDown(KeyCode.S))
         {
-            Debug.Log("a");
-
             // Begin attack bar pattern
-            StartCoroutine(attackBarScript.BeginAttackBarPattern());
+            attackBarScript.BeginAttackBarPattern();
+        }
+
+        DetectInput();
+    }
+
+    void DetectInput()
+    {
+        if (Input.GetMouseButton(0))
+        {
+            attackDetected = true;
+        }
+        else
+        {
+            attackDetected = false;
         }
     }
 }
