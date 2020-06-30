@@ -18,7 +18,7 @@ public class Gamemode : MonoBehaviour
     public bool devMode;
 
     [HideInInspector]
-    public bool attackDetected;
+    public bool attackDetected, hitMarkerStarted;
 
     // Start is called before the first frame update
     void Start()
@@ -26,7 +26,7 @@ public class Gamemode : MonoBehaviour
         InitialLaunch();
         FindCheckPointPositions();
 
-        attackBarScript.DisableBarVisuals();
+
     }
 
     void FindCheckPointPositions()
@@ -47,6 +47,12 @@ public class Gamemode : MonoBehaviour
         Screen.orientation = ScreenOrientation.Portrait;
 
         FindActiveAttackBar();
+
+        if (!devMode)
+        {
+            attackBarScript.DisableBarVisuals();
+        }
+
     }
 
     public void FindActiveAttackBar()

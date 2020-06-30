@@ -22,6 +22,7 @@ public class AttackBar : MonoBehaviour
     [Header("Declerations")]
     public List<Transform> checkPoints = new List<Transform>();
     public List<Transform> spawnPoints = new List<Transform>();
+    public List<Transform> accuracyBars = new List<Transform>();
 
     public GameObject hitMarker;
 
@@ -46,6 +47,8 @@ public class AttackBar : MonoBehaviour
 
     [HideInInspector]
     public float step;
+    [HideInInspector]
+    public bool hitMarkerStopped;
 
     // Start is called before the first frame update
     void Awake()
@@ -75,6 +78,12 @@ public class AttackBar : MonoBehaviour
 
     public void BeginAttackBarPattern()
     {
+        // Allow each accuracy bar to be able to be hit again
+        hitMarkerStopped = false;
+
+        gm.hitMarkerStarted = true;
+
+        // Resume or start the hit marker's attack bar movement
         currentHitMarkerState = AttackBar.AttackBarState.MOVING;
 
         PickSpawnPoint();   
