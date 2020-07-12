@@ -1,17 +1,32 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
-[System.Serializable]
-public class Enemy
+[CreateAssetMenu(fileName = "New Enemy", menuName = "Enemy")]
+public class Enemy : ScriptableObject
 {
-    public string name;
+    public string enemyName;
+    public int enemyLevel = 1;
 
     [Header("Statistics")]
-
-    [Header("Health")]
     [Tooltip("The default maximum health the enemy spawns with")]
-    public float maxHealth;
-    [Tooltip("The percentage range to alter the max health. (10% would result in 10% increase or decrease of the inputed 'maxHealth'")]
-    public float maxHealthRange;
+    public float enemyMaxHealth;
+    [HideInInspector]
+    public float enemyCurHealth;
+
+    [Tooltip("The default amount of hit damage the enemy currently has")]
+    public int enemyDamage;
+
+    [Tooltip("The percentage rate of whether the enemy will attack before the player")]
+    public float enemySpeed;
+
+    [Tooltip("Tooltip WIP")]
+    public float enemyDefence;
+
+    public GameObject enemyVisual;
+
+    [Header("The liklihood of what the enemy will do on their turn")]
+    public int attackChance;
+    public int skillChance;
 }

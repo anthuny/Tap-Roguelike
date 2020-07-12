@@ -286,7 +286,7 @@ public class AttackBar : MonoBehaviour
 
     public void StopHitMarker()
     {
-        gm.attackBarScript.currentHitMarkerState = AttackBar.AttackBarState.IDLE;
+        gm.ab.currentHitMarkerState = AttackBar.AttackBarState.IDLE;
 
         nextCheckPoint = null;
         index = 0;
@@ -306,12 +306,12 @@ public class AttackBar : MonoBehaviour
 
         hitMarkerVisual.SetActive(false);
 
-        StartCoroutine(gm.attackBarScript.ResumeAttackBar(gm.timeTillBarResumes));
+        StartCoroutine(ResumeAttackBar(gm.timeTillBarResumes));
     }
     public IEnumerator ResumeAttackBar(float time = 0)
     {
         yield return new WaitForSeconds(time);
 
-        BeginAttackBarPattern();
+        gm.em.BeginEnemyTurn();
     }
 }

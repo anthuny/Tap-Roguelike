@@ -51,27 +51,27 @@ public class HitBar : MonoBehaviour
             && currentBarState == BarState.HOVERED
             && gm.hitMarkerStarted)
         {
-            if (gm.attackDetected && !gm.attackBarScript.hitMarkerStopped)
+            if (gm.attackDetected && !gm.ab.hitMarkerStopped)
             {
-                gm.attackBarScript.hitMarkerStopped = true;
+                gm.ab.hitMarkerStopped = true;
 
                 switch (currentBarType)
                 {
                     case BarType.HIGH:
                         Debug.Log("high");
-                        gm.attackBarScript.StopHitMarker();
+                        gm.ab.StopHitMarker();
                         break;
 
                     case BarType.MID:
                         Debug.Log("mid");
-                        gm.attackBarScript.StopHitMarker();
+                        gm.ab.StopHitMarker();
                         break;
                 }
 
                 if (currentBarType == BarType.MISS)
                 {
                     Debug.Log("miss");
-                    gm.attackBarScript.StopHitMarker();
+                    gm.ab.StopHitMarker();
                 }
             }
         }

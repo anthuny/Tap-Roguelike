@@ -6,7 +6,11 @@ using UnityEngine.UI;
 public class Gamemode : MonoBehaviour
 {
     [HideInInspector]
-    public AttackBar attackBarScript;
+    public AttackBar ab;
+    [HideInInspector]
+    public EnemyManager em;
+    [HideInInspector]
+    public Player p;
 
     [Tooltip("The minimum distance the hit marker must be to the nearest checkpoint before the next checkpoint is made the next target")]
     public float minDistCheckPoint;
@@ -20,28 +24,35 @@ public class Gamemode : MonoBehaviour
     [HideInInspector]
     public bool attackDetected, hitMarkerStarted;
 
+    [Tooltip("The amount of time in seconds that must elapse after the enemy spawns before the next stage can begin")]
+    public float EnemyTimeWaitSpawn;
+
+    [Tooltip("The amount of time in seconds that must elapse after the player is hit, for the next stage can begin")]
+    public float postHitTime;
+
     // Start is called before the first frame update
     void Start()
     {
         InitialLaunch();
         FindCheckPointPositions();
-
-
     }
 
     void FindCheckPointPositions()
     {
         if (devMode)
         {
-            for (int i = 0; i < attackBarScript.checkPoints.Count; i++)
+            for (int i = 0; i < ab.checkPoints.Count; i++)
             {
-                Debug.Log("Checkpoint " + (i+1) + "'s position = " + attackBarScript.checkPoints[i].transform.position);
+                Debug.Log("Checkpoint " + (i+1) + "'s position = " + ab.checkPoints[i].transform.position);
             }
         }
-
     }
+
     public void InitialLaunch()
     {
+        em = FindObjectOfType<EnemyManager>();
+        p = FindObjectOfType<Player>();
+
         Screen.fullScreen = true;
 
         Screen.orientation = ScreenOrientation.Portrait;
@@ -50,14 +61,13 @@ public class Gamemode : MonoBehaviour
 
         if (!devMode)
         {
-            attackBarScript.DisableBarVisuals();
+            ab.DisableBarVisuals();
         }
-
     }
 
     public void FindActiveAttackBar()
     {
-        attackBarScript = FindObjectOfType<AttackBar>();
+        ab = FindObjectOfType<AttackBar>();
     }
 
     private void Update()
@@ -65,7 +75,9 @@ public class Gamemode : MonoBehaviour
         if(Input.GetKeyDown(KeyCode.S))
         {
             // Begin attack bar pattern
-            attackBarScript.BeginAttackBarPattern();
+            // Determine whether enemy or player attacks first
+
+            StartCoroutine(em.SpawnEnemy());
         }
 
         DetectInput();

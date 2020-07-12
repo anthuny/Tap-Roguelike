@@ -278,7 +278,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 4
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &545911109
 GameObject:
@@ -372,7 +372,7 @@ RectTransform:
   m_Children:
   - {fileID: 1049025231}
   m_Father: {fileID: 0}
-  m_RootOrder: 3
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
@@ -408,13 +408,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 22da31b03ca17a743bbd6b766a0a9b01, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  attackBarScript: {fileID: 0}
+  ab: {fileID: 0}
+  em: {fileID: 0}
+  p: {fileID: 0}
   minDistCheckPoint: 0.1
   timeTillBarResumes: 1
   timeTillBarTurnsInvis: 1
   devMode: 0
   attackDetected: 0
   hitMarkerStarted: 0
+  EnemyTimeWaitSpawn: 1
+  postHitTime: 0
 --- !u!4 &578189407
 Transform:
   m_ObjectHideFlags: 0
@@ -428,6 +432,53 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &751964339
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 751964341}
+  - component: {fileID: 751964340}
+  m_Layer: 0
+  m_Name: Player Manager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &751964340
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 751964339}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8e25ff11b0f6da749b8aabf481b1c487, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  gm: {fileID: 0}
+  em: {fileID: 0}
+  playerMaxHealth: 100
+  playerCurHealth: 0
+--- !u!4 &751964341
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 751964339}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &997156547
 GameObject:
@@ -510,7 +561,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 2
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!224 &1049025231 stripped
 RectTransform:
@@ -562,7 +613,7 @@ Transform:
   m_Children:
   - {fileID: 288642551}
   m_Father: {fileID: 0}
-  m_RootOrder: 5
+  m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1409981210
 GameObject:
@@ -593,13 +644,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 59c49abdf8f9be64eae596e3bba78a04, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  enemySpawnPoint: {fileID: 2098198997}
+  activeEnemy: {fileID: 0}
   enemy:
-  - name: Ogre
-    maxHealth: 0
-    maxHealthRange: 0
-  - name: Treeant
-    maxHealth: 0
-    maxHealthRange: 0
+  - {fileID: 11400000, guid: a629422379f377846ad606029a32e885, type: 2}
+  currentEnemyState: 0
+  currentSelectedSkill: 0
 --- !u!4 &1409981212
 Transform:
   m_ObjectHideFlags: 0
@@ -608,11 +658,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1409981210}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 314, y: 1449, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
+  m_Children:
+  - {fileID: 2098198997}
   m_Father: {fileID: 0}
-  m_RootOrder: 1
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1717627654
 GameObject:
@@ -724,7 +775,37 @@ Transform:
   m_Children:
   - {fileID: 1717627655}
   m_Father: {fileID: 0}
-  m_RootOrder: 6
+  m_RootOrder: 7
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &2098198996
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2098198997}
+  m_Layer: 0
+  m_Name: Enemy Spawn Point
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2098198997
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2098198996}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 1409981212}
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &6798793719772187140
 PrefabInstance:
@@ -733,6 +814,38 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 545911113}
     m_Modifications:
+    - target: {fileID: 441571552, guid: 742cd60e0bb1e24498022f696bafffbc, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 568.46
+      objectReference: {fileID: 0}
+    - target: {fileID: 441571552, guid: 742cd60e0bb1e24498022f696bafffbc, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 215.4
+      objectReference: {fileID: 0}
+    - target: {fileID: 441571554, guid: 742cd60e0bb1e24498022f696bafffbc, type: 3}
+      propertyPath: m_Offset.x
+      value: 18.317646
+      objectReference: {fileID: 0}
+    - target: {fileID: 441571554, guid: 742cd60e0bb1e24498022f696bafffbc, type: 3}
+      propertyPath: m_Size.x
+      value: 183.7698
+      objectReference: {fileID: 0}
+    - target: {fileID: 442350065, guid: 742cd60e0bb1e24498022f696bafffbc, type: 3}
+      propertyPath: m_Offset.x
+      value: 0.21190453
+      objectReference: {fileID: 0}
+    - target: {fileID: 442350065, guid: 742cd60e0bb1e24498022f696bafffbc, type: 3}
+      propertyPath: m_Size.x
+      value: 99.37111
+      objectReference: {fileID: 0}
+    - target: {fileID: 2097160409, guid: 742cd60e0bb1e24498022f696bafffbc, type: 3}
+      propertyPath: m_Offset.x
+      value: 0.08340645
+      objectReference: {fileID: 0}
+    - target: {fileID: 2097160409, guid: 742cd60e0bb1e24498022f696bafffbc, type: 3}
+      propertyPath: m_Size.x
+      value: 99.38141
+      objectReference: {fileID: 0}
     - target: {fileID: 635507558549474509, guid: 742cd60e0bb1e24498022f696bafffbc,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -857,6 +970,31 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Beginner Attack Bar
+      objectReference: {fileID: 0}
+    - target: {fileID: 1215747287947910610, guid: 742cd60e0bb1e24498022f696bafffbc,
+        type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: -233.77
+      objectReference: {fileID: 0}
+    - target: {fileID: 1215747287947910610, guid: 742cd60e0bb1e24498022f696bafffbc,
+        type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 898.87
+      objectReference: {fileID: 0}
+    - target: {fileID: 1685565447143650745, guid: 742cd60e0bb1e24498022f696bafffbc,
+        type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: -16.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2709390022667152607, guid: 742cd60e0bb1e24498022f696bafffbc,
+        type: 3}
+      propertyPath: m_Offset.x
+      value: 5.690216
+      objectReference: {fileID: 0}
+    - target: {fileID: 2709390022667152607, guid: 742cd60e0bb1e24498022f696bafffbc,
+        type: 3}
+      propertyPath: m_Size.x
+      value: 911.5202
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 742cd60e0bb1e24498022f696bafffbc, type: 3}
