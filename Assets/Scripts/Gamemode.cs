@@ -8,18 +8,28 @@ public class Gamemode : MonoBehaviour
     [HideInInspector]
     public AttackBar ab;
     [HideInInspector]
-    public EnemyManager em;
+    public CombatManager cm;
     [HideInInspector]
     public Player p;
+    [HideInInspector]
+    public DevManager dm;
 
     [Tooltip("The minimum distance the hit marker must be to the nearest checkpoint before the next checkpoint is made the next target")]
     public float minDistCheckPoint;
 
+    [Header("Attack Bar Settings")]
     public float timeTillBarResumes;
     public float timeTillBarTurnsInvis;
 
+    [Header("Player Settings")]
+    public float breatheTime = 2;
+
     [Header("Developer Mode")]
-    public bool devMode;
+    public GameObject devTextParent;
+    public int devTextQueueCount;
+    public bool devVisualsOn;
+    public bool devTextOn;
+    public float devFlashUpTime;
 
     [HideInInspector]
     public bool attackDetected, hitMarkerStarted;
@@ -39,6 +49,7 @@ public class Gamemode : MonoBehaviour
 
     void FindCheckPointPositions()
     {
+        /*
         if (devMode)
         {
             for (int i = 0; i < ab.checkPoints.Count; i++)
@@ -46,12 +57,14 @@ public class Gamemode : MonoBehaviour
                 Debug.Log("Checkpoint " + (i+1) + "'s position = " + ab.checkPoints[i].transform.position);
             }
         }
+        */
     }
 
     public void InitialLaunch()
     {
-        em = FindObjectOfType<EnemyManager>();
+        cm = FindObjectOfType<CombatManager>();
         p = FindObjectOfType<Player>();
+        dm = FindObjectOfType<DevManager>();
 
         Screen.fullScreen = true;
 
@@ -59,7 +72,7 @@ public class Gamemode : MonoBehaviour
 
         FindActiveAttackBar();
 
-        if (!devMode)
+        if (!devVisualsOn)
         {
             ab.DisableBarVisuals();
         }
@@ -76,8 +89,7 @@ public class Gamemode : MonoBehaviour
         {
             // Begin attack bar pattern
             // Determine whether enemy or player attacks first
-
-            StartCoroutine(em.SpawnEnemy());
+            StartCoroutine(cm.EnemySpawn());
         }
 
         DetectInput();

@@ -7,7 +7,7 @@ public class Player : MonoBehaviour
     [HideInInspector]
     public Gamemode gm;
     [HideInInspector]
-    public EnemyManager em;
+    public CombatManager cm;
 
     [Tooltip("The maximum health the player can have")]
     public int playerMaxHealth;
@@ -17,7 +17,7 @@ public class Player : MonoBehaviour
     private void Awake()
     {
         gm = FindObjectOfType<Gamemode>();
-        em = FindObjectOfType<EnemyManager>();
+        cm = FindObjectOfType<CombatManager>();
     }
 
     public void Start()
@@ -36,7 +36,7 @@ public class Player : MonoBehaviour
         {
             playerCurHealth -= damage;
 
-            em.Invoke("BeginEnemyTurn", gm.postHitTime);
+            cm.Invoke("BeginEnemyTurn", gm.postHitTime);
         }
 
         // Check to see if the player's health equals or is less then 0 health

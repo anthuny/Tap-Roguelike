@@ -289,6 +289,7 @@ public class AttackBar : MonoBehaviour
         gm.ab.currentHitMarkerState = AttackBar.AttackBarState.IDLE;
 
         nextCheckPoint = null;
+        nearestCheckPointDist = 0;
         index = 0;
         initialPos = Vector2.zero;
         nextPos = Vector2.zero;
@@ -312,6 +313,6 @@ public class AttackBar : MonoBehaviour
     {
         yield return new WaitForSeconds(time);
 
-        gm.em.BeginEnemyTurn();
+        StartCoroutine(gm.cm.DetermineEnemyMove(gm.breatheTime));
     }
 }

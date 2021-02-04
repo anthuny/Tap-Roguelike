@@ -58,19 +58,24 @@ public class HitBar : MonoBehaviour
                 switch (currentBarType)
                 {
                     case BarType.HIGH:
-                        Debug.Log("high");
+                        // Debug
+                        StartCoroutine(gm.dm.FlashText("Player hit High"));
+
                         gm.ab.StopHitMarker();
                         break;
 
                     case BarType.MID:
-                        Debug.Log("mid");
+                        // Debug
+                        StartCoroutine(gm.dm.FlashText("Player hit Medium"));
+
                         gm.ab.StopHitMarker();
                         break;
                 }
 
                 if (currentBarType == BarType.MISS)
                 {
-                    Debug.Log("miss");
+                    // Debug
+                    StartCoroutine(gm.dm.FlashText("Player missed"));
                     gm.ab.StopHitMarker();
                 }
             }
