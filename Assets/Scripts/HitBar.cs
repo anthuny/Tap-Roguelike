@@ -4,81 +4,49 @@ using UnityEngine;
 
 public class HitBar : MonoBehaviour
 {
-    Gamemode gm;
+    [SerializeField] private Gamemode _gamemode;
+    [SerializeField] private DevManager _devManager;
+    [SerializeReference] private AttackBar _attackBar;
 
-    public enum BarType { MISS, MID, HIGH };
+    public enum BarType { MISS, GOOD, GREAT, PERFECT };
 
-    public BarType currentBarType;
+    public BarType curBarType;
 
-    public enum BarState { ALONE, HOVERED };
-
-    public BarState currentBarState;
-
-    Collider2D hitCollider;
-
-    private void Awake()
+    /// <summary>
+    /// Check if a hit bar was hit by the hit marker. And determine the rank of damage dealt
+    /// </summary>
+    public void CheckIfMarkerHit()
     {
-        gm = FindObjectOfType<Gamemode>();
-    }
-
-    // Start is called before the first frame update
-    void Start()
-    {
-
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        CheckIfMarkerHit(hitCollider);
-    }
-
-    private void OnTriggerEnter2D(Collider2D collision)
-    {
-        currentBarState = BarState.HOVERED;
-        hitCollider = collision;
-    }
-
-    private void OnTriggerExit2D(Collider2D collision)
-    {
-        currentBarState = BarState.ALONE;
-        hitCollider = collision;
-    }
-
-    void CheckIfMarkerHit(Collider2D col)
-    {
-        if (hitCollider == col
-            && currentBarState == BarState.HOVERED
-            && gm.hitMarkerStarted)
+        // Determine which type of hit bar this is
+        switch (curBarType)
         {
-            if (gm.attackDetected && !gm.ab.hitMarkerStopped)
-            {
-                gm.ab.hitMarkerStopped = true;
+            case BarType.PERFECT:
+                // Debug
+                StartCoroutine(_devManager.FlashText("Player perfect hit"));
+                // Stop hit marker
+                _attackBar.StopHitMarker();
+                break;
 
-                switch (currentBarType)
-                {
-                    case BarType.HIGH:
-                        // Debug
-                        StartCoroutine(gm.dm.FlashText("Player hit High"));
+            case BarType.GREAT:
+                // Debug
+                StartCoroutine(_devManager.FlashText("Player great hit"));
+                // Stop hit marker
+                _attackBar.StopHitMarker();
+                break;
 
-                        gm.ab.StopHitMarker();
-                        break;
+            case BarType.GOOD:
+                // Debug
+                StartCoroutine(_devManager.FlashText("Player good hit"));
+                // Stop hit marker
+                _attackBar.StopHitMarker();
+                break;
 
-                    case BarType.MID:
-                        // Debug
-                        StartCoroutine(gm.dm.FlashText("Player hit Medium"));
-
-                        gm.ab.StopHitMarker();
-                        break;
-                }
-
-                if (currentBarType == BarType.MISS)
-                {
-                    // Debug
-                    StartCoroutine(gm.dm.FlashText("Player missed"));
-                    gm.ab.StopHitMarker();
-                }
-            }
+            case BarType.MISS:
+                // Debug
+                StartCoroutine(_devManager.FlashText("Player missed"));
+                // Stop hit marker
+                _attackBar.StopHitMarker();
+                break;
         }
     }
 }

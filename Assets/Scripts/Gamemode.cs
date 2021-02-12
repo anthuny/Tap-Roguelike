@@ -18,6 +18,10 @@ public class Gamemode : MonoBehaviour
     public float minDistCheckPoint;
 
     [Header("Attack Bar Settings")]
+    public float missDmgMult;
+    public float goodDmgMult;
+    public float greatDmgMult;
+    public float perfectDmgMult;
     public float timeTillBarResumes;
     public float timeTillBarTurnsInvis;
 
@@ -26,10 +30,8 @@ public class Gamemode : MonoBehaviour
 
     [Header("Developer Mode")]
     public GameObject devTextParent;
-    public int devTextQueueCount;
     public bool devVisualsOn;
     public bool devTextOn;
-    public float devFlashUpTime;
 
     [HideInInspector]
     public bool attackDetected, hitMarkerStarted;

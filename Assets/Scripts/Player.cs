@@ -9,10 +9,8 @@ public class Player : MonoBehaviour
     [HideInInspector]
     public CombatManager cm;
 
-    [Tooltip("The maximum health the player can have")]
-    public int playerMaxHealth;
-    [Tooltip("The current health the player current has")]
-    public int playerCurHealth;
+    [HideInInspector]
+    public int playerMaxHealth, playerCurHealth;
 
     private void Awake()
     {

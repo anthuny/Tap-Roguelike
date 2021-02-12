@@ -49,40 +49,6 @@ public class CombatManager : MonoBehaviour
         Invoke("EnemyDecideAttackOrder", gm.breatheTime);
     }
 
-    /// <summary>
-    /// Decides whether the player or enemy attacks first
-    /// </summary>
-    void EnemyDecideAttackOrder()
-    {
-        int startSuccess = Random.Range(0, 101);
-
-        if (activeEnemy.enemySpeed > startSuccess)
-        {
-            // Debug
-            StartCoroutine(gm.dm.FlashText(activeEnemy.enemyName + "'s wins start success roll with " + activeEnemy.enemySpeed + " > Player's " + startSuccess));
-
-            // Enemy's turn first
-            StartCoroutine(DetermineEnemyMove(gm.breatheTime));
-        }
-        else
-        {
-            // Debug
-            StartCoroutine(gm.dm.FlashText(activeEnemy.enemyName + "'s loses start success roll with Player's " + startSuccess + " > " + activeEnemy.enemySpeed));
-
-            // Enemy's turn first
-            Invoke("BeginPlayerTurn", gm.breatheTime);
-        }
-    }
-
-    void BeginPlayerTurn()
-    {
-        // Debug
-        StartCoroutine(gm.dm.FlashText("Initiating Player Turn"));
-
-        // Begin player's active hit bar attack
-        gm.ab.Invoke("BeginAttackBarPattern", gm.breatheTime);
-    }
-
     public IEnumerator DetermineEnemyMove(float timer = 0)
     {
         yield return new WaitForSeconds(timer);
@@ -143,5 +109,39 @@ public class CombatManager : MonoBehaviour
     void CastSkill()
     {
 
+    }
+
+    void BeginPlayerTurn()
+    {
+        // Debug
+        StartCoroutine(gm.dm.FlashText("Initiating Player Turn"));
+
+        // Begin player's active hit bar attack
+        gm.ab.Invoke("BeginAttackBarPattern", gm.breatheTime);
+    }
+
+    /// <summary>
+    /// Decides whether the player or enemy attacks first
+    /// </summary>
+    void EnemyDecideAttackOrder()
+    {
+        int startSuccess = Random.Range(0, 101);
+
+        if (activeEnemy.enemySpeed > startSuccess)
+        {
+            // Debug
+            StartCoroutine(gm.dm.FlashText(activeEnemy.enemyName + "'s wins start success roll with " + activeEnemy.enemySpeed + " > Player's " + startSuccess));
+
+            // Enemy's turn first
+            StartCoroutine(DetermineEnemyMove(gm.breatheTime));
+        }
+        else
+        {
+            // Debug
+            StartCoroutine(gm.dm.FlashText(activeEnemy.enemyName + "'s loses start success roll with Player's " + startSuccess + " > " + activeEnemy.enemySpeed));
+
+            // Enemy's turn first
+            Invoke("BeginPlayerTurn", gm.breatheTime);
+        }
     }
 }

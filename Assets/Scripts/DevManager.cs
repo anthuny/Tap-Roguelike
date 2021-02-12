@@ -6,67 +6,53 @@ using UnityEngine.UI;
 public class DevManager : MonoBehaviour
 {
     private Gamemode gm;
+    public GameObject devText;
     public Font font;
+    public int maxDevTextCount;
+    private List<GameObject> devTexts = new List<GameObject>();
 
     private void Awake()
     {
         gm = FindObjectOfType<Gamemode>();
-
-        InitialLaunch();
-    }
-
-    private void InitialLaunch()
-    {
-        //gm.devText.gameObject.SetActive(false);
     }
 
     public IEnumerator FlashText(string contents)
     {
+        // If dev mode is not on, do not continue
         if (!gm.devTextOn)
         {
             yield return null;
         }
 
-        if (gm.devTextParent.transform.childCount == gm.devTextQueueCount)
+        #region Spawn and assign core variables for Dev Text
+        GameObject go = Instantiate(devText, gm.devTextParent.transform.position, Quaternion.identity);
+        go.transform.SetParent(gm.devTextParent.transform);
+        go.transform.position = new Vector3(gm.devTextParent.transform.position.x, 1880, gm.devTextParent.transform.position.z);
+        go.name = "DevText";
+        go.GetComponent<RectTransform>().sizeDelta = new Vector2(1000, 70);
+
+        Text text = go.GetComponent<Text>();
+        text.text = contents;
+        #endregion
+
+        // Insert the new line of text at the start of the list
+        devTexts.Insert(0, go);
+
+        // Move past lines of text down for each new line
+        for (int i = 0; i < devTexts.Count; i++)
         {
-            GameObject go = Instantiate(new GameObject(), gm.devTextParent.transform.position, Quaternion.identity);
-            go.transform.SetParent(gm.devTextParent.transform);
-            go.transform.position = new Vector3(gm.devTextParent.transform.position.x, 1860 - (80 * gm.devTextQueueCount), gm.devTextParent.transform.position.z);
+            // Skip the first element in list. It is always the newest line of text
+            if (i != 0)
+            {
+                devTexts[i].transform.position += new Vector3(0, -80, 0);
+            }
 
-            Text text = go.AddComponent<Text>();
-            text.alignment = TextAnchor.UpperLeft;
-            //text.alignment = TextAnchor.MiddleCenter;
-            text.fontStyle = FontStyle.Bold;
-            text.fontSize = 46;
-            text.verticalOverflow = VerticalWrapMode.Truncate;
-            text.color = Color.white;
-            text.font = font;
-            text.resizeTextForBestFit = true;
-            text.text = contents;
-
-            go.GetComponent<RectTransform>().sizeDelta = new Vector2(1000, 70);
-
-            gm.devTextQueueCount++;
+            // Cap the amount of lines by removing the oldest lines of text
+            if (i >= maxDevTextCount)
+            {
+                Destroy(devTexts[devTexts.Count-1]);
+                devTexts.RemoveAt(devTexts.Count-1);
+            }
         }
-
-        /*
-        // If the text object is not active
-        if (!gm.devText.gameObject.activeSelf)
-        {
-            // Set the text
-            gm.devText.text = contents;
-            // Show the text
-            gm.devText.gameObject.SetActive(true);
-        }
-
-        yield return new WaitForSeconds(0f);
-
-        // If the text object is active (after waiting a bit
-        if (gm.devText.gameObject.activeSelf)
-        {
-            // Hide the text
-            gm.devText.gameObject.SetActive(false);
-        }
-        */
     }
 }

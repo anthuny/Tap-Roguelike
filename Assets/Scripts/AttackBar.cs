@@ -5,50 +5,43 @@ using UnityEngine;
 public class AttackBar : MonoBehaviour
 {
     // Enums
-
     [HideInInspector]
     public enum AttackBarState {MOVING, IDLE};
-    [HideInInspector]
-    public AttackBarState currentHitMarkerState;
- 
-    Gamemode gm;
+    //[HideInInspector]
+    public AttackBarState curHitMarkerState;
 
+    private enum HitMarkerVisible {VISIBLE, HIDDEN};
+    private HitMarkerVisible curHitMarkerVisibility;
 
     // Public
-
     [Header("Statistics")]
     public float speed; 
 
     [Header("Declerations")]
-    public List<Transform> checkPoints = new List<Transform>();
-    public List<Transform> spawnPoints = new List<Transform>();
-    public List<Transform> accuracyBars = new List<Transform>();
-
+    [SerializeField] private List<Transform> checkPoints = new List<Transform>();
+    [SerializeField] private List<Transform> spawnPoints = new List<Transform>();
+    [SerializeField] private List<Transform> hitAreas = new List<Transform>();
     public GameObject hitMarker;
 
-    public Transform nextCheckPoint;
+    // Private
+    private int selectedCheckpointSpawnIndex;
 
-    public float nearestCheckPointDist;
 
-    public int index;
+    public float step;
+
+    private Gamemode gm;
+
+    private GameObject hitMarkerVisual;
+
+    private Transform landingCheckpoint;
+    public Transform nearestHitArea;
 
     public Vector2 initialPos;
     public Vector2 nextPos;
 
-    public bool incCheckPoints;
-    public bool reachedTarget;
-
-
-    // Private
-
-    private bool movedToFirstCheckPoint;
-
-    private GameObject hitMarkerVisual;
-
-    [HideInInspector]
-    public float step;
-    [HideInInspector]
-    public bool hitMarkerStopped;
+    //[HideInInspector]
+    public Collider2D hitMarkerCollider, nearestHitAreaCollider;
+    private Collider2D prevNearestHitAreaCollider;
 
     // Start is called before the first frame update
     void Awake()
@@ -59,6 +52,9 @@ public class AttackBar : MonoBehaviour
     void InitialLaunch()
     {
         gm = FindObjectOfType<Gamemode>();
+
+        hitMarkerCollider = hitMarker.GetComponent<BoxCollider2D>();
+
         hitMarkerVisual = hitMarker.transform.GetChild(0).gameObject;
         hitMarkerVisual.SetActive(false);      
     }
@@ -76,48 +72,37 @@ public class AttackBar : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Called from Combat Manager script
+    /// Begins the Hit Bar movement
+    /// </summary>
     public void BeginAttackBarPattern()
     {
-        // Allow each accuracy bar to be able to be hit again
-        hitMarkerStopped = false;
+        // Reset values
 
-        gm.hitMarkerStarted = true;
+        Refresh();
 
         // Resume or start the hit marker's attack bar movement
-        currentHitMarkerState = AttackBar.AttackBarState.MOVING;
+        curHitMarkerState = AttackBar.AttackBarState.MOVING;
 
-        PickSpawnPoint();   
+        // Set the spawn location for the hit marker
+        hitMarker.transform.position = SetHitMarkerRandomSpawnLocation();
 
-        FindNearestCheckPoint();
-
-        SetMoveTowardValues();
-
-        ChooseNextCheckPoint();
+        nextPos = SetHitMarkerDestination();
     }
 
-    void PickSpawnPoint()
-    {
-        int rand = Random.Range(0, spawnPoints.Count);
-
-        hitMarker.transform.position = spawnPoints[rand].transform.position;
-    }
-
-    private void Update()
-    {
-        if (nextCheckPoint)
-        {
-            FindDistanceToNearestCheckPoint();
-            ChooseNextCheckPoint();
-        }
-    }
-
-    public void FindNearestCheckPoint()
+    /// <summary>
+    /// Fidn the nearest object from the hit marker 
+    /// </summary>
+    /// <param name="list"></param>
+    /// <returns></returns>
+    public Transform FindNearestObjectFromHitMarker(List<Transform> list)
     {
         Transform tMin = null;
         float minDist = Mathf.Infinity;
         Vector3 currentPosition = hitMarker.transform.position;
 
-        foreach (Transform t in checkPoints)
+        foreach (Transform t in list)
         {
             float dist = Vector2.Distance(t.position, currentPosition);
 
@@ -128,191 +113,154 @@ public class AttackBar : MonoBehaviour
             }
         }
 
-        nextCheckPoint = tMin;
-
-        index = checkPoints.IndexOf(nextCheckPoint);
-
-        if (nextCheckPoint.transform.position.x > hitMarker.transform.position.x)
-        {
-            incCheckPoints = true;
-        }
-        else
-        {
-            incCheckPoints = false;
-        }
-
-        //Debug.Log("incCheckPoints " + incCheckPoints);
-        //Debug.Log("nearestTarget " + nearestCheckPoint);
-        //Debug.Log("nearestTargetDist " + nearestCheckPointDist);
+        return tMin;
     }
 
-    Transform FindNextCheckPoint()
+    /// <summary>
+    /// Set the Hit Marker's spawning location to a random checkpoint
+    /// </summary>
+    /// <returns></returns>
+    Vector3 SetHitMarkerRandomSpawnLocation()
     {
-        return checkPoints[index];
+        int rand = Random.Range(0, spawnPoints.Count);
+
+        selectedCheckpointSpawnIndex = rand;
+
+        //Debug.Log(rand + " " + spawnPoints[rand]);
+
+        return spawnPoints[rand].transform.position;
     }
 
-    float FindDistanceToNextCheckPoint()
+    private void Update()
     {
-        return Vector2.Distance(checkPoints[index].transform.position, hitMarker.transform.position);
+        if (FindNearestObjectFromHitMarker(checkPoints))
+        {
+            MoveHitMarker();
+
+            #region Obtaining reference to each hit area's hitbox for hit marker
+            nearestHitArea = FindNearestObjectFromHitMarker(hitAreas);
+            FindNearestHitAreaCollider();
+            #endregion
+        }
     }
 
-    float FindDistanceToNearestCheckPoint()
+    /// <summary>
+    /// Update what the nearest hit area collider is
+    /// </summary>
+    void FindNearestHitAreaCollider()
     {
-        return Vector2.Distance(nextCheckPoint.transform.position, hitMarker.transform.position);
+        if (nearestHitArea)
+        {
+            nearestHitAreaCollider = nearestHitArea.GetComponent<BoxCollider2D>();
+
+            // Only update the nearest hit area collider when there is a change in colliders
+            if (prevNearestHitAreaCollider != nearestHitAreaCollider)
+            {
+                prevNearestHitAreaCollider = nearestHitAreaCollider;
+                nearestHitAreaCollider = nearestHitArea.GetComponent<BoxCollider2D>();
+            }
+        }
     }
 
-    void ChooseNextCheckPoint()
+    /// <summary>
+    /// Set Hit Marker positions before moving
+    /// </summary>
+    Vector2 SetHitMarkerDestination()
     {
-        if (checkPoints.Count <= 1)
+        for (int i = 0; i < checkPoints.Count; i++)
         {
-            Debug.LogWarning("ERROR - There needs to be more then one checkpoint in this attack bar");
-            return;
-        }
-
-        if (nextCheckPoint && !movedToFirstCheckPoint)
-        {
-            nearestCheckPointDist = FindDistanceToNearestCheckPoint();
-        }
-
-        if (nextCheckPoint && movedToFirstCheckPoint)
-        {
-            nextCheckPoint = FindNextCheckPoint();
-            nearestCheckPointDist = FindDistanceToNextCheckPoint();
-        }
-
-        // ChooseNextCheckPoint
-        if (nearestCheckPointDist <= gm.minDistCheckPoint
-            && !reachedTarget)
-        {
-            reachedTarget = true;
-
-            if (!movedToFirstCheckPoint)
+            if (i != selectedCheckpointSpawnIndex)
             {
-                movedToFirstCheckPoint = true;
+                return checkPoints[i].transform.position;
+            }
+        }
+
+        return Vector2.zero;
+    }
+
+    /// <summary>
+    /// Move's Hit Marker
+    /// </summary>
+    void MoveHitMarker()
+    {
+        // Only continue if the hit marker is allowed to move
+        if (curHitMarkerState == AttackBarState.MOVING)
+        {
+            // If hit marker is invisible, make it visible
+            if (curHitMarkerVisibility == HitMarkerVisible.HIDDEN)
+            {
+                StartCoroutine(ToggleHitMarkerVisibility(true, 0f));
             }
 
-            step = 0;
-
-            if (!nextCheckPoint)
-            {
-                return;
-            }
-
-            SetMoveTowardValues();
-            // If there is another checkpoint in the list, increasing the index of the list, 
-            // then set the next checkpoint to the nextPos for the hit marker
-
-            switch (incCheckPoints)
-            {
-                case true:
-
-                    // If the end of the list is reached, set the nextPos to the checkpoint previous to the current one
-                    if (index == checkPoints.Count - 1)
-                    {
-                        incCheckPoints = false;
-
-                        index = checkPoints.IndexOf(nextCheckPoint) - 1;
-                        nextPos = checkPoints[index].transform.position;
-                    }
-                    // set the nextPos to the next checkpoint in the list, incrementally
-                    else if (checkPoints[index + 1])
-                    {
-                        index = checkPoints.IndexOf(nextCheckPoint) + 1;
-                        nextPos = checkPoints[index].transform.position;
-                        return;
-                    }
-
-                    break;
-
-                case false:
-
-                     // If the start of the list is reached, set the nextPos to the checkpoint next to the current one
-                    if (index == 0)
-                    {
-                        incCheckPoints = true;
-
-                        index = checkPoints.IndexOf(nextCheckPoint) + 1;
-
-                        nextPos = checkPoints[index].transform.position;
-                    }
-                    // set the nextPos to the next checkpoint in the list, decrementally
-                    else if (checkPoints[index - 1])
-                    {
-                        index = checkPoints.IndexOf(nextCheckPoint) - 1;
-                        nextPos = checkPoints[index].transform.position;
-                        return;
-                    }
-
-                    break;
-            }
-
-        }
-
-
-        if (nearestCheckPointDist > gm.minDistCheckPoint)
-        {
-            reachedTarget = false;
-        }
-
-        if (initialPos != new Vector2(0,0) && currentHitMarkerState == AttackBarState.MOVING)
-        {
-            // If the hit marker is invisible, make it visible before it starts moving
-            if (!hitMarker.transform.GetChild(0).gameObject.activeSelf)
-            {
-                hitMarker.transform.GetChild(0).gameObject.SetActive(true);
-            }
-
+            // Move hit marker position
             step += speed * Time.deltaTime;
             Vector3 pos = Vector2.MoveTowards(initialPos, nextPos, step);
-
             hitMarker.transform.position = pos;
-            //Debug.Log("Step " + step);
-            //Debug.Log("initialPos " + initialPos);
-        }
 
+            // If the hit marker reaches a checkpoint, set the next move position to the other checkpoint
+            if (pos.x == nextPos.x)
+            {
+                // Assign the finishing checkpoint, so that the other checkpoint can be distinguished as 
+                // the new target checkpoint
+                landingCheckpoint = FindNearestObjectFromHitMarker(checkPoints);
+
+                for (int i = 0; i < checkPoints.Count; i++)
+                {
+                    if (i != checkPoints.IndexOf(landingCheckpoint))
+                    {
+                        initialPos = nextPos;
+                        nextPos = checkPoints[i].transform.position;
+                        step = 0;
+                    }
+                }
+            }
+        }
     }
 
-    void SetMoveTowardValues()
-    {
-        // At the start of this function, set the values for starting and ending positions for the hit marker's path
-        initialPos = hitMarker.transform.position;
-
-        if (nextPos == new Vector2(0, 0))
-        {
-            //Debug.Log("next pos = " + nextPos);
-            nextPos = nextCheckPoint.transform.position;
-        }
-    }
-
+    /// <summary>
+    /// Stops Hit Marker. Called when the hit marker lands on any hit bar (miss, good, great, perfect)
+    /// </summary>
     public void StopHitMarker()
     {
-        gm.ab.currentHitMarkerState = AttackBar.AttackBarState.IDLE;
+        gm.ab.curHitMarkerState = AttackBar.AttackBarState.IDLE;
 
-        nextCheckPoint = null;
-        nearestCheckPointDist = 0;
-        index = 0;
-        initialPos = Vector2.zero;
-        nextPos = Vector2.zero;
-        incCheckPoints = false;
-        reachedTarget = false;
-        movedToFirstCheckPoint = false;
-        step = 0;
+        Refresh();
 
-        StartCoroutine(MakeHitMarkerInvisible(gm.timeTillBarTurnsInvis));
+        StartCoroutine(ToggleHitMarkerVisibility(false, gm.timeTillBarTurnsInvis));
     }
 
-    public IEnumerator MakeHitMarkerInvisible(float time = 0)
+    private void Refresh()
+    {
+        gm.ab.curHitMarkerState = AttackBar.AttackBarState.IDLE;
+        initialPos = Vector2.zero;
+        nextPos = Vector2.zero;
+        curHitMarkerVisibility = HitMarkerVisible.HIDDEN;
+        selectedCheckpointSpawnIndex = 3;
+        initialPos = hitMarker.transform.position;
+        nextPos = Vector2.zero;
+        step = 0;
+    }
+
+    public IEnumerator ToggleHitMarkerVisibility(bool toggle, float time = 0)
     {
         yield return new WaitForSeconds(time);
 
-        hitMarkerVisual.SetActive(false);
+        hitMarkerVisual.SetActive(toggle);
 
-        StartCoroutine(ResumeAttackBar(gm.timeTillBarResumes));
+        if (toggle)
+        {
+            curHitMarkerVisibility = HitMarkerVisible.VISIBLE;
+        }
+        else
+        {
+            curHitMarkerVisibility = HitMarkerVisible.HIDDEN;
+            StartCoroutine(ResumeAttackBar(gm.timeTillBarResumes));
+        }
     }
     public IEnumerator ResumeAttackBar(float time = 0)
     {
         yield return new WaitForSeconds(time);
-
+        
         StartCoroutine(gm.cm.DetermineEnemyMove(gm.breatheTime));
     }
 }
