@@ -4,49 +4,75 @@ using UnityEngine;
 
 public class HitBar : MonoBehaviour
 {
-    [SerializeField] private Gamemode _gamemode;
-    [SerializeField] private DevManager _devManager;
-    [SerializeReference] private AttackBar _attackBar;
-
     public enum BarType { MISS, GOOD, GREAT, PERFECT };
 
     public BarType curBarType;
+
+    [SerializeField] private Gamemode _gamemode;
+    [SerializeField] private DevManager _devManager;
+    [SerializeField] private AttackBar _attackBar;
+    [SerializeField] private RelicManager _relicManager;
+
+    private Collider2D hitAreaCollider;
+
+    private void Awake()
+    {
+        hitAreaCollider = GetComponent<Collider2D>();
+    }
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.CompareTag("HitMarker"))
+        {
+            _attackBar.curCollidingHitArea = this;
+        }
+    }
 
     /// <summary>
     /// Check if a hit bar was hit by the hit marker. And determine the rank of damage dealt
     /// </summary>
     public void CheckIfMarkerHit()
     {
-        // Determine which type of hit bar this is
-        switch (curBarType)
+        // Check if the hit marker collider is touching any hit bar collider
+        if (_attackBar.hitMarkerCollider.IsTouching(hitAreaCollider))
         {
-            case BarType.PERFECT:
-                // Debug
-                StartCoroutine(_devManager.FlashText("Player perfect hit"));
-                // Stop hit marker
-                _attackBar.StopHitMarker();
-                break;
+            // Determine which type of hit bar this is
+            switch (curBarType)
+            {
+                case BarType.PERFECT:
+                    // Debug
+                    StartCoroutine(_devManager.FlashText("Relic perfect hit"));
+                    // Cause Damage to relic
+                    _relicManager.RecieveDamage(3);
+                    break;
 
-            case BarType.GREAT:
-                // Debug
-                StartCoroutine(_devManager.FlashText("Player great hit"));
-                // Stop hit marker
-                _attackBar.StopHitMarker();
-                break;
+                case BarType.GREAT:
+                    // Debug
+                    StartCoroutine(_devManager.FlashText("Relic great hit"));
+                    // Cause Damage to relic
+                    _relicManager.RecieveDamage(2);
+                    break;
 
-            case BarType.GOOD:
-                // Debug
-                StartCoroutine(_devManager.FlashText("Player good hit"));
-                // Stop hit marker
-                _attackBar.StopHitMarker();
-                break;
+                case BarType.GOOD:
+                    // Debug
+                    StartCoroutine(_devManager.FlashText("Relic good hit"));
+                    // Cause Damage to relic
+                    _relicManager.RecieveDamage(1);
+                    break;
 
-            case BarType.MISS:
-                // Debug
-                StartCoroutine(_devManager.FlashText("Player missed"));
-                // Stop hit marker
-                _attackBar.StopHitMarker();
-                break;
+                case BarType.MISS:
+                    // Debug
+                    StartCoroutine(_devManager.FlashText("Relic missed"));
+                    // Cause Damage to relic
+                    _relicManager.RecieveDamage(0);
+                    break;
+            }
+        }
+        else
+        {
+            Debug.LogWarning("This hit bar isn't being collided with");
         }
     }
+
+
 }

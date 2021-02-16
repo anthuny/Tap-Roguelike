@@ -7,41 +7,43 @@ public class AttackBar : MonoBehaviour
     // Enums
     [HideInInspector]
     public enum AttackBarState {MOVING, IDLE};
-    //[HideInInspector]
+    [HideInInspector]
     public AttackBarState curHitMarkerState;
-
-    private enum HitMarkerVisible {VISIBLE, HIDDEN};
+    private enum HitMarkerVisible { VISIBLE, HIDDEN };
     private HitMarkerVisible curHitMarkerVisibility;
 
-    // Public
+    // Inspector variables
+    [Header("Main")]
+    [SerializeField] private Gamemode _gamemode; 
+    [SerializeField] private CombatManager _combatManager;
+    [SerializeField] private GameObject hitMarker;
+
     [Header("Statistics")]
-    public float speed; 
+    [SerializeField] private float _speed;
+    [SerializeField] public float timeTillBarResumes;
+    [SerializeField] public float timeTillBarTurnsInvis;
+    [SerializeField] private float timeTillHitMarkerRespawn;
 
     [Header("Declerations")]
-    [SerializeField] private List<Transform> checkPoints = new List<Transform>();
-    [SerializeField] private List<Transform> spawnPoints = new List<Transform>();
-    [SerializeField] private List<Transform> hitAreas = new List<Transform>();
-    public GameObject hitMarker;
+    [SerializeField] private List<Transform> _checkPoints = new List<Transform>();
+    [SerializeField] private List<Transform> _spawnPoints = new List<Transform>();
+    [SerializeField] private List<Transform> _hitAreas = new List<Transform>();
+
+    // Public
+    [HideInInspector]
+    public bool attackInputLocked;
+    [HideInInspector]
+    public Collider2D hitMarkerCollider;
+    [HideInInspector]
+    public HitBar curCollidingHitArea;
 
     // Private
-    private int selectedCheckpointSpawnIndex;
+    private RectTransform _hitMarkerRT;
+    private GameObject _hitMarkerVisual;
+    private float _step;
+    private Vector3 _initialPos;
+    private Vector3 _nextPos;
 
-
-    public float step;
-
-    private Gamemode gm;
-
-    private GameObject hitMarkerVisual;
-
-    private Transform landingCheckpoint;
-    public Transform nearestHitArea;
-
-    public Vector2 initialPos;
-    public Vector2 nextPos;
-
-    //[HideInInspector]
-    public Collider2D hitMarkerCollider, nearestHitAreaCollider;
-    private Collider2D prevNearestHitAreaCollider;
 
     // Start is called before the first frame update
     void Awake()
@@ -51,48 +53,29 @@ public class AttackBar : MonoBehaviour
 
     void InitialLaunch()
     {
-        gm = FindObjectOfType<Gamemode>();
-
         hitMarkerCollider = hitMarker.GetComponent<BoxCollider2D>();
 
-        hitMarkerVisual = hitMarker.transform.GetChild(0).gameObject;
-        hitMarkerVisual.SetActive(false);      
+        _hitMarkerVisual = hitMarker.transform.GetChild(0).gameObject;
+        _hitMarkerVisual.SetActive(false);
+
+        _hitMarkerRT = hitMarker.GetComponent<RectTransform>();
     }
 
     public void DisableBarVisuals()
     {
-        for (int i = 0; i < checkPoints.Count; i++)
+        for (int i = 0; i < _checkPoints.Count; i++)
         {
-            checkPoints[i].GetChild(0).gameObject.SetActive(false);
+            _checkPoints[i].GetChild(0).gameObject.SetActive(false);
         }
 
-        for (int x = 0; x < spawnPoints.Count; x++)
+        for (int x = 0; x < _spawnPoints.Count; x++)
         {
-            spawnPoints[x].GetChild(0).gameObject.SetActive(false);
+            _spawnPoints[x].GetChild(0).gameObject.SetActive(false);
         }
     }
 
     /// <summary>
-    /// Called from Combat Manager script
-    /// Begins the Hit Bar movement
-    /// </summary>
-    public void BeginAttackBarPattern()
-    {
-        // Reset values
-
-        Refresh();
-
-        // Resume or start the hit marker's attack bar movement
-        curHitMarkerState = AttackBar.AttackBarState.MOVING;
-
-        // Set the spawn location for the hit marker
-        hitMarker.transform.position = SetHitMarkerRandomSpawnLocation();
-
-        nextPos = SetHitMarkerDestination();
-    }
-
-    /// <summary>
-    /// Fidn the nearest object from the hit marker 
+    /// Find the nearest object from the hit marker 
     /// </summary>
     /// <param name="list"></param>
     /// <returns></returns>
@@ -100,15 +83,15 @@ public class AttackBar : MonoBehaviour
     {
         Transform tMin = null;
         float minDist = Mathf.Infinity;
-        Vector3 currentPosition = hitMarker.transform.position;
+        Vector3 currentPosition = _hitMarkerRT.localPosition;
 
-        foreach (Transform t in list)
+        foreach (RectTransform rt in list)
         {
-            float dist = Vector2.Distance(t.position, currentPosition);
+            float dist = Vector2.Distance(rt.localPosition, currentPosition);
 
             if (dist < minDist)
             {
-                tMin = t;
+                tMin = rt;
                 minDist = dist;
             }
         }
@@ -117,69 +100,49 @@ public class AttackBar : MonoBehaviour
     }
 
     /// <summary>
-    /// Set the Hit Marker's spawning location to a random checkpoint
+    /// Set the HitMarkers Starting And Ending position
     /// </summary>
     /// <returns></returns>
-    Vector3 SetHitMarkerRandomSpawnLocation()
+    Vector3 SetHitMarkerStartingAndEndingPos(Transform checkPoint = null)
     {
-        int rand = Random.Range(0, spawnPoints.Count);
+        // Get a random index from the spawnpoints
+        int rand = Random.Range(0, _checkPoints.Count);
 
-        selectedCheckpointSpawnIndex = rand;
+        Transform transform;
 
-        //Debug.Log(rand + " " + spawnPoints[rand]);
+        // If the destination position for the hit marker is being set, go into this if statement
+        if (checkPoint)
+        {
+            for (int i = 0; i < _checkPoints.Count; i++)
+            {
+                // Set the starting spawn point to not equal the passed checkpoint
+                if (i != _checkPoints.IndexOf(checkPoint))
+                {
+                    transform = _checkPoints[i];
+                    return transform.GetComponent<RectTransform>().localPosition;
+                }
+            }
+        }
+        // If the hit marker is looking for it's starting position, for the first time in the game, set it to a random one
+        else
+        {
+            transform = _checkPoints[rand];
+            return transform.GetComponent<RectTransform>().localPosition;
+        }
 
-        return spawnPoints[rand].transform.position;
+        return Vector3.zero;
     }
 
     private void Update()
     {
-        if (FindNearestObjectFromHitMarker(checkPoints))
+        if (FindNearestObjectFromHitMarker(_checkPoints))
         {
             MoveHitMarker();
-
-            #region Obtaining reference to each hit area's hitbox for hit marker
-            nearestHitArea = FindNearestObjectFromHitMarker(hitAreas);
-            FindNearestHitAreaCollider();
-            #endregion
         }
     }
 
     /// <summary>
-    /// Update what the nearest hit area collider is
-    /// </summary>
-    void FindNearestHitAreaCollider()
-    {
-        if (nearestHitArea)
-        {
-            nearestHitAreaCollider = nearestHitArea.GetComponent<BoxCollider2D>();
-
-            // Only update the nearest hit area collider when there is a change in colliders
-            if (prevNearestHitAreaCollider != nearestHitAreaCollider)
-            {
-                prevNearestHitAreaCollider = nearestHitAreaCollider;
-                nearestHitAreaCollider = nearestHitArea.GetComponent<BoxCollider2D>();
-            }
-        }
-    }
-
-    /// <summary>
-    /// Set Hit Marker positions before moving
-    /// </summary>
-    Vector2 SetHitMarkerDestination()
-    {
-        for (int i = 0; i < checkPoints.Count; i++)
-        {
-            if (i != selectedCheckpointSpawnIndex)
-            {
-                return checkPoints[i].transform.position;
-            }
-        }
-
-        return Vector2.zero;
-    }
-
-    /// <summary>
-    /// Move's Hit Marker
+    /// Move's Hit Marker on update
     /// </summary>
     void MoveHitMarker()
     {
@@ -192,27 +155,20 @@ public class AttackBar : MonoBehaviour
                 StartCoroutine(ToggleHitMarkerVisibility(true, 0f));
             }
 
-            // Move hit marker position
-            step += speed * Time.deltaTime;
-            Vector3 pos = Vector2.MoveTowards(initialPos, nextPos, step);
-            hitMarker.transform.position = pos;
-
-            // If the hit marker reaches a checkpoint, set the next move position to the other checkpoint
-            if (pos.x == nextPos.x)
+            // If the hit marker hasn't reached it's destination, move towards it
+            if (_step != 1)
             {
-                // Assign the finishing checkpoint, so that the other checkpoint can be distinguished as 
-                // the new target checkpoint
-                landingCheckpoint = FindNearestObjectFromHitMarker(checkPoints);
-
-                for (int i = 0; i < checkPoints.Count; i++)
-                {
-                    if (i != checkPoints.IndexOf(landingCheckpoint))
-                    {
-                        initialPos = nextPos;
-                        nextPos = checkPoints[i].transform.position;
-                        step = 0;
-                    }
-                }
+                // Move hit marker position
+                _step += _speed * Time.deltaTime;
+                _step = Mathf.Clamp(_step, 0, 1);
+                Vector3 pos = Vector2.Lerp(_initialPos, _nextPos, _step);
+                _hitMarkerRT.localPosition = pos;
+            }  
+            else if (_step == 1)
+            {
+                _initialPos = _nextPos;
+                _nextPos = SetHitMarkerStartingAndEndingPos(FindNearestObjectFromHitMarker(_checkPoints));
+                _step = 0;
             }
         }
     }
@@ -220,32 +176,62 @@ public class AttackBar : MonoBehaviour
     /// <summary>
     /// Stops Hit Marker. Called when the hit marker lands on any hit bar (miss, good, great, perfect)
     /// </summary>
-    public void StopHitMarker()
+    private void StopHitMarker()
     {
-        gm.ab.curHitMarkerState = AttackBar.AttackBarState.IDLE;
-
-        Refresh();
-
-        StartCoroutine(ToggleHitMarkerVisibility(false, gm.timeTillBarTurnsInvis));
+        curHitMarkerState = AttackBar.AttackBarState.IDLE;
     }
 
-    private void Refresh()
+    private void ResetAttackBarToDefault()
     {
-        gm.ab.curHitMarkerState = AttackBar.AttackBarState.IDLE;
-        initialPos = Vector2.zero;
-        nextPos = Vector2.zero;
+        curHitMarkerState = AttackBar.AttackBarState.IDLE;
+        _initialPos = SetHitMarkerStartingAndEndingPos();
+        _hitMarkerRT.localPosition = _initialPos;
         curHitMarkerVisibility = HitMarkerVisible.HIDDEN;
-        selectedCheckpointSpawnIndex = 3;
-        initialPos = hitMarker.transform.position;
-        nextPos = Vector2.zero;
-        step = 0;
+        _nextPos = SetHitMarkerStartingAndEndingPos(FindNearestObjectFromHitMarker(_checkPoints));
+        _step = 0;
+    }
+
+    /// <summary>
+    /// Stop hit marker, 
+    /// check to see which hit bar the hit marker landed on, 
+    /// turn hit marker invisible,
+    /// Make hit marker start again
+    /// </summary>
+    public void BeginHitMarkerStoppingSequence()
+    {
+        // Stop hit marker
+        StopHitMarker();
+
+        // Check to see which hit bar the hit marker hit
+        curCollidingHitArea.CheckIfMarkerHit();
+
+        // Make hit marker invisible
+        StartCoroutine(ToggleHitMarkerVisibility(false, timeTillBarTurnsInvis));
+
+        // Begin enemy turn
+        StartCoroutine(_combatManager.DetermineEnemyMove(_combatManager.breatheTime));
+    }
+
+    /// <summary>
+    /// Reset hit marker to default,
+    /// Make hit marker start again
+    /// </summary>
+    public void BeginHitMarkerStartingSequence()
+    {
+        // Reset values
+        ResetAttackBarToDefault();
+
+        // Resume or start the hit marker's attack bar movement
+        curHitMarkerState = AttackBar.AttackBarState.MOVING;
+
+        attackInputLocked = false;
     }
 
     public IEnumerator ToggleHitMarkerVisibility(bool toggle, float time = 0)
     {
         yield return new WaitForSeconds(time);
 
-        hitMarkerVisual.SetActive(toggle);
+        _hitMarkerVisual.SetActive(toggle);
 
         if (toggle)
         {
@@ -254,13 +240,6 @@ public class AttackBar : MonoBehaviour
         else
         {
             curHitMarkerVisibility = HitMarkerVisible.HIDDEN;
-            StartCoroutine(ResumeAttackBar(gm.timeTillBarResumes));
         }
-    }
-    public IEnumerator ResumeAttackBar(float time = 0)
-    {
-        yield return new WaitForSeconds(time);
-        
-        StartCoroutine(gm.cm.DetermineEnemyMove(gm.breatheTime));
     }
 }

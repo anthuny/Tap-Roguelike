@@ -5,31 +5,36 @@ using UnityEngine.UI;
 
 public class CombatManager : MonoBehaviour
 {
-    private Gamemode gm;
-    public Transform enemySpawnPoint;
-    public Enemy activeEnemy;
-    public Enemy[] enemy;
+    private enum EnemyState { ATTACKING, CASTSKILL };
+    private EnemyState currentEnemyState;
+    private enum EnemySelectedSkill { HEAL, DMGAMP };
+    private EnemySelectedSkill currentSelectedSkill;
 
-    [HideInInspector]
-    public enum EnemyState {ATTACKING, CASTSKILL };
-    [HideInInspector]
-    public EnemyState currentEnemyState;
+    [SerializeField] private Gamemode _gamemode;
+    [SerializeField] private AttackBar _curAttackBar;
+    [SerializeField] private RelicManager _relicManager;
+    [SerializeField] private DevManager _devManager;
+    [SerializeField] private Enemy[] _enemy;
 
-    [HideInInspector]
-    public enum EnemySelectedSkill { HEAL, DMGAMP };
-    [HideInInspector]
-    public EnemySelectedSkill currentSelectedSkill;
+    [Header("Relic Settings")]
+    [Tooltip("The time that must elapse before another thing happens")]
+    public float breatheTime = .25f;
 
-    private IEnumerator coroutine;
+    [Tooltip("The amount of time in seconds that must elapse after the enemy spawns before the next stage can begin")]
+    public float enemyTimeWaitSpawn;
 
-    private void Awake()
-    {
-        gm = FindObjectOfType<Gamemode>();
-    }
+    [SerializeField] private Transform _enemySpawnPoint;
+    private Enemy _activeEnemy;
+
     // Start is called before the first frame update
     void Start()
     {
-        activeEnemy = enemy[Random.Range(0, enemy.Length)];
+        _activeEnemy = _enemy[Random.Range(0, _enemy.Length)];
+    }
+
+    public void BeginEnemyTurnSequence()
+    {
+        DetermineEnemyMove(breatheTime);
     }
 
     /// <summary>
@@ -38,15 +43,15 @@ public class CombatManager : MonoBehaviour
     /// <returns></returns>
     public IEnumerator EnemySpawn()
     {
-        StartCoroutine(gm.dm.FlashText("Spawning " + activeEnemy.enemyName));
+        StartCoroutine(_devManager.FlashText("Spawning " + _activeEnemy.enemyName));
 
         // Spawn an enemy, and get a reference to the dev text
-        GameObject go = Instantiate(activeEnemy.enemyVisual, enemySpawnPoint.position, Quaternion.identity);
+        GameObject go = Instantiate(_activeEnemy.enemyVisual, _enemySpawnPoint.position, Quaternion.identity);
         
-        yield return new WaitForSeconds(gm.EnemyTimeWaitSpawn);
+        yield return new WaitForSeconds(enemyTimeWaitSpawn);
 
         // Choose whether the enemy will get their turn first, or the player 
-        Invoke("EnemyDecideAttackOrder", gm.breatheTime);
+        Invoke("EnemyDecideAttackOrder", breatheTime);
     }
 
     public IEnumerator DetermineEnemyMove(float timer = 0)
@@ -54,44 +59,44 @@ public class CombatManager : MonoBehaviour
         yield return new WaitForSeconds(timer);
 
         // Debug
-        StartCoroutine(gm.dm.FlashText("Initiating Enemy Turn"));
+        StartCoroutine(_devManager.FlashText("Initiating Enemy Turn"));
 
         // Determine what action the enemy is going to do this turn
-        float attackRoll = Random.Range(0, activeEnemy.attackChance);
-        float skillRoll = Random.Range(0, activeEnemy.skillChance);
+        float attackRoll = Random.Range(0, _activeEnemy.attackChance);
+        float skillRoll = Random.Range(0, _activeEnemy.skillChance);
 
         yield return new WaitForSeconds(timer);
 
         if (attackRoll > skillRoll)
         {
             // Debug
-            StartCoroutine(gm.dm.FlashText("Enemy used Attack " + "AttackRoll: " + attackRoll + " > " + "SkillRoll: " + skillRoll));
+            StartCoroutine(_devManager.FlashText("Enemy used Attack " + "AttackRoll: " + attackRoll + " > " + "SkillRoll: " + skillRoll));
 
             currentEnemyState = EnemyState.ATTACKING;
 
-            Invoke("EnemyAttack", gm.breatheTime);
+            Invoke("EnemyAttack", breatheTime);
         }
 
         else
         {
             // Debug
-            StartCoroutine(gm.dm.FlashText("Enemy used Skill " + "SkillRoll: " + skillRoll + " > " + "AttackRoll: " + attackRoll));
+            StartCoroutine(_devManager.FlashText("Enemy used Skill " + "SkillRoll: " + skillRoll + " > " + "AttackRoll: " + attackRoll));
 
             currentEnemyState = EnemyState.CASTSKILL;
 
-            Invoke("EnemyChooseSkill", gm.breatheTime);
+            Invoke("EnemyChooseSkill", breatheTime);
         }
     }
 
     void EnemyAttack()
     {
         // Debug
-        StartCoroutine(gm.dm.FlashText("Player damaged for " + activeEnemy.enemyDamage));
+        StartCoroutine(_devManager.FlashText("Player damaged for " + _activeEnemy.enemyDamage));
 
-        gm.p.RecieveDamage(activeEnemy.enemyDamage);
+        _relicManager.RecieveDamage(_activeEnemy.enemyDamage);
 
         // Player's turn first
-        Invoke("BeginPlayerTurn", gm.breatheTime);
+        Invoke("BeginPlayerTurn", breatheTime);
     }
 
     void EnemyChooseSkill()
@@ -99,10 +104,10 @@ public class CombatManager : MonoBehaviour
         currentSelectedSkill = (CombatManager.EnemySelectedSkill)Random.Range(0, 2);
 
         // Debug
-        StartCoroutine(gm.dm.FlashText("Enemy selected skill is " + currentSelectedSkill));
+        StartCoroutine(_devManager.FlashText("Enemy selected skill is " + currentSelectedSkill));
 
         // Player's turn first
-        Invoke("BeginPlayerTurn", gm.breatheTime);
+        Invoke("BeginPlayerTurn", breatheTime);
     }
 
 
@@ -114,10 +119,10 @@ public class CombatManager : MonoBehaviour
     void BeginPlayerTurn()
     {
         // Debug
-        StartCoroutine(gm.dm.FlashText("Initiating Player Turn"));
+        StartCoroutine(_devManager.FlashText("Initiating Player Turn"));
 
         // Begin player's active hit bar attack
-        gm.ab.Invoke("BeginAttackBarPattern", gm.breatheTime);
+        _curAttackBar.Invoke("BeginHitMarkerStartingSequence", 0);
     }
 
     /// <summary>
@@ -127,21 +132,27 @@ public class CombatManager : MonoBehaviour
     {
         int startSuccess = Random.Range(0, 101);
 
-        if (activeEnemy.enemySpeed > startSuccess)
+        if (_activeEnemy.enemySpeed > startSuccess)
         {
             // Debug
-            StartCoroutine(gm.dm.FlashText(activeEnemy.enemyName + "'s wins start success roll with " + activeEnemy.enemySpeed + " > Player's " + startSuccess));
+            StartCoroutine(_devManager.FlashText(_activeEnemy.enemyName + "'s wins start success roll with " + _activeEnemy.enemySpeed + " > Player's " + startSuccess));
 
             // Enemy's turn first
-            StartCoroutine(DetermineEnemyMove(gm.breatheTime));
+            StartCoroutine(DetermineEnemyMove(breatheTime));
         }
         else
         {
             // Debug
-            StartCoroutine(gm.dm.FlashText(activeEnemy.enemyName + "'s loses start success roll with Player's " + startSuccess + " > " + activeEnemy.enemySpeed));
+            StartCoroutine(_devManager.FlashText(_activeEnemy.enemyName + "'s loses start success roll with Player's " + startSuccess + " > " + _activeEnemy.enemySpeed));
 
             // Enemy's turn first
-            Invoke("BeginPlayerTurn", gm.breatheTime);
+            Invoke("BeginPlayerTurn", breatheTime);
         }
+    }
+
+    public void SpawnEnemy()
+    {
+        // Spawn enemy
+        StartCoroutine(EnemySpawn());
     }
 }

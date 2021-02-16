@@ -5,34 +5,50 @@ using UnityEngine.UI;
 
 public class DevManager : MonoBehaviour
 {
-    private Gamemode gm;
-    public GameObject devText;
-    public Font font;
-    public int maxDevTextCount;
     private List<GameObject> devTexts = new List<GameObject>();
 
+    [SerializeField] private Gamemode _gamemode;
+    [SerializeField] private AttackBar _attackBar;
+
+    [Header("Developer Mode")]
+    [SerializeField] private GameObject _devTextParent;
+    [SerializeField] private bool _devVisualsOn;
+    [SerializeField] private bool _devTextOn;
+    [Tooltip("Dev Text prefab")]
+    [SerializeField] private GameObject _devText;
+    [SerializeField] private Font _font;
+    [SerializeField] private int _maxDevTextCount;
     private void Awake()
     {
-        gm = FindObjectOfType<Gamemode>();
+        InitialLaunch();
+    }
+
+    void InitialLaunch()
+    {
+        if (!_devVisualsOn)
+        {
+            _attackBar.DisableBarVisuals();
+        }
     }
 
     public IEnumerator FlashText(string contents)
     {
         // If dev mode is not on, do not continue
-        if (!gm.devTextOn)
+        if (_devTextOn)
         {
             yield return null;
         }
 
         #region Spawn and assign core variables for Dev Text
-        GameObject go = Instantiate(devText, gm.devTextParent.transform.position, Quaternion.identity);
-        go.transform.SetParent(gm.devTextParent.transform);
-        go.transform.position = new Vector3(gm.devTextParent.transform.position.x, 1880, gm.devTextParent.transform.position.z);
+        GameObject go = Instantiate(_devText, _devTextParent.transform.position, Quaternion.identity);
+        go.transform.SetParent(_devTextParent.transform);
+        go.transform.position = new Vector3(_devTextParent.transform.position.x, 1880, _devTextParent.transform.position.z);
         go.name = "DevText";
         go.GetComponent<RectTransform>().sizeDelta = new Vector2(1000, 70);
 
         Text text = go.GetComponent<Text>();
         text.text = contents;
+        text.font = _font;
         #endregion
 
         // Insert the new line of text at the start of the list
@@ -48,7 +64,7 @@ public class DevManager : MonoBehaviour
             }
 
             // Cap the amount of lines by removing the oldest lines of text
-            if (i >= maxDevTextCount)
+            if (i >= _maxDevTextCount)
             {
                 Destroy(devTexts[devTexts.Count-1]);
                 devTexts.RemoveAt(devTexts.Count-1);
