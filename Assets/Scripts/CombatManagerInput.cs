@@ -6,6 +6,7 @@ public class CombatManagerInput : MonoBehaviour
 {
     private CombatManager _combatManager;
 
+    /*
     private void Awake()
     {
         _combatManager = GetComponent<CombatManager>();
@@ -23,4 +24,5 @@ public class CombatManagerInput : MonoBehaviour
             _combatManager.SpawnEnemy();
         }
     }
+    */
 }

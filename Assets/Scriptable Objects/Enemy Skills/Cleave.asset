@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bdb88ad8c39cf8843bc7940801a6441f, type: 3}
+  m_Name: Cleave
+  m_EditorClassIdentifier: 
+  skillType: 1
+  skillMode: 1
+  targetType: 1
+  attackSequence: 0
+  targetsAllowed: 2
+  inflictType: 0
+  targetCount: 1
+  name: Cleave
+  description: Attack a single enemy once for 120%
+  turnCooldown: 3
+  damage: 1.2
+  missDamageMultipler: 0
+  goodDamageMultiplier: 85
+  greatDamageMultiplier: 125
+  perfectDamageMultiplier: 160
+  procChance: 0
+  missProcMultiplier: 0
+  goodProcMultiplier: 0
+  greatProcMultiplier: 0
+  perfectProcMultiplier: 0

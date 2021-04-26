@@ -22,9 +22,9 @@ public class AttackBarInput : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        LandHitMarker(_hitMarkerStopMouseCode);
+        //LandHitMarker(_hitMarkerStopMouseCode);
     }
-
+    // starting relic turn, pressing fight counts as a relic click fix that
     public void LandHitMarker(int val = 0)
     {
         // Check if the user performed the land hit marker input
@@ -33,7 +33,7 @@ public class AttackBarInput : MonoBehaviour
             _attackBar.attackInputLocked = true;
 
             // Stop the hit marker
-            _attackBar.BeginHitMarkerStoppingSequence();        
+            _attackBar.StartCoroutine("BeginHitMarkerStoppingSequence");
         }
     }
 }

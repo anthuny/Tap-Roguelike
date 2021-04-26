@@ -4,10 +4,8 @@ using UnityEngine;
 
 public class RelicManager : MonoBehaviour
 {
-    [SerializeField] private Gamemode _gamemode;
-    [SerializeField] private CombatManager _combatManager;
-
-    public int maxHealth, curHealth;
+    [SerializeField] private Relic[] allRelics;
+    private Relic curRelic;
 
     public void Start()
     {
@@ -16,11 +14,12 @@ public class RelicManager : MonoBehaviour
 
     void SetHealthToMax()
     {
-        curHealth = maxHealth;
+        //curHealth = maxHealth;
     }
 
     public void RecieveDamage(int damage)
     {
+        /*
         if (curHealth > 0)
         {
             curHealth -= damage;
@@ -31,6 +30,7 @@ public class RelicManager : MonoBehaviour
         {
             KillPlayer();
         }
+        */
 
     }
 

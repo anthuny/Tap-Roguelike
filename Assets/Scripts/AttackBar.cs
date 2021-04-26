@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class AttackBar : MonoBehaviour
 {
@@ -20,6 +21,7 @@ public class AttackBar : MonoBehaviour
 
     [Header("Statistics")]
     [SerializeField] private float _speed;
+    [Tooltip("Time after player hits, before enemy turn begins")]
     [SerializeField] public float timeTillBarResumes;
     [SerializeField] public float timeTillBarTurnsInvis;
     [SerializeField] private float timeTillHitMarkerRespawn;
@@ -28,9 +30,13 @@ public class AttackBar : MonoBehaviour
     [SerializeField] private List<Transform> _checkPoints = new List<Transform>();
     [SerializeField] private List<Transform> _spawnPoints = new List<Transform>();
     [SerializeField] private List<Transform> _hitAreas = new List<Transform>();
+    [SerializeField] private CanvasGroup _attackBarHider;
+    [SerializeField] private float _attackBarHiderOffVal;
+    [SerializeField] private float _attackBarHiderSelectVal;
+    public float _attackBarHiderOnVal;
 
     // Public
-    [HideInInspector]
+    //[HideInInspector]
     public bool attackInputLocked;
     [HideInInspector]
     public Collider2D hitMarkerCollider;
@@ -53,12 +59,15 @@ public class AttackBar : MonoBehaviour
 
     void InitialLaunch()
     {
+        _combatManager = FindObjectOfType<CombatManager>();        
         hitMarkerCollider = hitMarker.GetComponent<BoxCollider2D>();
-
         _hitMarkerVisual = hitMarker.transform.GetChild(0).gameObject;
         _hitMarkerVisual.SetActive(false);
-
         _hitMarkerRT = hitMarker.GetComponent<RectTransform>();
+
+        attackInputLocked = true;
+
+        _attackBarHider.alpha = _attackBarHiderOnVal;
     }
 
     public void DisableBarVisuals()
@@ -192,13 +201,24 @@ public class AttackBar : MonoBehaviour
     }
 
     /// <summary>
+    /// Toggles the attack bar hider's display
+    /// </summary>
+    /// <param name="cond"></param>
+    public void UpdateAttackBarHider(float alpha)
+    {
+        _attackBarHider.alpha = alpha;
+    }
+
+    /// <summary>
     /// Stop hit marker, 
     /// check to see which hit bar the hit marker landed on, 
     /// turn hit marker invisible,
     /// Make hit marker start again
     /// </summary>
-    public void BeginHitMarkerStoppingSequence()
+    public IEnumerator BeginHitMarkerStoppingSequence()
     {
+        attackInputLocked = true;
+
         // Stop hit marker
         StopHitMarker();
 
@@ -208,8 +228,10 @@ public class AttackBar : MonoBehaviour
         // Make hit marker invisible
         StartCoroutine(ToggleHitMarkerVisibility(false, timeTillBarTurnsInvis));
 
-        // Begin enemy turn
-        StartCoroutine(_combatManager.DetermineEnemyMove(_combatManager.breatheTime));
+        yield return new WaitForSeconds(timeTillBarResumes);
+
+        // Toggle on attack bar hider
+        UpdateAttackBarHider(_attackBarHiderOnVal);
     }
 
     /// <summary>
@@ -218,13 +240,16 @@ public class AttackBar : MonoBehaviour
     /// </summary>
     public void BeginHitMarkerStartingSequence()
     {
+        attackInputLocked = false;
+
+        // Toggle off attack bar hider
+        UpdateAttackBarHider(_attackBarHiderSelectVal);
+
         // Reset values
         ResetAttackBarToDefault();
 
         // Resume or start the hit marker's attack bar movement
         curHitMarkerState = AttackBar.AttackBarState.MOVING;
-
-        attackInputLocked = false;
     }
 
     public IEnumerator ToggleHitMarkerVisibility(bool toggle, float time = 0)
