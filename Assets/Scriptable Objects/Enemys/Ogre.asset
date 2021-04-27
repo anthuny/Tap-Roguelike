@@ -21,9 +21,9 @@ MonoBehaviour:
   speed: 25
   attackChance: 70
   skillChance: 30
-  passiveSkills: []
-  primarySkills:
-  - {fileID: 11400000, guid: 60f6169fdc170c740a60891502a20779, type: 2}
-  secondarySkills: []
-  alternateSkills: []
-  ultimateSkills: []
+  passiveSkill: {fileID: 11400000, guid: 7d81b433412e4a846bb4f1238a36debf, type: 2}
+  basicSkill: {fileID: 11400000, guid: 429a26857161fe7408701093ef16f419, type: 2}
+  primarySkill: {fileID: 11400000, guid: e009baa9b5a5735459760b4702ff3995, type: 2}
+  secondarySkill: {fileID: 11400000, guid: 1fdf04bcb45f4434b85e94d1e18d6a33, type: 2}
+  alternateSkill: {fileID: 11400000, guid: bd0d4ad4322d3924a8b39b5f8c60611e, type: 2}
+  ultimateSkill: {fileID: 11400000, guid: d739d20cc2a098c459522c8407454618, type: 2}

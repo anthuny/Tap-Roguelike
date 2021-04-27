@@ -2,8 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "New Skill", menuName = "Skill")]
-public class Skill : ScriptableObject
+public class SkillData : MonoBehaviour
 {
     public string skillType;
     public string skillMode;
@@ -13,7 +12,6 @@ public class Skill : ScriptableObject
     public string inflictType;
 
     public int targetCount;
-
     [Tooltip("The name of the skill")]
     public new string name;
     [Tooltip("In game description")]
@@ -36,7 +34,7 @@ public class Skill : ScriptableObject
     public float perfectDamageMultiplier;
 
     [Space(1)]
-    
+
     [Header("Proc chance and Multiplers")]
     [Tooltip("The base value of chance for this skill's effects to apply. If not applicable set to 0")]
     public float procChance;
@@ -49,5 +47,35 @@ public class Skill : ScriptableObject
     [Tooltip("The proc multiplier for hitting a 'perfect'. Multiplier is multiplied by proc chance for final outcome. If not applicable set to 0")]
     public float perfectProcMultiplier;
 
+    public void InitializeSkill(string skillType = "Basic", string skillMode = "None", string targetType = "None", string attackSequence = "Individual", string targetsAllowed = "0", string inflictType = "None",
+int targetCount = 0, string name = "", string description = "", int turnCooldown = 0, float damage = 0, float missDamageMultiplier = 0,
+float goodDamageMultiplier = 0, float greatDamageMultiplier = 0, float perfectDamageMultiplier = 0, float procChance = 0, float missProcMultiplier = 0,
+float goodProcMultiplier = 0, float greatProcMultiplier = 0, float perfectProcMultiplier = 0)
+    {
+        this.skillType = skillType;
+        this.skillMode = skillMode;
+        this.targetType = targetType;
+        this.attackSequence = attackSequence;
+        this.targetsAllowed = targetsAllowed;
+        this.inflictType = inflictType;
+        this.targetCount = targetCount;
+        this.name = name;
+        this.description = description;
+        this.turnCooldown = turnCooldown;
+        this.damage = damage;
+        this.missDamageMultiplier = missDamageMultiplier;
+        this.goodDamageMultiplier = goodDamageMultiplier;
+        this.greatDamageMultiplier = greatDamageMultiplier;
+        this.perfectDamageMultiplier = perfectDamageMultiplier;
+        this.procChance = procChance;
+        this.missProcMultiplier = missProcMultiplier;
+        this.goodProcMultiplier = goodProcMultiplier;
+        this.greatProcMultiplier = greatProcMultiplier;
+        this.perfectProcMultiplier = perfectProcMultiplier;
+    }
 
+    public void asd()
+    {
+        Debug.Log("help");
+    }
 }

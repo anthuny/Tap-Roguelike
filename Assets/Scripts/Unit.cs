@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class Unit : MonoBehaviour
 {
+    public enum UnitType { ALLY, ENEMY };
+    public UnitType unitType;
+
     public new string name;
     public int level = 1;
 
@@ -14,72 +17,99 @@ public class Unit : MonoBehaviour
     [Tooltip("The default maximum health the enemy spawns with")]
     public float maxHealth;
     public float curHealth;
-
     [Tooltip("The default amount of hit damage the enemy currently has")]
     public int damage;
-
     [Tooltip("The percentage rate of whether the enemy will attack before the player")]
     public int speed;
     public int turnSpeed;
-
     [Header("The liklihood of what the enemy will do on their turn")]
     public int attackChance;
     public int skillChance;
 
     [Header("Skills")]
-    public List<Skill> passiveSkills = new List<Skill>();
-    public List<Skill> primarySkills = new List<Skill>();
-    public List<Skill> secondarySkills = new List<Skill>();
-    public List<Skill> alternateSkills = new List<Skill>();
-    public List<Skill> ultimateSkills = new List<Skill>();
+    public SkillData passiveSkill;
+    public SkillData basicSkill;
+    public SkillData primarySkill;
+    public SkillData secondarySkill;
+    public SkillData alternateSkill;
+    public SkillData ultimateSkill;
 
     private DevManager _devManager;
     private Skill _activeSkill;
     //[HideInInspector]
     public List<Unit> targets = new List<Unit>();
+    private CombatManager _combatManager;
 
     private void Awake()
     {
         _devManager = FindObjectOfType<DevManager>();
+        _combatManager = FindObjectOfType<CombatManager>();
     }
 
-    public void SkillFunctionality(Skill skill)
-    {      
-        switch (skill.targetsAllowed)
+    public void DetermineUnitMoveChoice(Unit unit, SkillData skillData)
+    {
+        if (unitType == UnitType.ENEMY)
         {
-            case Skill.TargetsAllowed.ENEMIES:
+            // If i unit's attack chance is greater then their skill chance
+            if (unit.attackChance > unit.skillChance)
+                unit.UnitSkillFunctionality(skillData);   // Perform a basic attack
 
-                switch (skill.targetType)
-                {
-                    case Skill.TargetType.SINGLE:
-                        targets[Random.Range(0, targets.Count)].AdjustCurHealth(RoundFloatToInt(-(damage * skill.damage)), this, targets[0], skill);
-
-                        break;
-
-                    case Skill.TargetType.MULTI:
-                        break;
-                    case Skill.TargetType.NONE:
-                        break;
-                }
-
-                break;
-
-            case Skill.TargetsAllowed.ALLIES:
-
-                switch (skill.targetType)
-                {
-                    case Skill.TargetType.SINGLE:
-                        break;
-                    case Skill.TargetType.MULTI:
-                        break;
-                    case Skill.TargetType.NONE:
-                        break;
-                }
-
-                break;
-
-
+            // If i enemy's skill chance is greater then their skill chance
+            else
+                unit.UnitSkillFunctionality(unit.primarySkill);  // Enemy casts a random skill
         }
+
+        if (unitType == UnitType.ALLY)
+        {
+            // Need skill UI and functionality working for relics
+        }
+    }
+
+    /// <summary>
+    /// Caster performs a skill on a target
+    /// </summary>
+    public void UnitSkillFunctionality(SkillData skillData)
+    {
+        AssignSelectionCount(skillData);
+
+        switch (skillData.targetsAllowed)
+        {
+            case "Enemies":
+
+                switch (skillData.targetType)
+                {
+                    case "Single":
+                        targets[Random.Range(0, targets.Count)].AdjustCurHealth(RoundFloatToInt(-(damage * skillData.damage)), this, targets[0], skillData);
+
+                        break;
+
+                    case "Multiple":
+                        break;
+                    case "None":
+                        break;
+                }
+
+                break;
+
+            case "Allies":
+
+                switch (skillData.targetType)
+                {
+                    case "Single":
+                        break;
+                    case "Multiple":
+                        break;
+                    case "None":
+                        break;
+                }
+
+                break;
+        }
+    }
+
+    void AssignSelectionCount(SkillData skill)
+    {
+        _combatManager.maxSelections = skill.targetCount;
     }
 
     public void CalculateSpeedFinal()
@@ -98,14 +128,14 @@ public class Unit : MonoBehaviour
     /// <summary>
     /// Adjust max current health of unit
     /// </summary>
-    public void AdjustCurHealth(float val, Unit caster, Unit target, Skill skill = null)
+    public void AdjustCurHealth(float dmg, Unit caster, Unit target, SkillData skillData = null)
     {
-        if (skill != null)
-            _devManager.StartCoroutine(_devManager.FlashText(caster.name + " attacked " + target.name + " using " + skill.name + " (" + val + ")"));
+        if (skillData != null)
+            _devManager.StartCoroutine(_devManager.FlashText(caster.name + " attacked " + target.name + " using " + skillData.name + " (" + dmg + ")"));
         else
-            _devManager.StartCoroutine(_devManager.FlashText(caster.name + " attacked " + target.name + " using regular attack " + " (" + val + ")"));
+            _devManager.StartCoroutine(_devManager.FlashText(caster.name + " attacked " + target.name + " using regular attack " + " (" + dmg + ")"));
 
-        curHealth += val;
+        curHealth += dmg;
     }
 
     /// <summary>

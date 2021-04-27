@@ -10,20 +10,20 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: bdb88ad8c39cf8843bc7940801a6441f, type: 3}
-  m_Name: Cleave
+  m_Name: Ogre Basic
   m_EditorClassIdentifier: 
-  skillType: 1
-  skillMode: 1
-  targetType: 1
-  attackSequence: 0
-  targetsAllowed: 2
-  inflictType: 0
+  skillType: Base
+  skillMode: BaseDamage
+  targetType: Single
+  attackSequence: Individual
+  targetsAllowed: Enemies
+  inflictType: None
   targetCount: 1
-  name: Cleave
-  description: Attack a single enemy once for 120%
-  turnCooldown: 3
-  damage: 1.2
-  missDamageMultipler: 0
+  name: 'Slam '
+  description: Attack a single enemy once for 100%
+  turnCooldown: 1
+  damage: 1
+  missDamageMultiplier: 0
   goodDamageMultiplier: 85
   greatDamageMultiplier: 125
   perfectDamageMultiplier: 160

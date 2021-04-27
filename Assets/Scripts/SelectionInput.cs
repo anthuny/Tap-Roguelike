@@ -3,19 +3,19 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class DetectSelectInput : MonoBehaviour
+public class SelectionInput : MonoBehaviour
 {
-    private CombatManager _combatManager;
-    private Image _selectionImage;
-    private bool _selectionImageEnabled;
     [SerializeField] private Button _selectButton;
-    private bool _selectEnabled;
+    private CombatManager _combatManager;
+    [HideInInspector]
+    public bool selectEnabled;
+    [HideInInspector]
+    public Image selectionImage;
 
     private void Awake()
     {
         _combatManager = FindObjectOfType<CombatManager>();
-
-        _selectionImage = GetComponent<Image>();
+        selectionImage = GetComponent<Image>();
     }
 
     private void Start()
@@ -29,15 +29,13 @@ public class DetectSelectInput : MonoBehaviour
     /// </summary>
     private void ToggleSelectionImage()
     {
-        if (!_selectEnabled)
+        if (!selectEnabled)
         {
-            _selectEnabled = true;
-            _selectionImage.enabled = true;
+            _combatManager.ManageSelectionCount(true, this);
         }
         else
         {
-            _selectEnabled = false;
-            _selectionImage.enabled = false;
+            _combatManager.ManageSelectionCount(false, this);
         }
 
     }

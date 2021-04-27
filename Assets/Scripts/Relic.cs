@@ -19,9 +19,10 @@ public class Relic : ScriptableObject
     public Color color;
     [Space(1)]
     [Header("Skills")]
-    public List<Skill> passiveSkills = new List<Skill>();
-    public List<Skill> primarySkills = new List<Skill>();
-    public List<Skill> secondarySkills = new List<Skill>();
-    public List<Skill> alternateSkills = new List<Skill>();
-    public List<Skill> ultimateSkills = new List<Skill>();
+    public Skill passiveSkill;
+    public Skill basicSkill;
+    public Skill primarySkill;
+    public Skill secondarySkill;
+    public Skill alternateSkill;
+    public Skill ultimateSkill;
 }

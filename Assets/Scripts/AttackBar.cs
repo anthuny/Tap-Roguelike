@@ -30,10 +30,6 @@ public class AttackBar : MonoBehaviour
     [SerializeField] private List<Transform> _checkPoints = new List<Transform>();
     [SerializeField] private List<Transform> _spawnPoints = new List<Transform>();
     [SerializeField] private List<Transform> _hitAreas = new List<Transform>();
-    [SerializeField] private CanvasGroup _attackBarHider;
-    [SerializeField] private float _attackBarHiderOffVal;
-    [SerializeField] private float _attackBarHiderSelectVal;
-    public float _attackBarHiderOnVal;
 
     // Public
     //[HideInInspector]
@@ -66,8 +62,6 @@ public class AttackBar : MonoBehaviour
         _hitMarkerRT = hitMarker.GetComponent<RectTransform>();
 
         attackInputLocked = true;
-
-        _attackBarHider.alpha = _attackBarHiderOnVal;
     }
 
     public void DisableBarVisuals()
@@ -201,15 +195,6 @@ public class AttackBar : MonoBehaviour
     }
 
     /// <summary>
-    /// Toggles the attack bar hider's display
-    /// </summary>
-    /// <param name="cond"></param>
-    public void UpdateAttackBarHider(float alpha)
-    {
-        _attackBarHider.alpha = alpha;
-    }
-
-    /// <summary>
     /// Stop hit marker, 
     /// check to see which hit bar the hit marker landed on, 
     /// turn hit marker invisible,
@@ -229,9 +214,6 @@ public class AttackBar : MonoBehaviour
         StartCoroutine(ToggleHitMarkerVisibility(false, timeTillBarTurnsInvis));
 
         yield return new WaitForSeconds(timeTillBarResumes);
-
-        // Toggle on attack bar hider
-        UpdateAttackBarHider(_attackBarHiderOnVal);
     }
 
     /// <summary>
@@ -241,9 +223,6 @@ public class AttackBar : MonoBehaviour
     public void BeginHitMarkerStartingSequence()
     {
         attackInputLocked = false;
-
-        // Toggle off attack bar hider
-        UpdateAttackBarHider(_attackBarHiderSelectVal);
 
         // Reset values
         ResetAttackBarToDefault();
