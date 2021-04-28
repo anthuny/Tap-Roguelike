@@ -347,6 +347,9 @@ MonoBehaviour:
   goodProcMultiplier: 0
   greatProcMultiplier: 0
   perfectProcMultiplier: 0
+  skillIconColour: {r: 0, g: 0, b: 0, a: 0}
+  skillBorderColour: {r: 0, g: 0, b: 0, a: 0}
+  skillSelectionColour: {r: 0, g: 0, b: 0, a: 0}
 --- !u!1 &8731582223746177283
 GameObject:
   m_ObjectHideFlags: 0
@@ -436,4 +439,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _selectButton: {fileID: 5101653388698665898}
   selectEnabled: 0
-  selectionImage: {fileID: 0}
+  selectionImage: {fileID: 1901071690769376559}
+  iconBorderRT: {fileID: 7699831789891324435}
+  skillBorderHeight: 25
+  skillBorderWidth: 25
+  isSkill: 0

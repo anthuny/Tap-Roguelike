@@ -13,12 +13,17 @@ MonoBehaviour:
   m_Name: Rage
   m_EditorClassIdentifier: 
   skillType: 2
-  skillDamageType: 0
+  skillMode: 
+  targetType: 
+  attackSequence: 
+  targetsAllowed: 
+  inflictType: 
+  maxTargetSelections: 0
   name: Rage
   description: 
   turnCooldown: 0
   damage: 10
-  missDamageMultipler: 0
+  missDamageMultiplier: 0
   goodDamageMultiplier: 0.85
   greatDamageMultiplier: 1.25
   perfectDamageMultiplier: 1.6
@@ -27,3 +32,7 @@ MonoBehaviour:
   goodProcMultiplier: 0.3
   greatProcMultiplier: 0.45
   perfectProcMultiplier: 1
+  skillIconColour: {r: 0.21960786, g: 0.9058824, b: 0.15686275, a: 1}
+  skillBorderColour: {r: 0, g: 0, b: 0, a: 1}
+  skillSelectionColour: {r: 1, g: 0.97647065, b: 0, a: 1}
+  maxSkillCount: 1

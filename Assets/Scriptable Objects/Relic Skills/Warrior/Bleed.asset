@@ -13,13 +13,18 @@ MonoBehaviour:
   m_Name: Bleed
   m_EditorClassIdentifier: 
   skillType: 0
-  skillDamageType: 1
+  skillMode: 
+  targetType: 
+  attackSequence: 
+  targetsAllowed: 
+  inflictType: 
+  maxTargetSelections: 0
   name: Bleed
   description: Attacks have a chance to apply bleed, Higher accuracy attacks increase
     the chance of applying bleed.
   turnCooldown: 0
   damage: 10
-  missDamageMultipler: 0
+  missDamageMultiplier: 0
   goodDamageMultiplier: 85
   greatDamageMultiplier: 125
   perfectDamageMultiplier: 160
@@ -28,3 +33,7 @@ MonoBehaviour:
   goodProcMultiplier: 30
   greatProcMultiplier: 45
   perfectProcMultiplier: 100
+  skillIconColour: {r: 0.053738963, g: 0.6415094, b: 0, a: 1}
+  skillBorderColour: {r: 0, g: 0, b: 0, a: 1}
+  skillSelectionColour: {r: 1, g: 0.97647065, b: 0, a: 1}
+  maxSkillCount: 1

@@ -12,7 +12,7 @@ public class Skill : ScriptableObject
     public string targetsAllowed;
     public string inflictType;
 
-    public int targetCount;
+    public int maxTargetSelections = 1;
 
     [Tooltip("The name of the skill")]
     public new string name;
@@ -48,6 +48,12 @@ public class Skill : ScriptableObject
     public float greatProcMultiplier;
     [Tooltip("The proc multiplier for hitting a 'perfect'. Multiplier is multiplied by proc chance for final outcome. If not applicable set to 0")]
     public float perfectProcMultiplier;
+
+    [Header("Skill UI ")]
+    public Color skillIconColour;
+    public Color skillBorderColour;
+    public Color skillSelectionColour;
+    public int maxSkillCount = 1;
 
 
 }

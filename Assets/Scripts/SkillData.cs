@@ -11,7 +11,8 @@ public class SkillData : MonoBehaviour
     public string targetsAllowed;
     public string inflictType;
 
-    public int targetCount;
+    public int maxTargetCount = 1;
+
     [Tooltip("The name of the skill")]
     public new string name;
     [Tooltip("In game description")]
@@ -47,18 +48,27 @@ public class SkillData : MonoBehaviour
     [Tooltip("The proc multiplier for hitting a 'perfect'. Multiplier is multiplied by proc chance for final outcome. If not applicable set to 0")]
     public float perfectProcMultiplier;
 
-    public void InitializeSkill(string skillType = "Basic", string skillMode = "None", string targetType = "None", string attackSequence = "Individual", string targetsAllowed = "0", string inflictType = "None",
-int targetCount = 0, string name = "", string description = "", int turnCooldown = 0, float damage = 0, float missDamageMultiplier = 0,
-float goodDamageMultiplier = 0, float greatDamageMultiplier = 0, float perfectDamageMultiplier = 0, float procChance = 0, float missProcMultiplier = 0,
-float goodProcMultiplier = 0, float greatProcMultiplier = 0, float perfectProcMultiplier = 0)
+    [Header("Skill UI ")]
+    public Color skillIconColour;
+    public Color skillBorderColour;
+    public Color skillSelectionColour;
+    public int maxSkillCount = 1;
+
+    public void InitializeSkill(Color skillIconColour, Color skillBorderColour, Color skillSelectionColour, string skillType = "Basic", string skillMode = "None", string targetType = "None", string attackSequence = "Individual", string targetsAllowed = "0", string inflictType = "None",
+    int targetCount = 0, string name = "", string description = "", int turnCooldown = 0, float damage = 0, float missDamageMultiplier = 0,
+    float goodDamageMultiplier = 0, float greatDamageMultiplier = 0, float perfectDamageMultiplier = 0, float procChance = 0, float missProcMultiplier = 0,
+    float goodProcMultiplier = 0, float greatProcMultiplier = 0, float perfectProcMultiplier = 0, int maxSkillCount = 0)
     {
+        this.skillIconColour = skillIconColour;
+        this.skillBorderColour = skillBorderColour;
+        this.skillSelectionColour = skillSelectionColour;
         this.skillType = skillType;
         this.skillMode = skillMode;
         this.targetType = targetType;
         this.attackSequence = attackSequence;
         this.targetsAllowed = targetsAllowed;
         this.inflictType = inflictType;
-        this.targetCount = targetCount;
+        this.maxTargetCount = targetCount;
         this.name = name;
         this.description = description;
         this.turnCooldown = turnCooldown;
@@ -72,10 +82,6 @@ float goodProcMultiplier = 0, float greatProcMultiplier = 0, float perfectProcMu
         this.goodProcMultiplier = goodProcMultiplier;
         this.greatProcMultiplier = greatProcMultiplier;
         this.perfectProcMultiplier = perfectProcMultiplier;
-    }
-
-    public void asd()
-    {
-        Debug.Log("help");
-    }
+        this.maxSkillCount = maxSkillCount;
+    } 
 }

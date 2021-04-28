@@ -109,7 +109,7 @@ public class Unit : MonoBehaviour
 
     void AssignSelectionCount(SkillData skill)
     {
-        _combatManager.maxSelections = skill.targetCount;
+        _combatManager.maxTargetSelections = skill.maxTargetCount;
     }
 
     public void CalculateSpeedFinal()

@@ -13,17 +13,18 @@ MonoBehaviour:
   m_Name: DefaultRoom
   m_EditorClassIdentifier: 
   roomName: Testing Room
-  enemies:
+  roomEnemies:
   - {fileID: 11400000, guid: a629422379f377846ad606029a32e885, type: 2}
   - {fileID: 11400000, guid: a629422379f377846ad606029a32e885, type: 2}
   - {fileID: 11400000, guid: a629422379f377846ad606029a32e885, type: 2}
   - {fileID: 11400000, guid: a629422379f377846ad606029a32e885, type: 2}
   - {fileID: 11400000, guid: a629422379f377846ad606029a32e885, type: 2}
   - {fileID: 11400000, guid: a629422379f377846ad606029a32e885, type: 2}
-  enemyGO:
+  roomEnemyGO:
   - {fileID: 8018923753790422319, guid: 54441739043de19409b9a889bf030f35, type: 3}
   - {fileID: 8018923753790422319, guid: 54441739043de19409b9a889bf030f35, type: 3}
   - {fileID: 8018923753790422319, guid: 54441739043de19409b9a889bf030f35, type: 3}
   - {fileID: 8018923753790422319, guid: 54441739043de19409b9a889bf030f35, type: 3}
   - {fileID: 8018923753790422319, guid: 54441739043de19409b9a889bf030f35, type: 3}
   - {fileID: 8018923753790422319, guid: 54441739043de19409b9a889bf030f35, type: 3}
+  roomMaxEnemies: 6
