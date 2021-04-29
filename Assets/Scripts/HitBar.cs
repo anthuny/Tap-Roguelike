@@ -9,15 +9,18 @@ public class HitBar : MonoBehaviour
     public BarType curBarType;
 
     [SerializeField] private Gamemode _gamemode;
-    [SerializeField] private DevManager _devManager;
     [SerializeField] private AttackBar _attackBar;
     [SerializeField] private RelicManager _relicManager;
+
+    public DevManager _devManager;
 
     private Collider2D hitAreaCollider;
 
     private void Awake()
     {
         hitAreaCollider = GetComponent<Collider2D>();
+
+        _devManager = FindObjectOfType<DevManager>();
     }
 
     private void OnTriggerEnter2D(Collider2D collision)

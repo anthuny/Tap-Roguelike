@@ -20,7 +20,7 @@ public class SkillData : MonoBehaviour
     [Tooltip("The skill's turn cooldown, if not applicable set to 0")]
     public int turnCooldown;
     [Tooltip("The skill's damage, if not applicable set to 0.")]
-    public float damage;
+    public float valueOutcome;
 
     [Space(1)]
 
@@ -72,7 +72,7 @@ public class SkillData : MonoBehaviour
         this.name = name;
         this.description = description;
         this.turnCooldown = turnCooldown;
-        this.damage = damage;
+        this.valueOutcome = damage;
         this.missDamageMultiplier = missDamageMultiplier;
         this.goodDamageMultiplier = goodDamageMultiplier;
         this.greatDamageMultiplier = greatDamageMultiplier;

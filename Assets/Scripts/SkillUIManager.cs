@@ -31,12 +31,22 @@ public class SkillUIManager : MonoBehaviour
         _combatManager.relicActiveSkill = button.transform.parent.parent.GetComponent<Selector>().skillData;  // Assign the selected skill
     }
 
+    public void AssignFirstSkill(SkillData skillData)
+    {
+        _combatManager.relicActiveSkill = skillData;
+    }
     public void AssignSkillAesthetics(Image skillIcon, Image skillSelectionIcon, Image skillBorderIcon, 
         Color skillIconColour, Color skillSelectionColour, Color skillBorderColour)
     {
         skillIcon.color = skillIconColour;
         skillSelectionIcon.color = skillSelectionColour;
         skillBorderIcon.color = skillBorderColour;
+    }
+
+    public void InitializeSkills()
+    {
+        AssignSkills();
+        UpdateSkillAesthetics();
     }
 
     void AssignSkills()
@@ -63,12 +73,6 @@ public class SkillUIManager : MonoBehaviour
         relicSecondarySelect.AssignSkillUIAesthetics();
         relicAlternateSelect.AssignSkillUIAesthetics();
         relicUltimateSelect.AssignSkillUIAesthetics();
-    }
-
-    public void InitializeSkills()
-    {
-        AssignSkills();
-        UpdateSkillAesthetics();
     }
 }
 

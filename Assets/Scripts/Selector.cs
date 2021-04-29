@@ -30,11 +30,6 @@ public class Selector : MonoBehaviour
     public Color skillBorderColour;
     public Color skillSelectionColour;
   
-
-    [Tooltip("Units added to skill's icon size height dimension. (A value of 1 is the lowest whilst still displaying the border")]
-    [SerializeField] private int skillBorderHeight;
-    [Tooltip("Units added to skill's icon size width dimension. (A value of 1 is the lowest whilst still displaying the border")]
-    [SerializeField] private int skillBorderWidth;
     [SerializeField] private bool isSkill;
 
     private void Awake()
@@ -47,13 +42,13 @@ public class Selector : MonoBehaviour
 
     private void Start()
     {
-        _selectButton.onClick.AddListener(ToggleSelectionImage);        // Add a listener to the button on a unit    
+        _selectButton.onClick.AddListener(ToggleSelectionImage); // Add a listener to the button on a unit    
     }
 
     /// <summary>
     /// Toggle the selection image
     /// </summary>
-    private void ToggleSelectionImage()
+    public void ToggleSelectionImage()
     {
         if (isSkill)
         {
@@ -64,18 +59,18 @@ public class Selector : MonoBehaviour
                 _combatManager.maxSkillSelections = _combatManager.relicActiveSkill.maxSkillCount;
                 _combatManager.oldCurTargetSelections = _combatManager.curTargetSelections;
 
-                _combatManager.ManageSelectionCount(true, true, this, selectionImage, iconBorderRT, new Vector2(skillBorderHeight, skillBorderWidth));
+                _combatManager.ManageSelectionCount(true, true, this, selectionImage);
             }
         }
         else
         {
             // If selection is not displayed, display it 
             if (!selectEnabled)
-                _combatManager.ManageSelectionCount(true, false, this, selectionImage, iconBorderRT, new Vector2(skillBorderHeight, skillBorderWidth));
+                _combatManager.ManageSelectionCount(true, false, this, selectionImage);
             
             // If selection is displayed, hide it
             else
-                _combatManager.ManageSelectionCount(false, false, this, selectionImage, iconBorderRT, new Vector2(skillBorderHeight, skillBorderWidth));
+                _combatManager.ManageSelectionCount(false, false, this, selectionImage);
         }
     }
 

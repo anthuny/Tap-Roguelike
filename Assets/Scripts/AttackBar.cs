@@ -1,9 +1,10 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class AttackBar : MonoBehaviour
+public class AttackBar : MonoBehaviour 
 {
     // Enums
     [HideInInspector]
@@ -18,6 +19,8 @@ public class AttackBar : MonoBehaviour
     [SerializeField] private Gamemode _gamemode; 
     [SerializeField] private CombatManager _combatManager;
     [SerializeField] private GameObject hitMarker;
+    [SerializeField] private Button _attackButton;
+    [SerializeField] private int _hitMarkerStopMouseCode;
 
     [Header("Statistics")]
     [SerializeField] private float _speed;
@@ -32,12 +35,11 @@ public class AttackBar : MonoBehaviour
     [SerializeField] private List<Transform> _hitAreas = new List<Transform>();
 
     // Public
-    //[HideInInspector]
-    public bool attackInputLocked;
     [HideInInspector]
     public Collider2D hitMarkerCollider;
     [HideInInspector]
     public HitBar curCollidingHitArea;
+    public bool canHit;
 
     // Private
     private RectTransform _hitMarkerRT;
@@ -46,11 +48,26 @@ public class AttackBar : MonoBehaviour
     private Vector3 _initialPos;
     private Vector3 _nextPos;
 
-
-    // Start is called before the first frame update
     void Awake()
     {
         InitialLaunch();
+    }
+
+    // starting relic turn, pressing fight counts as a relic click fix that
+    public void LandHitMarker()
+    {      
+        // Check if the user performed the land hit marker input
+        if (canHit && _combatManager.CheckRelicUIHiderStatus())
+        {
+            StartCoroutine("BeginHitMarkerStoppingSequence"); // Stop the hit marker
+            UpdateIfRelicCanAttack(false);
+            _combatManager.activeRelic.DetermineUnitMoveChoice(_combatManager.activeRelic, _combatManager.relicActiveSkill);
+        }
+    }
+
+    public void UpdateIfRelicCanAttack(bool cond)
+    {
+        canHit = cond;
     }
 
     void InitialLaunch()
@@ -60,8 +77,6 @@ public class AttackBar : MonoBehaviour
         _hitMarkerVisual = hitMarker.transform.GetChild(0).gameObject;
         _hitMarkerVisual.SetActive(false);
         _hitMarkerRT = hitMarker.GetComponent<RectTransform>();
-
-        attackInputLocked = true;
     }
 
     public void DisableBarVisuals()
@@ -202,8 +217,6 @@ public class AttackBar : MonoBehaviour
     /// </summary>
     public IEnumerator BeginHitMarkerStoppingSequence()
     {
-        attackInputLocked = true;
-
         // Stop hit marker
         StopHitMarker();
 
@@ -222,8 +235,6 @@ public class AttackBar : MonoBehaviour
     /// </summary>
     public void BeginHitMarkerStartingSequence()
     {
-        attackInputLocked = false;
-
         // Reset values
         ResetAttackBarToDefault();
 

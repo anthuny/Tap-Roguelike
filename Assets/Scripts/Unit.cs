@@ -22,9 +22,12 @@ public class Unit : MonoBehaviour
     [Tooltip("The percentage rate of whether the enemy will attack before the player")]
     public int speed;
     public int turnSpeed;
+    public string inflictedType;
+
     [Header("The liklihood of what the enemy will do on their turn")]
     public int attackChance;
     public int skillChance;
+
 
     [Header("Skills")]
     public SkillData passiveSkill;
@@ -51,17 +54,17 @@ public class Unit : MonoBehaviour
         if (unitType == UnitType.ENEMY)
         {
             // If i unit's attack chance is greater then their skill chance
-            if (unit.attackChance > unit.skillChance)
-                unit.UnitSkillFunctionality(skillData);   // Perform a basic attack
+            //if (unit.attackChance > unit.skillChance)
+                //unit.UnitSkillFunctionality(skillData);   // Perform a basic attack
 
             // If i enemy's skill chance is greater then their skill chance
-            else
-                unit.UnitSkillFunctionality(unit.primarySkill);  // Enemy casts a random skill
+            //else
+            //unit.UnitSkillFunctionality(unit.primarySkill);  // Enemy casts a random skill
         }
 
         if (unitType == UnitType.ALLY)
         {
-            // Need skill UI and functionality working for relics
+            UnitSkillFunctionality(skillData);
         }
     }
 
@@ -79,11 +82,62 @@ public class Unit : MonoBehaviour
                 switch (skillData.targetType)
                 {
                     case "Single":
-                        targets[Random.Range(0, targets.Count)].AdjustCurHealth(RoundFloatToInt(-(damage * skillData.damage)), this, targets[0], skillData);
 
+                        Unit targetSingle = _combatManager.targetSelections[0].GetComponentInParent<Unit>();
+
+                        switch (skillData.skillMode)
+                        {
+                            case "Damage":
+                                targetSingle.AdjustCurHealth(RoundFloatToInt(-skillData.valueOutcome), this, targetSingle, skillData);
+                                break;
+
+                            case "PercentMaxHealthDamage":
+                                targetSingle.AdjustCurHealth(RoundFloatToInt(-((skillData.valueOutcome / 100) * targetSingle.maxHealth)), this, targetSingle, skillData);
+                                break;
+
+                            case "Heal":
+                                targetSingle.AdjustCurHealth(RoundFloatToInt(skillData.valueOutcome), this, targetSingle, skillData);
+                                break;
+                            case "PercentMaxHealHeal":
+                                targetSingle.AdjustCurHealth(RoundFloatToInt((skillData.valueOutcome / 100) * targetSingle.maxHealth), this, targetSingle, skillData);
+                                break;
+                        }
+
+                        if (skillData.inflictType != "None")
+                        {
+                            targetSingle.AssignInflict(skillData.inflictType, this, targetSingle, skillData.inflictType);
+                        }
                         break;
 
                     case "Multiple":
+
+                        for (int i = 0; i < _combatManager.targetSelections.Count; i++)
+                        {
+                            Unit targetMultiple = _combatManager.targetSelections[i].GetComponentInParent<Unit>();
+
+                            switch (skillData.skillMode)
+                            {
+                                case "Damage":
+                                    targetMultiple.AdjustCurHealth(RoundFloatToInt(-skillData.valueOutcome), this, targetMultiple, skillData);
+                                    break;
+
+                                case "PercentMaxHealthDamage":
+                                    targetMultiple.AdjustCurHealth(RoundFloatToInt(-((skillData.valueOutcome / 100) * targetMultiple.maxHealth)), this, targetMultiple, skillData);
+                                    break;
+
+                                case "Heal":
+                                    targetMultiple.AdjustCurHealth(RoundFloatToInt(skillData.valueOutcome), this, targetMultiple, skillData);
+                                    break;
+                                case "PercentMaxHealhHeal":
+                                    targetMultiple.AdjustCurHealth(RoundFloatToInt((skillData.valueOutcome / 100) * targetMultiple.maxHealth), this, targetMultiple, skillData);
+                                    break;
+                            }
+
+                            if (skillData.inflictType != "None")
+                            {
+                                targetMultiple.AssignInflict(skillData.inflictType, this, targetMultiple, skillData.inflictType);
+                            }
+                        }
                         break;
                     case "None":
                         break;
@@ -104,7 +158,12 @@ public class Unit : MonoBehaviour
                 }
 
                 break;
+
+            case "None":
+                break;
         }
+
+        _combatManager.StartCoroutine("StartEnemysTurn");
     }
 
     void AssignSelectionCount(SkillData skill)
@@ -136,6 +195,17 @@ public class Unit : MonoBehaviour
             _devManager.StartCoroutine(_devManager.FlashText(caster.name + " attacked " + target.name + " using regular attack " + " (" + dmg + ")"));
 
         curHealth += dmg;
+
+        _combatManager.UpdateSkillUI();
+    }
+
+    public void AssignInflict(string inflict, Unit caster, Unit target, string skillData)
+    {
+        _devManager.StartCoroutine(_devManager.FlashText(caster.name + " Inflicted " + target.name + " with " + skillData));
+
+        inflictedType = inflict;
+
+        _combatManager.UpdateSkillUI();
     }
 
     /// <summary>

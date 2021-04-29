@@ -10,12 +10,25 @@ public class CombatManager : MonoBehaviour
     [Header("General")]
     public Relic startingRelic;
     [SerializeField] private Transform _enemySpawnPoint;
-    [SerializeField] private Transform _RelicSpawnPoint;
+    [SerializeField] private Transform _relicSpawnPoint;
     [SerializeField] private Room _activeRoom;
     public List<Unit> _enemies = new List<Unit>();
+    [Tooltip("Original position of enemies in active room")]
+    public List<Unit> _enemiesPosition = new List<Unit>();
     public List<Unit> _allies = new List<Unit>();
     [SerializeField] private AttackBar _attackBar;
     [SerializeField] private Button _fightButton;
+    
+    [Space(1)]
+    [Header("Skill Keywords")]
+    public string[] skillType;
+    public string[] skillModes;
+    public string[] targetType;
+    public string[] attackSequence;
+    public string[] targetsAllowed;
+    public string[] inflictType;
+
+    
 
     [Header("Combat Settings")]
     [SerializeField] private float postEnemyAttackWait;
@@ -81,6 +94,22 @@ public class CombatManager : MonoBehaviour
         _fightButton.gameObject.SetActive(cond);
     }
 
+    public bool CheckRelicUIHiderStatus()
+    {
+        // If the relic UI hider is off
+        if (_relicUIHider.alpha == _relicUIHiderOffVal)
+            return true;
+
+        if (_relicUIHider.alpha == _relicUIHiderOnVal)
+            return false;
+
+        if (_relicUIHider.alpha == _relicUIHiderSelectVal)
+            return false;
+
+        else
+            return false;
+    }
+
     /// <summary>
     /// Spawn enemies in room
     /// </summary>
@@ -126,7 +155,7 @@ public class CombatManager : MonoBehaviour
                 room.roomEnemies[i].passiveSkill.name,
                 room.roomEnemies[i].passiveSkill.description,
                 room.roomEnemies[i].passiveSkill.turnCooldown,
-                room.roomEnemies[i].passiveSkill.damage,
+                room.roomEnemies[i].passiveSkill.valueOutcome,
                 room.roomEnemies[i].passiveSkill.missDamageMultiplier,
                 room.roomEnemies[i].passiveSkill.goodDamageMultiplier,
                 room.roomEnemies[i].passiveSkill.greatDamageMultiplier,
@@ -151,7 +180,7 @@ public class CombatManager : MonoBehaviour
                 room.roomEnemies[i].basicSkill.name,
                 room.roomEnemies[i].basicSkill.description,
                 room.roomEnemies[i].basicSkill.turnCooldown,
-                room.roomEnemies[i].basicSkill.damage,
+                room.roomEnemies[i].basicSkill.valueOutcome,
                 room.roomEnemies[i].basicSkill.missDamageMultiplier,
                 room.roomEnemies[i].basicSkill.goodDamageMultiplier,
                 room.roomEnemies[i].basicSkill.greatDamageMultiplier,
@@ -176,7 +205,7 @@ public class CombatManager : MonoBehaviour
                 room.roomEnemies[i].primarySkill.name,
                 room.roomEnemies[i].primarySkill.description,
                 room.roomEnemies[i].primarySkill.turnCooldown,
-                room.roomEnemies[i].primarySkill.damage,
+                room.roomEnemies[i].primarySkill.valueOutcome,
                 room.roomEnemies[i].primarySkill.missDamageMultiplier,
                 room.roomEnemies[i].primarySkill.goodDamageMultiplier,
                 room.roomEnemies[i].primarySkill.greatDamageMultiplier,
@@ -201,7 +230,7 @@ public class CombatManager : MonoBehaviour
                 room.roomEnemies[i].secondarySkill.name,
                 room.roomEnemies[i].secondarySkill.description,
                 room.roomEnemies[i].secondarySkill.turnCooldown,
-                room.roomEnemies[i].secondarySkill.damage,
+                room.roomEnemies[i].secondarySkill.valueOutcome,
                 room.roomEnemies[i].secondarySkill.missDamageMultiplier,
                 room.roomEnemies[i].secondarySkill.goodDamageMultiplier,
                 room.roomEnemies[i].secondarySkill.greatDamageMultiplier,
@@ -226,7 +255,7 @@ public class CombatManager : MonoBehaviour
                 room.roomEnemies[i].alternateSkill.name,
                 room.roomEnemies[i].alternateSkill.description,
                 room.roomEnemies[i].alternateSkill.turnCooldown,
-                room.roomEnemies[i].alternateSkill.damage,
+                room.roomEnemies[i].alternateSkill.valueOutcome,
                 room.roomEnemies[i].alternateSkill.missDamageMultiplier,
                 room.roomEnemies[i].alternateSkill.goodDamageMultiplier,
                 room.roomEnemies[i].alternateSkill.greatDamageMultiplier,
@@ -251,7 +280,7 @@ public class CombatManager : MonoBehaviour
                 room.roomEnemies[i].ultimateSkill.name,
                 room.roomEnemies[i].ultimateSkill.description,
                 room.roomEnemies[i].ultimateSkill.turnCooldown,
-                room.roomEnemies[i].ultimateSkill.damage,
+                room.roomEnemies[i].ultimateSkill.valueOutcome,
                 room.roomEnemies[i].ultimateSkill.missDamageMultiplier,
                 room.roomEnemies[i].ultimateSkill.goodDamageMultiplier,
                 room.roomEnemies[i].ultimateSkill.greatDamageMultiplier,
@@ -265,11 +294,11 @@ public class CombatManager : MonoBehaviour
             #endregion
 
             _enemies.Add(activeEnemy);
+            _enemiesPosition.Add(activeEnemy);
             activeEnemy.targets.Add(activeRelic);
             activeEnemy.CalculateSpeedFinal();
         }
     }
-
 
     /// <summary>
     /// Spawns a relic
@@ -284,8 +313,8 @@ public class CombatManager : MonoBehaviour
 
         GameObject go = new GameObject();
         go.name = relic.name;
-        go.transform.SetParent(_RelicSpawnPoint.transform);
-        go.transform.position = _RelicSpawnPoint.transform.position;
+        go.transform.SetParent(_relicSpawnPoint.transform);
+        go.transform.position = _relicSpawnPoint.transform.position;
 
         Image image = go.AddComponent<Image>();
         image.color = relic.color;
@@ -317,7 +346,7 @@ public class CombatManager : MonoBehaviour
             relic.passiveSkill.name,
             relic.passiveSkill.description,
             relic.passiveSkill.turnCooldown,
-            relic.passiveSkill.damage,
+            relic.passiveSkill.valueOutcome,
             relic.passiveSkill.missDamageMultiplier,
             relic.passiveSkill.goodDamageMultiplier,
             relic.passiveSkill.greatDamageMultiplier,
@@ -347,7 +376,7 @@ public class CombatManager : MonoBehaviour
             relic.basicSkill.name,
             relic.basicSkill.description,
             relic.basicSkill.turnCooldown,
-            relic.basicSkill.damage,
+            relic.basicSkill.valueOutcome,
             relic.basicSkill.missDamageMultiplier,
             relic.basicSkill.goodDamageMultiplier,
             relic.basicSkill.greatDamageMultiplier,
@@ -377,7 +406,7 @@ public class CombatManager : MonoBehaviour
             relic.primarySkill.name,
             relic.primarySkill.description,
             relic.primarySkill.turnCooldown,
-            relic.primarySkill.damage,
+            relic.primarySkill.valueOutcome,
             relic.primarySkill.missDamageMultiplier,
             relic.primarySkill.goodDamageMultiplier,
             relic.primarySkill.greatDamageMultiplier,
@@ -407,7 +436,7 @@ public class CombatManager : MonoBehaviour
             relic.secondarySkill.name,
             relic.secondarySkill.description,
             relic.secondarySkill.turnCooldown,
-            relic.secondarySkill.damage,
+            relic.secondarySkill.valueOutcome,
             relic.secondarySkill.missDamageMultiplier,
             relic.secondarySkill.goodDamageMultiplier,
             relic.secondarySkill.greatDamageMultiplier,
@@ -437,7 +466,7 @@ public class CombatManager : MonoBehaviour
             relic.alternateSkill.name,
             relic.alternateSkill.description,
             relic.alternateSkill.turnCooldown,
-            relic.alternateSkill.damage,
+            relic.alternateSkill.valueOutcome,
             relic.alternateSkill.missDamageMultiplier,
             relic.alternateSkill.goodDamageMultiplier,
             relic.alternateSkill.greatDamageMultiplier,
@@ -467,7 +496,7 @@ public class CombatManager : MonoBehaviour
             relic.ultimateSkill.name,
             relic.ultimateSkill.description,
             relic.ultimateSkill.turnCooldown,
-            relic.ultimateSkill.damage,
+            relic.ultimateSkill.valueOutcome,
             relic.ultimateSkill.missDamageMultiplier,
             relic.ultimateSkill.goodDamageMultiplier,
             relic.ultimateSkill.greatDamageMultiplier,
@@ -519,7 +548,7 @@ public class CombatManager : MonoBehaviour
     void DetermineTurnOrder()
     {
         StartCoroutine(_devManager.FlashText("Determining turn order"));
-
+      
         // Determine enemy turn order
         _enemies.Sort(ApplyEnemyTurnOrder);
         _enemies.Reverse();
@@ -545,7 +574,7 @@ public class CombatManager : MonoBehaviour
             StartCoroutine(StartRelicTurn());   // Start relic turn
     }
 
-    IEnumerator StartRelicTurn()
+    public IEnumerator StartRelicTurn()
     {
         StartCoroutine(_devManager.FlashText("Starting Relic's turn"));
         relicTurn = true;
@@ -555,13 +584,19 @@ public class CombatManager : MonoBehaviour
         // Loop through room's allies for their turns
         for (int i = 0; i < _allies.Count; i++)
         {
-            UpdateActiveRelic(_allies[i]);     // Update active enemy to i enemy
-            _allies[i].DetermineUnitMoveChoice(_allies[i], _allies[i].basicSkill);      // Determine ally move choice
-            yield return new WaitForSeconds(postEnemyAttackWait);             // Wait time before continuing for loop
+            UpdateActiveRelic(_allies[i]);   // Update active enemy to i enemy
+
+            _skillUIManager.AssignFirstSkill(_allies[i].basicSkill);    // Assign relic's active skill  on the start of their turn
+            
+            _skillUIManager.relicBasicSelect.ToggleSelectionImage();    // Apply basic skill 
+
+            _attackBar.UpdateIfRelicCanAttack(true);
+
+            yield return new WaitForSeconds(postAllyAttackWait);             // Wait time before continuing for loop
         }
     }
 
-    IEnumerator StartEnemysTurn()
+    public IEnumerator StartEnemysTurn()
     {
         StartCoroutine(_devManager.FlashText("Starting enemy(s) turn"));
         // If it's the relic's turn
@@ -580,13 +615,15 @@ public class CombatManager : MonoBehaviour
         StartCoroutine(StartRelicTurn());
     }
 
+    public void UpdateSkillUI()
+    {
+
+    }
+
     /// <summary>
     /// Updates selection images
     /// </summary>
-    /// <param name="enabled"></param>
-    /// <param name="selection"></param>
-    public void ManageSelectionCount(bool enabled, bool isSkill, Selector selectionInput, Image selectImage, 
-        RectTransform iconBorderRT, Vector2 sizeDelta)
+    public void ManageSelectionCount(bool enabled, bool isSkill, Selector selectionInput, Image selectImage)
     {
         int curSelections;
         int maxSelections;
@@ -594,66 +631,78 @@ public class CombatManager : MonoBehaviour
 
         if (isSkill)
         {
-            targetList = targetSelections;
+            targetList = targetSelections; // Initialization
 
+            #region Auto Fill Selections for activating a skill
+            // If the max target selection for active skill is at least 1
             if (maxTargetSelections > 0)
             {
+                // Loop through the count of max target selection for active skill
                 for (int i = 0; i < maxTargetSelections; i++)
                 {
+                    curTargetSelections = 0;
+
+                    // If max target selections is larger then current target selections
                     if (curTargetSelections < maxTargetSelections)
                     {
-                        curTargetSelections++;
-                        targetSelections.Add(_enemies[i].transform.GetChild(0).GetComponent<Selector>());
-                        _enemies[i].transform.GetChild(0).GetComponent<Selector>().selectEnabled = true;
-                        _enemies[i].transform.GetChild(0).GetComponent<Image>().enabled = true;
+                        curTargetSelections++; // Increase current target selection
+                        targetSelections.Add(_enemiesPosition[i].transform.GetChild(0).GetComponent<Selector>()); // Add target selection to stored list
+                        _enemiesPosition[i].transform.GetChild(0).GetComponent<Selector>().selectEnabled = true; // Tell the oldest image script in stored selection list that the image is disabled
+                        _enemiesPosition[i].transform.GetChild(0).GetComponent<Image>().enabled = true; // Disable the oldest image in stored selection list
                     }
                 }
             }
+            #endregion
 
             #region Remove over capped selections
+            // If the old current target selections is larger then the max target selections for active skill
+            // If old current target selection is not 0
             if (oldCurTargetSelections > maxTargetSelections && oldCurTargetSelections != 0)
             {
-                int val = (oldCurTargetSelections - maxTargetSelections);
+                int val = (oldCurTargetSelections - maxTargetSelections); // Find the difference in remaining current target selections
 
+                // Loop through remaining target selections
                 for (int i = 0; i < val; i++)
                 {
-                    targetList[0].GetComponent<Image>().enabled = false;
-                    targetList[0].selectEnabled = false;
-                    targetList.RemoveAt(0);
+                    targetList[0].GetComponent<Image>().enabled = false; // Disable the selection image
+                    targetList[0].selectEnabled = false; // Tell the selection image script that it's disabled
+                    targetList.RemoveAt(0); // Remove the oldest image from the stored active selection list
                 }
 
-                curTargetSelections = targetList.Count;
+                curTargetSelections = targetList.Count; // Initialize
             }
             #endregion
 
-            // If a skill can hit all enemies in the room
+            #region Auto Fill Selections for max enemy count size
+            // If a skill max target selections equals to the same amount of max enemies in active room
             if (maxTargetSelections == activeRoomMaxEnemiesCount)
             {
-                curTargetSelections = 0;
-                targetSelections.Clear();
+                curTargetSelections = 0; // Clear current target selections to 0
+                targetSelections.Clear(); // Clear targetSelection stored list
 
-                // Enable selections on all room enemies
+                // Loop through room's remaining enemies
                 for (int i = 0; i < _enemies.Count; i++)
                 {
-                    curTargetSelections++;
+                    curTargetSelections++; // Increase current target selections
+
                     targetSelections.Add(_enemies[i].transform.GetChild(0).GetComponent<Selector>());
-                    _enemies[i].transform.GetChild(0).GetComponent<Selector>().selectEnabled = true;
-                    _enemies[i].transform.GetChild(0).GetComponent<Image>().enabled = true;
+                    _enemies[i].transform.GetChild(0).GetComponent<Selector>().selectEnabled = true;    // Tell the oldest image script in stored selection list that the image is enabled                     
+                    _enemies[i].transform.GetChild(0).GetComponent<Image>().enabled = true; // Enable the oldest image in stored selection list
                 }
             }
+            #endregion
 
-
-
-            curSelections = curSkillSelections;
-            maxSelections = maxSkillSelections;
-            targetList = skillSelections;
+            curSelections = curSkillSelections; // Initialization
+            maxSelections = maxSkillSelections; // Initialization
+            targetList = skillSelections; // Initialization
         }
         else
         {
-            curSelections = curTargetSelections;
-            maxSelections = maxTargetSelections;
-            targetList = targetSelections;
+            curSelections = curTargetSelections; // Initialization
+            maxSelections = maxTargetSelections; // Initialization
+            targetList = targetSelections; // Initialization
         }
+
 
         // If the current amount of selections equals the maximum amount of selections for the active unit's current skill
         if (curSelections == maxSelections)
@@ -668,20 +717,20 @@ public class CombatManager : MonoBehaviour
                 targetList[0].selectEnabled = false;   // Tell the oldest image script in stored selection list that the image is disabled
                 targetList.RemoveAt(0);    // Remove the oldest image from the stored active selection list
 
-                UpdateRelicUIHider(_relicUIHiderOffVal);
+                UpdateRelicUIHider(_relicUIHiderOffVal); // Update relic UI state to be off mode
             }
             else    // If a selection is being disabled
             {
                 if (isSkill)
-                    curSkillSelections--;
+                    curSkillSelections--;   // Remove a count from the current skill selections
                 else
-                    curTargetSelections--;    // Remove a count from the current selections
+                    curTargetSelections--;    // Remove a count from the current target selections
 
                 selectImage.enabled = false;   // Disable the image
                 selectionInput.selectEnabled = false;    // Tell the image script that the image is disabled
                 targetList.Remove(selectionInput);      // Remove selection from stored active selection list
 
-                UpdateRelicUIHider(_relicUIHiderSelectVal);
+                UpdateRelicUIHider(_relicUIHiderSelectVal); // Update relic UI state to be on select mode
                 return;
             }
         }
@@ -692,28 +741,28 @@ public class CombatManager : MonoBehaviour
             if (enabled)    // If a selection is being enabled
             {
                 if (isSkill)
-                    curSkillSelections++;
+                    curSkillSelections++;   // Remove a count from the current skill selections
                 else
-                    curTargetSelections++;    // Remove a count from the current selections
+                    curTargetSelections++;    // Remove a count from the current target selections
 
                 selectImage.enabled = true;    // Enabled the image
                 selectionInput.selectEnabled = true;     // Tell the image script that the image is enabled
                 targetList.Add(selectionInput);     // Add selection into stored active selection list
 
-                UpdateRelicUIHider(_relicUIHiderOffVal);
+                UpdateRelicUIHider(_relicUIHiderOffVal); // Update relic UI state to be off mode
             }
             else    // If a selection is being disabled
             {
                 if (isSkill)
-                    curSkillSelections--;
+                    curSkillSelections--;     // Remove a count from the current skill selections
                 else
-                    curTargetSelections--;    // Remove a count from the current selections
+                    curTargetSelections--;    // Remove a count from the current target selections
 
                 selectImage.enabled = false;   // Disable the image
                 selectionInput.selectEnabled = false;
                 targetList.Remove(selectionInput);
 
-                UpdateRelicUIHider(_relicUIHiderSelectVal);
+                UpdateRelicUIHider(_relicUIHiderSelectVal); // Update relic UI state to be on select mode
             }
         }
     }

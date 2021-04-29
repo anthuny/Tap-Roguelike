@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Whirlwind
   m_EditorClassIdentifier: 
   skillType: Primary
-  skillMode: BaseDamage
+  skillMode: Damage
   targetType: Multiple
   attackSequence: Multiple
   targetsAllowed: Enemies
@@ -22,11 +22,11 @@ MonoBehaviour:
   name: Whirlwind
   description: Spin attack all enemy targets for 120% power.
   turnCooldown: 3
-  damage: 1.2
+  valueOutcome: 20
   missDamageMultiplier: 0
-  goodDamageMultiplier: 85
-  greatDamageMultiplier: 125
-  perfectDamageMultiplier: 160
+  goodDamageMultiplier: 0.85
+  greatDamageMultiplier: 1.25
+  perfectDamageMultiplier: 1.6
   procChance: 1
   missProcMultiplier: 0
   goodProcMultiplier: 1

@@ -21,7 +21,7 @@ public class Skill : ScriptableObject
     [Tooltip("The skill's turn cooldown, if not applicable set to 0")]
     public int turnCooldown;
     [Tooltip("The skill's damage, if not applicable set to 0.")]
-    public float damage;
+    public float valueOutcome;
 
     [Space(1)]
 
