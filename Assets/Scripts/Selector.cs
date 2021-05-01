@@ -31,6 +31,9 @@ public class Selector : MonoBehaviour
     public Color skillSelectionColour;
   
     [SerializeField] private bool isSkill;
+    public bool startingSkill;
+    public bool startingSkillActivated;
+    public int enemyCount;
 
     private void Awake()
     {
@@ -55,22 +58,29 @@ public class Selector : MonoBehaviour
             // If selection is not displayed, display it
             if (!selectEnabled)
             {
-                _combatManager.maxTargetSelections = _combatManager.relicActiveSkill.maxTargetCount;
-                _combatManager.maxSkillSelections = _combatManager.relicActiveSkill.maxSkillCount;
-                _combatManager.oldCurTargetSelections = _combatManager.curTargetSelections;
+                if (startingSkill && !startingSkillActivated)
+                {
+                    startingSkillActivated = true;
 
-                _combatManager.ManageSelectionCount(true, true, this, selectionImage);
+                    _combatManager.ManageSelectionCount(true, this,
+                    _combatManager.curSkillSelections, skillData.maxSkillCount, _combatManager.curTargetSelections, skillData.maxTargetCount, skillData, true);
+                }
+                else
+                {
+                    _combatManager.ManageSelectionCount(true, this,
+                    _combatManager.curSkillSelections, skillData.maxSkillCount, _combatManager.curTargetSelections, skillData.maxTargetCount, skillData, false);
+                }
             }
         }
         else
         {
             // If selection is not displayed, display it 
             if (!selectEnabled)
-                _combatManager.ManageSelectionCount(true, false, this, selectionImage);
-            
+                _combatManager.UpdateTargetSelection(this, enemyCount, true);
+
             // If selection is displayed, hide it
             else
-                _combatManager.ManageSelectionCount(false, false, this, selectionImage);
+                    _combatManager.UpdateTargetSelection(this, enemyCount, false);
         }
     }
 

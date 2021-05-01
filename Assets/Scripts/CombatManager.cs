@@ -78,7 +78,7 @@ public class CombatManager : MonoBehaviour
 
     void InitialLaunch()
     {
-        UpdateRelicUIHider(_relicUIHiderOnVal);
+
     }
 
     public void StartBattle()
@@ -295,6 +295,7 @@ public class CombatManager : MonoBehaviour
 
             _enemies.Add(activeEnemy);
             _enemiesPosition.Add(activeEnemy);
+            activeEnemy.transform.GetChild(0).GetComponent<Selector>().enemyCount = _enemiesPosition.IndexOf(activeEnemy);
             activeEnemy.targets.Add(activeRelic);
             activeEnemy.CalculateSpeedFinal();
         }
@@ -578,7 +579,7 @@ public class CombatManager : MonoBehaviour
     {
         StartCoroutine(_devManager.FlashText("Starting Relic's turn"));
         relicTurn = true;
-        UpdateRelicUIHider(_relicUIHiderSelectVal);     // Toggle off attack bar hider 
+
         _attackBar.BeginHitMarkerStartingSequence();     // Start attack bar hit marker
 
         // Loop through room's allies for their turns
@@ -587,7 +588,8 @@ public class CombatManager : MonoBehaviour
             UpdateActiveRelic(_allies[i]);   // Update active enemy to i enemy
 
             _skillUIManager.AssignFirstSkill(_allies[i].basicSkill);    // Assign relic's active skill  on the start of their turn
-            
+
+            //AddSkillSelectionsManual(_allies[i].basicSkill);
             _skillUIManager.relicBasicSelect.ToggleSelectionImage();    // Apply basic skill 
 
             _attackBar.UpdateIfRelicCanAttack(true);
@@ -599,10 +601,6 @@ public class CombatManager : MonoBehaviour
     public IEnumerator StartEnemysTurn()
     {
         StartCoroutine(_devManager.FlashText("Starting enemy(s) turn"));
-        // If it's the relic's turn
-        if (relicTurn)
-            _attackBar.StartCoroutine("BeginHitMarkerStoppingSequence"); // Stop the hit marker
-        UpdateRelicUIHider(_relicUIHiderOnVal);        // Toggle on the attack bar hider
 
         // Loop through room's enemies for their turns
         for (int i = 0; i < _enemies.Count; i++)
@@ -620,162 +618,151 @@ public class CombatManager : MonoBehaviour
 
     }
 
-    /// <summary>
-    /// Updates selection images
-    /// </summary>
-    public void ManageSelectionCount(bool enabled, bool isSkill, Selector selectionInput, Image selectImage)
+    #region Selection Manager
+
+    #region Edit Target Selections
+
+    void ClearTargetSelections(ref List<Selector> targetSelections)
     {
-        int curSelections;
-        int maxSelections;
-        List<Selector> targetList = new List<Selector>();
-
-        if (isSkill)
+        // Clear all current target selections
+        for (int i = 0; i < curTargetSelections; i++)
         {
-            targetList = targetSelections; // Initialization
+            targetSelections[i].transform.GetComponent<Selector>().selectEnabled = false; // Tell the oldest image script in stored selection list that the image is disabled
+            targetSelections[i].transform.GetComponent<Image>().enabled = false; // Disable the oldest image in stored selection list
+        }
 
-            #region Auto Fill Selections for activating a skill
-            // If the max target selection for active skill is at least 1
-            if (maxTargetSelections > 0)
+        curTargetSelections = 0;
+        targetSelections.Clear();
+        UpdateRelicUIHider();
+    }
+
+    void AddTargetSelections(ref int maxTargetSelections, ref List<Unit> _enemiesPosition, ref List<Selector> targetSelections)
+    {
+        // Add current target selections
+        if (maxTargetSelections > 0)
+        {
+            for (int i = 0; i < maxTargetSelections; i++)
             {
-                // Loop through the count of max target selection for active skill
-                for (int i = 0; i < maxTargetSelections; i++)
-                {
-                    curTargetSelections = 0;
-
-                    // If max target selections is larger then current target selections
-                    if (curTargetSelections < maxTargetSelections)
-                    {
-                        curTargetSelections++; // Increase current target selection
-                        targetSelections.Add(_enemiesPosition[i].transform.GetChild(0).GetComponent<Selector>()); // Add target selection to stored list
-                        _enemiesPosition[i].transform.GetChild(0).GetComponent<Selector>().selectEnabled = true; // Tell the oldest image script in stored selection list that the image is disabled
-                        _enemiesPosition[i].transform.GetChild(0).GetComponent<Image>().enabled = true; // Disable the oldest image in stored selection list
-                    }
-                }
+                curTargetSelections++;
+                targetSelections.Add(_enemiesPosition[i].transform.GetChild(0).GetComponent<Selector>()); // Add target selection to stored list
+                _enemiesPosition[i].transform.GetChild(0).GetComponent<Selector>().selectEnabled = true; // Tell the oldest image script in stored selection list that the image is disabled
+                _enemiesPosition[i].transform.GetChild(0).GetComponent<Image>().enabled = true; // Disable the oldest image in stored selection list
             }
-            #endregion
 
-            #region Remove over capped selections
-            // If the old current target selections is larger then the max target selections for active skill
-            // If old current target selection is not 0
-            if (oldCurTargetSelections > maxTargetSelections && oldCurTargetSelections != 0)
+            UpdateRelicUIHider();
+        }
+    }
+
+    public void UpdateTargetSelection(Selector selector, int selectedTargetIndex, bool cond)
+    {
+        if (activeRoomMaxEnemiesCount == curTargetSelections)
+            return;
+
+        if (cond)
+        {
+            targetSelections.Add(selector);
+            curTargetSelections++;
+
+            if (curTargetSelections > maxTargetSelections)
             {
-                int val = (oldCurTargetSelections - maxTargetSelections); // Find the difference in remaining current target selections
-
-                // Loop through remaining target selections
-                for (int i = 0; i < val; i++)
-                {
-                    targetList[0].GetComponent<Image>().enabled = false; // Disable the selection image
-                    targetList[0].selectEnabled = false; // Tell the selection image script that it's disabled
-                    targetList.RemoveAt(0); // Remove the oldest image from the stored active selection list
-                }
-
-                curTargetSelections = targetList.Count; // Initialize
+                targetSelections[0].transform.GetComponent<Selector>().selectEnabled = false; // Tell the oldest image script in stored selection list that the image is disabled
+                targetSelections[0].transform.GetComponent<Image>().enabled = false; // Disable the oldest image in stored selection list
+                targetSelections.RemoveAt(0);
+                curTargetSelections--;
             }
-            #endregion
-
-            #region Auto Fill Selections for max enemy count size
-            // If a skill max target selections equals to the same amount of max enemies in active room
-            if (maxTargetSelections == activeRoomMaxEnemiesCount)
-            {
-                curTargetSelections = 0; // Clear current target selections to 0
-                targetSelections.Clear(); // Clear targetSelection stored list
-
-                // Loop through room's remaining enemies
-                for (int i = 0; i < _enemies.Count; i++)
-                {
-                    curTargetSelections++; // Increase current target selections
-
-                    targetSelections.Add(_enemies[i].transform.GetChild(0).GetComponent<Selector>());
-                    _enemies[i].transform.GetChild(0).GetComponent<Selector>().selectEnabled = true;    // Tell the oldest image script in stored selection list that the image is enabled                     
-                    _enemies[i].transform.GetChild(0).GetComponent<Image>().enabled = true; // Enable the oldest image in stored selection list
-                }
-            }
-            #endregion
-
-            curSelections = curSkillSelections; // Initialization
-            maxSelections = maxSkillSelections; // Initialization
-            targetList = skillSelections; // Initialization
         }
         else
         {
-            curSelections = curTargetSelections; // Initialization
-            maxSelections = maxTargetSelections; // Initialization
-            targetList = targetSelections; // Initialization
+            targetSelections.Remove(selector);
+            curTargetSelections--;
         }
 
+        _enemiesPosition[selectedTargetIndex].transform.GetChild(0).GetComponent<Selector>().selectEnabled = cond; // Tell the oldest image script in stored selection list that the image is disabled
+        _enemiesPosition[selectedTargetIndex].transform.GetChild(0).GetComponent<Image>().enabled = cond; // Disable the oldest image in stored selection list
 
-        // If the current amount of selections equals the maximum amount of selections for the active unit's current skill
-        if (curSelections == maxSelections)
+        UpdateRelicUIHider();
+    }
+
+    #endregion
+
+    #region Edit Skill Selections
+    void ClearSkillSelections(ref int curSkillSelections, ref List<Selector> skillSelections)
+    {
+        // Clear all current target selections
+        for (int i = 0; i < curSkillSelections; i++)
         {
-            if (enabled)    // If a selection is being enabled
-            {
-                selectImage.enabled = true;    // Enabled the image
-                selectionInput.selectEnabled = true; // Tell the image script that the image is enabled
-
-                targetList.Add(selectionInput); // Add select to list for storing
-                targetList[0].selectionImage.enabled = false;  // Disable the oldest image in stored selection list
-                targetList[0].selectEnabled = false;   // Tell the oldest image script in stored selection list that the image is disabled
-                targetList.RemoveAt(0);    // Remove the oldest image from the stored active selection list
-
-                UpdateRelicUIHider(_relicUIHiderOffVal); // Update relic UI state to be off mode
-            }
-            else    // If a selection is being disabled
-            {
-                if (isSkill)
-                    curSkillSelections--;   // Remove a count from the current skill selections
-                else
-                    curTargetSelections--;    // Remove a count from the current target selections
-
-                selectImage.enabled = false;   // Disable the image
-                selectionInput.selectEnabled = false;    // Tell the image script that the image is disabled
-                targetList.Remove(selectionInput);      // Remove selection from stored active selection list
-
-                UpdateRelicUIHider(_relicUIHiderSelectVal); // Update relic UI state to be on select mode
-                return;
-            }
+            curSkillSelections--;
+   
+            skillSelections[i].transform.GetComponent<Selector>().selectEnabled = false; // Tell the oldest image script in stored selection list that the image is disabled
+            skillSelections[i].transform.GetComponent<Image>().enabled = false; // Disable the oldest image in stored selection list
         }
 
-        // If the current amount of selections equals the maximum amount of selections for the active unit's current skill
-        else if (curSelections < maxSelections)
+        skillSelections.Clear();
+    }
+
+    void AddSkillSelections(ref int maxSkillSelections, ref int curSkillSelections, ref List<Selector> skillSelections, ref List<Selector> targetSelections, 
+        Selector selector, SkillData skillData)
+    {
+        // Add current target selections
+        if (maxSkillSelections > 0)
         {
-            if (enabled)    // If a selection is being enabled
+            for (int i = 0; i < maxSkillSelections; i++)
             {
-                if (isSkill)
-                    curSkillSelections++;   // Remove a count from the current skill selections
-                else
-                    curTargetSelections++;    // Remove a count from the current target selections
+                curSkillSelections++;
 
-                selectImage.enabled = true;    // Enabled the image
-                selectionInput.selectEnabled = true;     // Tell the image script that the image is enabled
-                targetList.Add(selectionInput);     // Add selection into stored active selection list
+                skillSelections.Add(selector);
 
-                UpdateRelicUIHider(_relicUIHiderOffVal); // Update relic UI state to be off mode
-            }
-            else    // If a selection is being disabled
-            {
-                if (isSkill)
-                    curSkillSelections--;     // Remove a count from the current skill selections
-                else
-                    curTargetSelections--;    // Remove a count from the current target selections
-
-                selectImage.enabled = false;   // Disable the image
-                selectionInput.selectEnabled = false;
-                targetList.Remove(selectionInput);
-
-                UpdateRelicUIHider(_relicUIHiderSelectVal); // Update relic UI state to be on select mode
+                skillSelections[i].transform.GetComponent<Selector>().selectEnabled = true; // Tell the oldest image script in stored selection list that the image is disabled
+                skillSelections[i].transform.GetComponent<Image>().enabled = true; // Disable the oldest image in stored selection list
             }
         }
     }
+    #endregion
+
+    /// <summary>
+    /// Updates selection images
+    /// </summary>
+    public void ManageSelectionCount(bool isSkill, Selector selectionInput, int curSkillSelections, int maxSkillSelections, 
+        int curTargetSelections, int maxTargetSelections, SkillData skillData, bool relicBasicSkill)
+    {
+
+        this.curSkillSelections = curSkillSelections;
+        this.maxSkillSelections = maxSkillSelections;
+        this.curTargetSelections = curTargetSelections;
+        this.maxTargetSelections = maxTargetSelections;
+
+        if (isSkill)
+        {
+            if (!relicBasicSkill)
+                ClearSkillSelections(ref this.curSkillSelections, ref skillSelections);
+
+            AddSkillSelections(ref this.maxSkillSelections, ref this.curSkillSelections, ref skillSelections, ref targetSelections, selectionInput, skillData);
+        }
+
+        if (!relicBasicSkill)
+            ClearTargetSelections(ref targetSelections);
+
+        AddTargetSelections(ref maxTargetSelections, ref _enemiesPosition, ref targetSelections);
+    }
+    #endregion
 
     /// <summary>
     /// Toggles the attack bar hider's display
     /// </summary>
     /// <param name="cond"></param>
-    private void UpdateRelicUIHider(float alpha)
+    private void UpdateRelicUIHider()
     {
-        // If the relic ui hider is not the called value
-        if (_relicUIHider.alpha != alpha)
-            _relicUIHider.alpha = alpha; // Update the relic ui hider alpha
+        if (relicTurn)
+        {
+            if (curTargetSelections == maxTargetSelections)
+                _relicUIHider.alpha = _relicUIHiderOffVal;
+
+            else if (curTargetSelections <= maxTargetSelections)
+                _relicUIHider.alpha = _relicUIHiderSelectVal;
+        }
+
+        else
+            _relicUIHider.alpha = _relicUIHiderOnVal;
     }
 
     void UpdateActiveRelic(Unit relic)

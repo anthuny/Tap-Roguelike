@@ -819,6 +819,9 @@ MonoBehaviour:
   skillBorderColour: {r: 0, g: 0, b: 0, a: 1}
   skillSelectionColour: {r: 0.9339623, g: 0.9197705, b: 0, a: 1}
   isSkill: 1
+  startingSkill: 0
+  startingSkillActivated: 0
+  enemyCount: 0
 --- !u!1 &346642337
 GameObject:
   m_ObjectHideFlags: 0
@@ -949,6 +952,9 @@ MonoBehaviour:
   skillBorderColour: {r: 0, g: 0, b: 0, a: 0}
   skillSelectionColour: {r: 0, g: 0, b: 0, a: 0}
   isSkill: 1
+  startingSkill: 1
+  startingSkillActivated: 0
+  enemyCount: 0
 --- !u!1 &382117595
 GameObject:
   m_ObjectHideFlags: 0
@@ -1185,7 +1191,7 @@ Canvas:
   m_SortingBucketNormalizedSize: 0
   m_AdditionalShaderChannelsFlag: 0
   m_SortingLayerID: 0
-  m_SortingOrder: -1
+  m_SortingOrder: 0
   m_TargetDisplay: 0
 --- !u!1 &527906416
 GameObject:
@@ -2492,7 +2498,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -106, y: -255}
+  m_AnchoredPosition: {x: -118, y: 1348}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1159792863
@@ -2778,6 +2784,9 @@ MonoBehaviour:
   skillBorderColour: {r: 0, g: 0, b: 0, a: 0}
   skillSelectionColour: {r: 0, g: 0, b: 0, a: 0}
   isSkill: 1
+  startingSkill: 0
+  startingSkillActivated: 0
+  enemyCount: 0
 --- !u!1 &1409981210
 GameObject:
   m_ObjectHideFlags: 0
@@ -3263,7 +3272,7 @@ MonoBehaviour:
   _devText: {fileID: 8324084206059333076, guid: 69866bc3c3b2bd54c9563ec0bd391223,
     type: 3}
   _font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
-  _maxDevTextCount: 16
+  _maxDevTextCount: 24
   fontSize: 44
 --- !u!4 &1542996650
 Transform:
@@ -3429,6 +3438,9 @@ MonoBehaviour:
   skillBorderColour: {r: 0, g: 0, b: 0, a: 0}
   skillSelectionColour: {r: 0, g: 0, b: 0, a: 0}
   isSkill: 1
+  startingSkill: 0
+  startingSkillActivated: 0
+  enemyCount: 0
 --- !u!1 &1576318520
 GameObject:
   m_ObjectHideFlags: 0
@@ -3601,6 +3613,9 @@ MonoBehaviour:
   skillBorderColour: {r: 0, g: 0, b: 0, a: 0}
   skillSelectionColour: {r: 0, g: 0, b: 0, a: 0}
   isSkill: 1
+  startingSkill: 0
+  startingSkillActivated: 0
+  enemyCount: 0
 --- !u!1 &1795577352
 GameObject:
   m_ObjectHideFlags: 0
@@ -3808,6 +3823,9 @@ MonoBehaviour:
   skillBorderColour: {r: 0, g: 0, b: 0, a: 0}
   skillSelectionColour: {r: 0, g: 0, b: 0, a: 0}
   isSkill: 1
+  startingSkill: 0
+  startingSkillActivated: 0
+  enemyCount: 0
 --- !u!1 &1903504887
 GameObject:
   m_ObjectHideFlags: 0

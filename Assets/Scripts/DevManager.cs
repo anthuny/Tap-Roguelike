@@ -43,7 +43,7 @@ public class DevManager : MonoBehaviour
         #region Spawn and assign core variables for Dev Text
         GameObject go = Instantiate(_devText, _devTextParent.transform.position, Quaternion.identity);
         go.transform.SetParent(_devTextParent.transform);
-        go.transform.position = new Vector3(_devTextParent.transform.position.x, 1900, _devTextParent.transform.position.z);
+        go.transform.position = _devTextParent.transform.position;
         go.name = "DevText";
         go.GetComponent<RectTransform>().sizeDelta = new Vector2(1000, 70);
 
