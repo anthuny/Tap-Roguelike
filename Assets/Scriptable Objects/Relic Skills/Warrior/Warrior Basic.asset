@@ -23,10 +23,10 @@ MonoBehaviour:
   description: Hit a single enemy for 100%
   turnCooldown: 1
   valueOutcome: 15
-  missDamageMultiplier: 0
-  goodDamageMultiplier: 0.85
-  greatDamageMultiplier: 1.25
-  perfectDamageMultiplier: 1.6
+  missValueMultiplier: 0
+  goodValueMultiplier: 1
+  greatValueMultiplier: 1.3
+  perfectValueMultiplier: 1.6
   procChance: 1
   missProcMultiplier: 0
   goodProcMultiplier: 1

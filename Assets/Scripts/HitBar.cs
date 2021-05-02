@@ -5,8 +5,9 @@ using UnityEngine;
 public class HitBar : MonoBehaviour
 {
     public enum BarType { MISS, GOOD, GREAT, PERFECT };
-
     public BarType curBarType;
+
+    private CombatManager _combatManager;
 
     [SerializeField] private Gamemode _gamemode;
     [SerializeField] private AttackBar _attackBar;
@@ -21,6 +22,7 @@ public class HitBar : MonoBehaviour
         hitAreaCollider = GetComponent<Collider2D>();
 
         _devManager = FindObjectOfType<DevManager>();
+        _combatManager = FindObjectOfType<CombatManager>();
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
@@ -43,31 +45,39 @@ public class HitBar : MonoBehaviour
             switch (curBarType)
             {
                 case BarType.PERFECT:
-                    // Debug
-                    StartCoroutine(_devManager.FlashText("Relic perfect hit"));
-                    // Cause Damage to relic
-                    _relicManager.RecieveDamage(3);
+                    
+                    StartCoroutine(_devManager.FlashText("Relic perfect hit")); // Debug
+
+                    _combatManager.relicActiveSkillValueModifier = _combatManager.relicActiveSkill.perfectValueMultiplier;
+                    _combatManager.relicActiveSkillProcModifier = _combatManager.relicActiveSkill.perfectProcMultiplier;
+
+                    _combatManager.activeRelic.DetermineUnitMoveChoice(_combatManager.activeRelic, _combatManager.relicActiveSkill);
                     break;
 
                 case BarType.GREAT:
-                    // Debug
-                    StartCoroutine(_devManager.FlashText("Relic great hit"));
-                    // Cause Damage to relic
-                    _relicManager.RecieveDamage(2);
+                    StartCoroutine(_devManager.FlashText("Relic great hit")); // Debug
+
+                    _combatManager.relicActiveSkillValueModifier = _combatManager.relicActiveSkill.greatValueMultiplier;
+                    _combatManager.relicActiveSkillProcModifier = _combatManager.relicActiveSkill.greatProcMultiplier;
+
+                    _combatManager.activeRelic.DetermineUnitMoveChoice(_combatManager.activeRelic, _combatManager.relicActiveSkill);
                     break;
 
                 case BarType.GOOD:
-                    // Debug
-                    StartCoroutine(_devManager.FlashText("Relic good hit"));
-                    // Cause Damage to relic
-                    _relicManager.RecieveDamage(1);
+                    StartCoroutine(_devManager.FlashText("Relic good hit")); // Debug
+                    _combatManager.relicActiveSkillValueModifier = _combatManager.relicActiveSkill.goodValueMultiplier;
+                    _combatManager.relicActiveSkillProcModifier = _combatManager.relicActiveSkill.goodProcMultiplier;
+
+                    _combatManager.activeRelic.DetermineUnitMoveChoice(_combatManager.activeRelic, _combatManager.relicActiveSkill);
                     break;
 
                 case BarType.MISS:
-                    // Debug
-                    StartCoroutine(_devManager.FlashText("Relic missed"));
-                    // Cause Damage to relic
-                    _relicManager.RecieveDamage(0);
+                    StartCoroutine(_devManager.FlashText("Relic missed")); // Debug
+
+                    _combatManager.relicActiveSkillValueModifier = _combatManager.relicActiveSkill.missValueMultiplier;
+                    _combatManager.relicActiveSkillProcModifier = _combatManager.relicActiveSkill.missProcMultiplier;
+
+                    _combatManager.activeRelic.DetermineUnitMoveChoice(_combatManager.activeRelic, _combatManager.relicActiveSkill);
                     break;
             }
         }

@@ -24,10 +24,10 @@ MonoBehaviour:
     the chance of applying bleed.
   turnCooldown: 0
   valueOutcome: 5
-  missDamageMultiplier: 0
-  goodDamageMultiplier: 85
-  greatDamageMultiplier: 125
-  perfectDamageMultiplier: 160
+  missValueMultiplier: 0
+  goodValueMultiplier: 1
+  greatValueMultiplier: 1
+  perfectValueMultiplier: 1
   procChance: 1
   missProcMultiplier: 0
   goodProcMultiplier: 1

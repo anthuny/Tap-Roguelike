@@ -22,16 +22,16 @@ MonoBehaviour:
   name: 'Slam '
   description: Attack a single enemy once for 100%
   turnCooldown: 1
-  damage: 1
-  missDamageMultiplier: 0
-  goodDamageMultiplier: 85
-  greatDamageMultiplier: 125
-  perfectDamageMultiplier: 160
-  procChance: 0
+  valueOutcome: 0
+  missValueMultiplier: 0
+  goodValueMultiplier: 1
+  greatValueMultiplier: 1.3
+  perfectValueMultiplier: 1.6
+  procChance: 1
   missProcMultiplier: 0
-  goodProcMultiplier: 0
-  greatProcMultiplier: 0
-  perfectProcMultiplier: 0
+  goodProcMultiplier: 1
+  greatProcMultiplier: 1
+  perfectProcMultiplier: 1
   skillIconColour: {r: 0, g: 0, b: 0, a: 0}
   skillBorderColour: {r: 0, g: 0, b: 0, a: 0}
   skillSelectionColour: {r: 0, g: 0, b: 0, a: 0}

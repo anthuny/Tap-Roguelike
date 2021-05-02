@@ -34,6 +34,7 @@ public class AttackBar : MonoBehaviour
     [SerializeField] private List<Transform> _spawnPoints = new List<Transform>();
     [SerializeField] private List<Transform> _hitAreas = new List<Transform>();
 
+
     // Public
     [HideInInspector]
     public Collider2D hitMarkerCollider;
@@ -61,7 +62,6 @@ public class AttackBar : MonoBehaviour
         {
             StartCoroutine("BeginHitMarkerStoppingSequence"); // Stop the hit marker
             UpdateIfRelicCanAttack(false);
-            _combatManager.activeRelic.DetermineUnitMoveChoice(_combatManager.activeRelic, _combatManager.relicActiveSkill);
         }
     }
 

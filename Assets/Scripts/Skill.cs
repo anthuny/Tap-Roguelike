@@ -27,13 +27,13 @@ public class Skill : ScriptableObject
 
     [Header("Damage Multiplers")]
     [Tooltip("The damage multiplier for missing. Multiplier is multiplied by damage for final outcome. If not applicable set to 0")]
-    public float missDamageMultiplier;
+    public float missValueMultiplier;
     [Tooltip("The damage multiplier for hitting a 'good'. Multiplier is multiplied by damage for final outcome. If not applicable set to 0")]
-    public float goodDamageMultiplier;
+    public float goodValueMultiplier;
     [Tooltip("The damage multiplier for hitting a 'great'. Multiplier is multiplied by damage for final outcome. If not applicable set to 0")]
-    public float greatDamageMultiplier;
+    public float greatValueMultiplier;
     [Tooltip("The damage multiplier for hitting a 'perfect'. Multiplier is multiplied by damage for final outcome. If not applicable set to 0")]
-    public float perfectDamageMultiplier;
+    public float perfectValueMultiplier;
 
     [Space(1)]
     

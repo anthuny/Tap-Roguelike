@@ -43,6 +43,7 @@ public class Unit : MonoBehaviour
     public List<Unit> targets = new List<Unit>();
     private CombatManager _combatManager;
 
+
     private void Awake()
     {
         _devManager = FindObjectOfType<DevManager>();
@@ -189,23 +190,28 @@ public class Unit : MonoBehaviour
     /// </summary>
     public void AdjustCurHealth(float dmg, Unit caster, Unit target, SkillData skillData = null)
     {
-        if (skillData != null)
-            _devManager.StartCoroutine(_devManager.FlashText(caster.name + " attacked " + target.name + " using " + skillData.name + " (" + dmg + ")"));
-        else
-            _devManager.StartCoroutine(_devManager.FlashText(caster.name + " attacked " + target.name + " using regular attack " + " (" + dmg + ")"));
+        int totalValue = RoundFloatToInt(dmg * _combatManager.relicActiveSkillValueModifier);
 
-        curHealth += dmg;
+        if (skillData != null)
+            _devManager.StartCoroutine(_devManager.FlashText(caster.name + " attacked " + target.name + " using " + skillData.name + " (" + totalValue + ")"));
+        else
+            _devManager.StartCoroutine(_devManager.FlashText(caster.name + " attacked " + target.name + " using regular attack " + " (" + totalValue + ")"));
+
+        curHealth += totalValue;
 
         _combatManager.UpdateSkillUI();
     }
 
     public void AssignInflict(string inflict, Unit caster, Unit target, string skillData)
     {
-        _devManager.StartCoroutine(_devManager.FlashText(caster.name + " Inflicted " + target.name + " with " + skillData));
+        if (_combatManager.relicActiveSkillProcModifier >= 1)
+        {
+            _devManager.StartCoroutine(_devManager.FlashText(caster.name + " Inflicted " + target.name + " with " + skillData));
 
-        inflictedType = inflict;
+            inflictedType = inflict;
 
-        _combatManager.UpdateSkillUI();
+            _combatManager.UpdateSkillUI();
+        }    
     }
 
     /// <summary>
