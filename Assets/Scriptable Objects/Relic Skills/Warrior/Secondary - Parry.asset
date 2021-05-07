@@ -10,19 +10,21 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: bdb88ad8c39cf8843bc7940801a6441f, type: 3}
-  m_Name: Whirlwind
+  m_Name: Secondary - Parry
   m_EditorClassIdentifier: 
-  skillType: Primary
+  skillType: Basic
   skillMode: Damage
-  targetType: Multiple
-  attackSequence: Multiple
+  targetType: Single
+  attackSequence: Individual
   targetsAllowed: Enemies
   inflictType: Bleed
-  maxTargetSelections: 6
-  name: Whirlwind
-  description: Spin attack all enemy targets for 120% power.
-  turnCooldown: 3
-  valueOutcome: 20
+  inflictTarget: 
+  inflictDuration: 0
+  maxTargetSelections: 1
+  name: Stab
+  description: Hit a single enemy for 100%
+  turnCooldown: 1
+  power: 20
   missValueMultiplier: 0
   goodValueMultiplier: 1
   greatValueMultiplier: 1.3

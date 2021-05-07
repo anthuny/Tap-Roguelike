@@ -17,8 +17,8 @@ public class Unit : MonoBehaviour
     [Tooltip("The default maximum health the enemy spawns with")]
     public float maxHealth;
     public float curHealth;
-    [Tooltip("The default amount of hit damage the enemy currently has")]
-    public int damage;
+    [Tooltip("The default power the unit has")]
+    public int power;
     [Tooltip("The percentage rate of whether the enemy will attack before the player")]
     public int speed;
     public int turnSpeed;
@@ -56,7 +56,7 @@ public class Unit : MonoBehaviour
         {
             // If i unit's attack chance is greater then their skill chance
             //if (unit.attackChance > unit.skillChance)
-                //unit.UnitSkillFunctionality(skillData);   // Perform a basic attack
+            //unit.UnitSkillFunctionality(skillData);   // Perform a basic attack
 
             // If i enemy's skill chance is greater then their skill chance
             //else
@@ -89,18 +89,19 @@ public class Unit : MonoBehaviour
                         switch (skillData.skillMode)
                         {
                             case "Damage":
-                                targetSingle.AdjustCurHealth(RoundFloatToInt(-skillData.valueOutcome), this, targetSingle, skillData);
+                                targetSingle.UpdateCurHealth(-skillData.power);
                                 break;
 
                             case "PercentMaxHealthDamage":
-                                targetSingle.AdjustCurHealth(RoundFloatToInt(-((skillData.valueOutcome / 100) * targetSingle.maxHealth)), this, targetSingle, skillData);
+                                targetSingle.UpdateCurHealth(-((skillData.power / 100) * targetSingle.maxHealth));
                                 break;
 
                             case "Heal":
-                                targetSingle.AdjustCurHealth(RoundFloatToInt(skillData.valueOutcome), this, targetSingle, skillData);
+                                targetSingle.UpdateCurHealth(skillData.power);
                                 break;
+                                
                             case "PercentMaxHealHeal":
-                                targetSingle.AdjustCurHealth(RoundFloatToInt((skillData.valueOutcome / 100) * targetSingle.maxHealth), this, targetSingle, skillData);
+                                targetSingle.UpdateCurHealth(((skillData.power / 100) * targetSingle.maxHealth));
                                 break;
                         }
 
@@ -108,6 +109,10 @@ public class Unit : MonoBehaviour
                         {
                             targetSingle.AssignInflict(skillData.inflictType, this, targetSingle, skillData.inflictType);
                         }
+
+                        _devManager.FlashText(this.name, targetSingle.name, 
+                            skillData.name, skillData.power, skillData.inflictType, skillData.inflictDuration);
+
                         break;
 
                     case "Multiple":
@@ -119,18 +124,19 @@ public class Unit : MonoBehaviour
                             switch (skillData.skillMode)
                             {
                                 case "Damage":
-                                    targetMultiple.AdjustCurHealth(RoundFloatToInt(-skillData.valueOutcome), this, targetMultiple, skillData);
+                                    targetMultiple.UpdateCurHealth(-skillData.power);
                                     break;
 
                                 case "PercentMaxHealthDamage":
-                                    targetMultiple.AdjustCurHealth(RoundFloatToInt(-((skillData.valueOutcome / 100) * targetMultiple.maxHealth)), this, targetMultiple, skillData);
+                                    targetMultiple.UpdateCurHealth(-((skillData.power / 100) * targetMultiple.maxHealth));
                                     break;
 
                                 case "Heal":
-                                    targetMultiple.AdjustCurHealth(RoundFloatToInt(skillData.valueOutcome), this, targetMultiple, skillData);
+                                    targetMultiple.UpdateCurHealth(skillData.power);
                                     break;
-                                case "PercentMaxHealhHeal":
-                                    targetMultiple.AdjustCurHealth(RoundFloatToInt((skillData.valueOutcome / 100) * targetMultiple.maxHealth), this, targetMultiple, skillData);
+
+                                case "PercentMaxHealHeal":
+                                    targetMultiple.UpdateCurHealth(((skillData.power / 100) * targetMultiple.maxHealth));
                                     break;
                             }
 
@@ -138,6 +144,9 @@ public class Unit : MonoBehaviour
                             {
                                 targetMultiple.AssignInflict(skillData.inflictType, this, targetMultiple, skillData.inflictType);
                             }
+
+                            _devManager.FlashText(this.name, targetMultiple.name,
+                                skillData.name, skillData.power, skillData.inflictType, skillData.inflictDuration);
                         }
                         break;
                     case "None":
@@ -180,24 +189,25 @@ public class Unit : MonoBehaviour
     /// <summary>
     /// Adjust max health of unit
     /// </summary>
-    public void AdjustMaxHealth(float val)
+    public void UpdateMaxHealth(float val)
     {
         maxHealth += val;
     }
 
+
     /// <summary>
     /// Adjust max current health of unit
     /// </summary>
-    public void AdjustCurHealth(float dmg, Unit caster, Unit target, SkillData skillData = null)
+    public void UpdateCurHealth(float val, bool inCombat = true)
     {
-        int totalValue = RoundFloatToInt(dmg * _combatManager.relicActiveSkillValueModifier);
-
-        if (skillData != null)
-            _devManager.StartCoroutine(_devManager.FlashText(caster.name + " attacked " + target.name + " using " + skillData.name + " (" + totalValue + ")"));
+        if (inCombat)
+        {
+            int combatValue = RoundFloatToInt(val * _combatManager.relicActiveSkillValueModifier);
+            curHealth += combatValue;
+        }
         else
-            _devManager.StartCoroutine(_devManager.FlashText(caster.name + " attacked " + target.name + " using regular attack " + " (" + totalValue + ")"));
+            curHealth += RoundFloatToInt(val);
 
-        curHealth += totalValue;
 
         _combatManager.UpdateSkillUI();
     }
@@ -206,26 +216,38 @@ public class Unit : MonoBehaviour
     {
         if (_combatManager.relicActiveSkillProcModifier >= 1)
         {
-            _devManager.StartCoroutine(_devManager.FlashText(caster.name + " Inflicted " + target.name + " with " + skillData));
-
             inflictedType = inflict;
 
             _combatManager.UpdateSkillUI();
-        }    
+        }
     }
 
-    /// <summary>
-    /// Adjust damage of unit
-    /// </summary>
-    public void AdjustDamage(int val)
+    public void UpdateUnitType(UnitType unitType)
     {
-        damage += val;
+        this.unitType = unitType;
     }
 
-    /// <summary>
-    /// Adjust speed of unit
-    /// </summary>
-    public void AdjustSpeed(int val)
+    public void UpdateName(string displayName)
+    {
+        name = displayName;
+    }
+
+    public void UpdateLevel(int level)
+    {
+        this.level = level;
+    }
+
+    public void UpdateColour(Color color)
+    {
+        this.color = color;
+    }
+   
+    public void UpdatePower(int val)
+    {
+        power += val;
+    }
+
+    public void UpdateSpeed(int val)
     {
         speed += val;
     }
@@ -233,7 +255,7 @@ public class Unit : MonoBehaviour
     /// <summary>
     /// Adjust Attack Chance of unit
     /// </summary>
-    public void AdjustAttackChance(int val, bool update = false)
+    public void UpdateAttackChance(int val, bool update = false)
     {
         // If update is true, override attack chance value
         if (update)
@@ -249,7 +271,7 @@ public class Unit : MonoBehaviour
     /// <summary>
     /// Adjust Skill Chance of unit
     /// </summary>
-    public void AdjustSkillChance(int val, bool update = false)
+    public void UpdateSkillChance(int val, bool update = false)
     {
         // If update is true, override skill chance value
         if (update)

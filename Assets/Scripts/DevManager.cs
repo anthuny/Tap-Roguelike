@@ -24,7 +24,7 @@ public class DevManager : MonoBehaviour
         InitialLaunch();
     }
 
-    void InitialLaunch()
+    public void InitialLaunch()
     {
         if (!_devVisualsOn)
         {
@@ -32,12 +32,12 @@ public class DevManager : MonoBehaviour
         }
     }
 
-    public IEnumerator FlashText(string contents)
+    public void FlashText(string castorName, string targetName, string skillName, float skillVal, string inflictName = "Nothing", int inflictUpTime = 0)
     {
         // If dev mode is not on, do not continue
-        if (_devTextOn)
+        if (!_devTextOn)
         {
-            yield return null;
+            return;          
         }
 
         #region Spawn and assign core variables for Dev Text
@@ -48,7 +48,7 @@ public class DevManager : MonoBehaviour
         go.GetComponent<RectTransform>().sizeDelta = new Vector2(1000, 70);
 
         Text text = go.GetComponent<Text>();
-        text.text = contents;
+        text.text = castorName + " used " + skillName + " at " + targetName + " for ( " + skillVal + " ) applying " + inflictName + " ( " + inflictUpTime + " )";
         text.font = _font;
         text.fontSize = fontSize;
         #endregion

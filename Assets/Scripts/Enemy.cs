@@ -18,8 +18,8 @@ public class Enemy : ScriptableObject
     [HideInInspector]
     public float curHealth;
 
-    [Tooltip("The default amount of hit damage the enemy currently has")]
-    public int damage;
+    [Tooltip("The default power the unit has")]
+    public int power;
 
     [Tooltip("The percentage rate of whether the enemy will attack before the player")]
     public int speed;

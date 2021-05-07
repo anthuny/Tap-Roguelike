@@ -118,8 +118,6 @@ public class CombatManager : MonoBehaviour
     /// <param name="room"></param>
     void SpawnEnemies(Room room)
     {
-        StartCoroutine(_devManager.FlashText("Spawning Enemies"));
-
         activeRoomMaxEnemiesCount = room.roomMaxEnemies;
 
         for (int i = 0; i < room.roomEnemies.Count; i++)
@@ -129,16 +127,18 @@ public class CombatManager : MonoBehaviour
             go.transform.SetParent(_enemySpawnPoint.GetChild(i).transform);
             go.transform.position = _enemySpawnPoint.GetChild(i).transform.position;
 
+            #region Initialize Unit
             activeEnemy = go.AddComponent<Unit>();
-            activeEnemy.unitType = Unit.UnitType.ENEMY;
-            activeEnemy.name = room.roomEnemies[i].name;
-            activeEnemy.level = room.roomEnemies[i].level;
-            activeEnemy.color = room.roomEnemies[i].color;
-            activeEnemy.maxHealth = room.roomEnemies[i].maxHealth;
-            activeEnemy.curHealth = room.roomEnemies[i].curHealth;
-            activeEnemy.damage = room.roomEnemies[i].damage;
-            activeEnemy.speed = room.roomEnemies[i].speed;
-            activeEnemy.AdjustAttackChance(room.roomEnemies[i].attackChance, true);
+
+            activeEnemy.UpdateUnitType(Unit.UnitType.ENEMY);
+            activeEnemy.UpdateName(room.roomEnemies[i].name);
+            activeEnemy.UpdateLevel(room.roomEnemies[i].level);
+            activeEnemy.UpdateColour(room.roomEnemies[i].color);
+            activeEnemy.UpdateMaxHealth(room.roomEnemies[i].maxHealth);
+            activeEnemy.UpdateCurHealth(room.roomEnemies[i].curHealth, false);
+            activeEnemy.UpdatePower(room.roomEnemies[i].power);
+            activeEnemy.UpdateSpeed(room.roomEnemies[i].speed);
+            activeEnemy.UpdateAttackChance(room.roomEnemies[i].attackChance, true);
 
             InitializeUnitSkills(activeEnemy);
 
@@ -157,7 +157,7 @@ public class CombatManager : MonoBehaviour
                 room.roomEnemies[i].passiveSkill.name,
                 room.roomEnemies[i].passiveSkill.description,
                 room.roomEnemies[i].passiveSkill.turnCooldown,
-                room.roomEnemies[i].passiveSkill.valueOutcome,
+                room.roomEnemies[i].passiveSkill.power,
                 room.roomEnemies[i].passiveSkill.missValueMultiplier,
                 room.roomEnemies[i].passiveSkill.goodValueMultiplier,
                 room.roomEnemies[i].passiveSkill.greatValueMultiplier,
@@ -182,7 +182,7 @@ public class CombatManager : MonoBehaviour
                 room.roomEnemies[i].basicSkill.name,
                 room.roomEnemies[i].basicSkill.description,
                 room.roomEnemies[i].basicSkill.turnCooldown,
-                room.roomEnemies[i].basicSkill.valueOutcome,
+                room.roomEnemies[i].basicSkill.power,
                 room.roomEnemies[i].basicSkill.missValueMultiplier,
                 room.roomEnemies[i].basicSkill.goodValueMultiplier,
                 room.roomEnemies[i].basicSkill.greatValueMultiplier,
@@ -207,7 +207,7 @@ public class CombatManager : MonoBehaviour
                 room.roomEnemies[i].primarySkill.name,
                 room.roomEnemies[i].primarySkill.description,
                 room.roomEnemies[i].primarySkill.turnCooldown,
-                room.roomEnemies[i].primarySkill.valueOutcome,
+                room.roomEnemies[i].primarySkill.power,
                 room.roomEnemies[i].primarySkill.missValueMultiplier,
                 room.roomEnemies[i].primarySkill.goodValueMultiplier,
                 room.roomEnemies[i].primarySkill.greatValueMultiplier,
@@ -232,7 +232,7 @@ public class CombatManager : MonoBehaviour
                 room.roomEnemies[i].secondarySkill.name,
                 room.roomEnemies[i].secondarySkill.description,
                 room.roomEnemies[i].secondarySkill.turnCooldown,
-                room.roomEnemies[i].secondarySkill.valueOutcome,
+                room.roomEnemies[i].secondarySkill.power,
                 room.roomEnemies[i].secondarySkill.missValueMultiplier,
                 room.roomEnemies[i].secondarySkill.goodValueMultiplier,
                 room.roomEnemies[i].secondarySkill.greatValueMultiplier,
@@ -257,7 +257,7 @@ public class CombatManager : MonoBehaviour
                 room.roomEnemies[i].alternateSkill.name,
                 room.roomEnemies[i].alternateSkill.description,
                 room.roomEnemies[i].alternateSkill.turnCooldown,
-                room.roomEnemies[i].alternateSkill.valueOutcome,
+                room.roomEnemies[i].alternateSkill.power,
                 room.roomEnemies[i].alternateSkill.missValueMultiplier,
                 room.roomEnemies[i].alternateSkill.goodValueMultiplier,
                 room.roomEnemies[i].alternateSkill.greatValueMultiplier,
@@ -282,7 +282,7 @@ public class CombatManager : MonoBehaviour
                 room.roomEnemies[i].ultimateSkill.name,
                 room.roomEnemies[i].ultimateSkill.description,
                 room.roomEnemies[i].ultimateSkill.turnCooldown,
-                room.roomEnemies[i].ultimateSkill.valueOutcome,
+                room.roomEnemies[i].ultimateSkill.power,
                 room.roomEnemies[i].ultimateSkill.missValueMultiplier,
                 room.roomEnemies[i].ultimateSkill.goodValueMultiplier,
                 room.roomEnemies[i].ultimateSkill.greatValueMultiplier,
@@ -292,6 +292,8 @@ public class CombatManager : MonoBehaviour
                 room.roomEnemies[i].ultimateSkill.goodProcMultiplier,
                 room.roomEnemies[i].ultimateSkill.greatProcMultiplier,
                 room.roomEnemies[i].ultimateSkill.perfectProcMultiplier);
+
+            #endregion
 
             #endregion
 
@@ -309,11 +311,10 @@ public class CombatManager : MonoBehaviour
     /// <param name="relic"></param>
     void SpawnRelic(Relic relic)
     {
-        StartCoroutine(_devManager.FlashText("Spawning Relic"));
-
         if (relicInitialized)
             return;
 
+        #region Relic Initialize
         GameObject go = new GameObject();
         go.name = relic.name;
         go.transform.SetParent(_relicSpawnPoint.transform);
@@ -323,14 +324,13 @@ public class CombatManager : MonoBehaviour
         image.color = relic.color;
 
         activeRelic = go.AddComponent<Unit>();
-        activeRelic.unitType = Unit.UnitType.ALLY;
-        activeRelic.name = relic.name;
-        activeRelic.level = 1;
-        activeRelic.color = relic.color;
-        activeRelic.maxHealth = relic.maxHealth;
-        activeRelic.curHealth = relic.curHealth;
-        activeRelic.damage = relic.damage;
-        activeRelic.speed = relic.speed;
+        activeRelic.UpdateUnitType(Unit.UnitType.ALLY);
+        activeRelic.UpdateName(relic.name);
+        activeRelic.UpdateColour(relic.color);
+        activeRelic.UpdateMaxHealth(relic.maxHealth);
+        activeRelic.UpdateCurHealth(relic.curHealth, false);
+        activeRelic.UpdatePower(relic.damage);
+        activeRelic.UpdateSpeed(relic.speed);
 
         InitializeUnitSkills(activeRelic);
 
@@ -349,7 +349,7 @@ public class CombatManager : MonoBehaviour
             relic.passiveSkill.name,
             relic.passiveSkill.description,
             relic.passiveSkill.turnCooldown,
-            relic.passiveSkill.valueOutcome,
+            relic.passiveSkill.power,
             relic.passiveSkill.missValueMultiplier,
             relic.passiveSkill.goodValueMultiplier,
             relic.passiveSkill.greatValueMultiplier,
@@ -379,7 +379,7 @@ public class CombatManager : MonoBehaviour
             relic.basicSkill.name,
             relic.basicSkill.description,
             relic.basicSkill.turnCooldown,
-            relic.basicSkill.valueOutcome,
+            relic.basicSkill.power,
             relic.basicSkill.missValueMultiplier,
             relic.basicSkill.goodValueMultiplier,
             relic.basicSkill.greatValueMultiplier,
@@ -409,7 +409,7 @@ public class CombatManager : MonoBehaviour
             relic.primarySkill.name,
             relic.primarySkill.description,
             relic.primarySkill.turnCooldown,
-            relic.primarySkill.valueOutcome,
+            relic.primarySkill.power,
             relic.primarySkill.missValueMultiplier,
             relic.primarySkill.goodValueMultiplier,
             relic.primarySkill.greatValueMultiplier,
@@ -439,7 +439,7 @@ public class CombatManager : MonoBehaviour
             relic.secondarySkill.name,
             relic.secondarySkill.description,
             relic.secondarySkill.turnCooldown,
-            relic.secondarySkill.valueOutcome,
+            relic.secondarySkill.power,
             relic.secondarySkill.missValueMultiplier,
             relic.secondarySkill.goodValueMultiplier,
             relic.secondarySkill.greatValueMultiplier,
@@ -469,7 +469,7 @@ public class CombatManager : MonoBehaviour
             relic.alternateSkill.name,
             relic.alternateSkill.description,
             relic.alternateSkill.turnCooldown,
-            relic.alternateSkill.valueOutcome,
+            relic.alternateSkill.power,
             relic.alternateSkill.missValueMultiplier,
             relic.alternateSkill.goodValueMultiplier,
             relic.alternateSkill.greatValueMultiplier,
@@ -499,7 +499,7 @@ public class CombatManager : MonoBehaviour
             relic.ultimateSkill.name,
             relic.ultimateSkill.description,
             relic.ultimateSkill.turnCooldown,
-            relic.ultimateSkill.valueOutcome,
+            relic.ultimateSkill.power,
             relic.ultimateSkill.missValueMultiplier,
             relic.ultimateSkill.goodValueMultiplier,
             relic.ultimateSkill.greatValueMultiplier,
@@ -516,7 +516,9 @@ public class CombatManager : MonoBehaviour
             _skillUIManager.relicUltimateSelect.skillSelectionColour = relic.ultimateSkill.skillSelectionColour;
         #endregion
 
-        _skillUIManager.InitializeSkills();
+        #endregion
+
+        _skillUIManager.InitializeSkills(); // Sets relics skills
 
         _allies.Add(activeRelic);
         activeRelic.CalculateSpeedFinal();
@@ -550,8 +552,6 @@ public class CombatManager : MonoBehaviour
     /// </summary>
     void DetermineTurnOrder()
     {
-        StartCoroutine(_devManager.FlashText("Determining turn order"));
-      
         // Determine enemy turn order
         _enemies.Sort(ApplyEnemyTurnOrder);
         _enemies.Reverse();
@@ -579,7 +579,6 @@ public class CombatManager : MonoBehaviour
 
     public IEnumerator StartRelicTurn()
     {
-        StartCoroutine(_devManager.FlashText("Starting Relic's turn"));
         relicTurn = true;
 
         _attackBar.BeginHitMarkerStartingSequence();     // Start attack bar hit marker
@@ -602,8 +601,6 @@ public class CombatManager : MonoBehaviour
 
     public IEnumerator StartEnemysTurn()
     {
-        StartCoroutine(_devManager.FlashText("Starting enemy(s) turn"));
-
         // Loop through room's enemies for their turns
         for (int i = 0; i < _enemies.Count; i++)
         {

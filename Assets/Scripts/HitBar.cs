@@ -46,7 +46,7 @@ public class HitBar : MonoBehaviour
             {
                 case BarType.PERFECT:
                     
-                    StartCoroutine(_devManager.FlashText("Relic perfect hit")); // Debug
+                    //StartCoroutine(_devManager.FlashText("Relic perfect hit")); // Debug
 
                     _combatManager.relicActiveSkillValueModifier = _combatManager.relicActiveSkill.perfectValueMultiplier;
                     _combatManager.relicActiveSkillProcModifier = _combatManager.relicActiveSkill.perfectProcMultiplier;
@@ -55,7 +55,8 @@ public class HitBar : MonoBehaviour
                     break;
 
                 case BarType.GREAT:
-                    StartCoroutine(_devManager.FlashText("Relic great hit")); // Debug
+
+                    //StartCoroutine(_devManager.FlashText("Relic great hit")); // Debug
 
                     _combatManager.relicActiveSkillValueModifier = _combatManager.relicActiveSkill.greatValueMultiplier;
                     _combatManager.relicActiveSkillProcModifier = _combatManager.relicActiveSkill.greatProcMultiplier;
@@ -64,7 +65,8 @@ public class HitBar : MonoBehaviour
                     break;
 
                 case BarType.GOOD:
-                    StartCoroutine(_devManager.FlashText("Relic good hit")); // Debug
+
+                    //StartCoroutine(_devManager.FlashText("Relic good hit")); // Debug
                     _combatManager.relicActiveSkillValueModifier = _combatManager.relicActiveSkill.goodValueMultiplier;
                     _combatManager.relicActiveSkillProcModifier = _combatManager.relicActiveSkill.goodProcMultiplier;
 
@@ -72,7 +74,8 @@ public class HitBar : MonoBehaviour
                     break;
 
                 case BarType.MISS:
-                    StartCoroutine(_devManager.FlashText("Relic missed")); // Debug
+
+                    //StartCoroutine(_devManager.FlashText("Relic missed")); // Debug
 
                     _combatManager.relicActiveSkillValueModifier = _combatManager.relicActiveSkill.missValueMultiplier;
                     _combatManager.relicActiveSkillProcModifier = _combatManager.relicActiveSkill.missProcMultiplier;

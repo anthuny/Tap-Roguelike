@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bdb88ad8c39cf8843bc7940801a6441f, type: 3}
+  m_Name: Ultimate - Death Bind
+  m_EditorClassIdentifier: 
+  skillType: Primary
+  skillMode: Damage
+  targetType: Multiple
+  attackSequence: Multiple
+  targetsAllowed: Enemies
+  inflictType: Bleed
+  inflictTarget: 
+  inflictDuration: 0
+  maxTargetSelections: 6
+  name: Whirlwind
+  description: Spin attack all enemy targets for 120% power.
+  turnCooldown: 3
+  power: 0
+  missValueMultiplier: 0
+  goodValueMultiplier: 1
+  greatValueMultiplier: 1.3
+  perfectValueMultiplier: 1.6
+  procChance: 1
+  missProcMultiplier: 0
+  goodProcMultiplier: 1
+  greatProcMultiplier: 1.3
+  perfectProcMultiplier: 1.6
+  skillIconColour: {r: 0.21960786, g: 0.9058824, b: 0.15686275, a: 1}
+  skillBorderColour: {r: 0, g: 0, b: 0, a: 1}
+  skillSelectionColour: {r: 1, g: 0.97647065, b: 0, a: 1}
+  maxSkillCount: 1

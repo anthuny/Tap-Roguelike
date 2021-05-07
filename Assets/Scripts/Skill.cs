@@ -11,6 +11,8 @@ public class Skill : ScriptableObject
     public string attackSequence;
     public string targetsAllowed;
     public string inflictType;
+    public string inflictTarget;
+    public int inflictDuration;
 
     public int maxTargetSelections = 1;
 
@@ -21,11 +23,11 @@ public class Skill : ScriptableObject
     [Tooltip("The skill's turn cooldown, if not applicable set to 0")]
     public int turnCooldown;
     [Tooltip("The skill's damage, if not applicable set to 0.")]
-    public float valueOutcome;
+    public float power;
 
     [Space(1)]
 
-    [Header("Damage Multiplers")]
+    [Header("Power Multiplers")]
     [Tooltip("The damage multiplier for missing. Multiplier is multiplied by damage for final outcome. If not applicable set to 0")]
     public float missValueMultiplier;
     [Tooltip("The damage multiplier for hitting a 'good'. Multiplier is multiplied by damage for final outcome. If not applicable set to 0")]

@@ -21,7 +21,7 @@ public class Selector : MonoBehaviour
     [SerializeField] private Image skillSelectionIcon;
 
     [Header("Main")]
-    [HideInInspector]
+    //[HideInInspector]
     public SkillData skillData;
 
     [Space(1)]

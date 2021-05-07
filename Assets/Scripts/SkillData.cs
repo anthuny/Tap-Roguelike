@@ -10,6 +10,7 @@ public class SkillData : MonoBehaviour
     public string attackSequence;
     public string targetsAllowed;
     public string inflictType;
+    public int inflictDuration;
 
     public int maxTargetCount = 1;
 
@@ -20,7 +21,7 @@ public class SkillData : MonoBehaviour
     [Tooltip("The skill's turn cooldown, if not applicable set to 0")]
     public int turnCooldown;
     [Tooltip("The skill's damage, if not applicable set to 0.")]
-    public float valueOutcome;
+    public float power;
 
     [Space(1)]
 
@@ -72,7 +73,7 @@ public class SkillData : MonoBehaviour
         this.name = name;
         this.description = description;
         this.turnCooldown = turnCooldown;
-        this.valueOutcome = damage;
+        this.power = damage;
         this.missValueMultiplier = missDamageMultiplier;
         this.goodValueMultiplier = goodDamageMultiplier;
         this.greatValueMultiplier = greatDamageMultiplier;

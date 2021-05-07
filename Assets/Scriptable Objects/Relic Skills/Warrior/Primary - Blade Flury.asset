@@ -10,29 +10,31 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: bdb88ad8c39cf8843bc7940801a6441f, type: 3}
-  m_Name: Parry
+  m_Name: Primary - Blade Flury
   m_EditorClassIdentifier: 
-  skillType: 3
+  skillType: 2
   skillMode: 
   targetType: 
   attackSequence: 
-  targetsAllowed: Enemy
+  targetsAllowed: 
   inflictType: 
-  maxTargetSelections: 1
-  name: Parry
-  description: Parry the next attack onto you.
-  turnCooldown: 5
-  damage: 250
-  missDamageMultiplier: 0
-  goodDamageMultiplier: 100
-  greatDamageMultiplier: 125
-  perfectDamageMultiplier: 200
-  procChance: 0
+  inflictTarget: 
+  inflictDuration: 0
+  maxTargetSelections: 0
+  name: Rage
+  description: 
+  turnCooldown: 0
+  power: 0
+  missValueMultiplier: 0
+  goodValueMultiplier: 0
+  greatValueMultiplier: 0
+  perfectValueMultiplier: 0
+  procChance: 1
   missProcMultiplier: 0
-  goodProcMultiplier: 0
-  greatProcMultiplier: 0
-  perfectProcMultiplier: 0
-  skillIconColour: {r: 0.1568627, g: 0.75710577, b: 0.90588236, a: 1}
+  goodProcMultiplier: 0.3
+  greatProcMultiplier: 0.45
+  perfectProcMultiplier: 1
+  skillIconColour: {r: 0.21960786, g: 0.9058824, b: 0.15686275, a: 1}
   skillBorderColour: {r: 0, g: 0, b: 0, a: 1}
   skillSelectionColour: {r: 1, g: 0.97647065, b: 0, a: 1}
   maxSkillCount: 1
