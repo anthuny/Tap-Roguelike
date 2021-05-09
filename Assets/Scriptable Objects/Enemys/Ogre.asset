@@ -15,9 +15,9 @@ MonoBehaviour:
   name: Ogre
   level: 1
   color: {r: 0, g: 0.9245283, b: 0.09856821, a: 1}
-  maxHealth: 25
+  maxHealth: 100
   curHealth: 0
-  damage: 4
+  power: 0
   speed: 25
   attackChance: 70
   skillChance: 30
@@ -27,3 +27,4 @@ MonoBehaviour:
   secondarySkill: {fileID: 11400000, guid: 1fdf04bcb45f4434b85e94d1e18d6a33, type: 2}
   alternateSkill: {fileID: 11400000, guid: bd0d4ad4322d3924a8b39b5f8c60611e, type: 2}
   ultimateSkill: {fileID: 11400000, guid: d739d20cc2a098c459522c8407454618, type: 2}
+  healthImage: {fileID: 0}

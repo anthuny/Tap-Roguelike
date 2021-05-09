@@ -35,4 +35,7 @@ public class Enemy : ScriptableObject
     public Skill secondarySkill;
     public Skill alternateSkill;
     public Skill ultimateSkill;
+
+    [Header("UI")]
+    public Image healthImage;
 }

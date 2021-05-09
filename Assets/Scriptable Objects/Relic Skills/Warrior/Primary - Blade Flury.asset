@@ -12,29 +12,32 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bdb88ad8c39cf8843bc7940801a6441f, type: 3}
   m_Name: Primary - Blade Flury
   m_EditorClassIdentifier: 
-  skillType: 2
-  skillMode: 
-  targetType: 
-  attackSequence: 
-  targetsAllowed: 
-  inflictType: 
-  inflictTarget: 
-  inflictDuration: 0
-  maxTargetSelections: 0
-  name: Rage
-  description: 
-  turnCooldown: 0
-  power: 0
+  skillType: Primary
+  skillMode: Damage
+  targetType: Multiple
+  targetsAllowed: Enemies
+  effect: {fileID: 11400000, guid: 563c4ab55f0ac124eaf71c67f558b663, type: 2}
+  effectTarget: Targeted
+  effectPower: 1
+  effectDuration: 1
+  effectHitEffect: 
+  effectDurationDecrease: Attacking
+  counterSkill: 0
+  stackValue: 0
+  maxTargetSelections: 6
+  name: Blade Flury
+  description: Send a flurry of blade slashes at up to 6 enemies. Deal increased
+    damage to higher amounts of targets.
+  turnCooldown: 3
   missValueMultiplier: 0
-  goodValueMultiplier: 0
-  greatValueMultiplier: 0
-  perfectValueMultiplier: 0
-  procChance: 1
+  goodValueMultiplier: 2
+  greatValueMultiplier: 2.2
+  perfectValueMultiplier: 2.75
   missProcMultiplier: 0
-  goodProcMultiplier: 0.3
-  greatProcMultiplier: 0.45
+  goodProcMultiplier: 0.85
+  greatProcMultiplier: 1
   perfectProcMultiplier: 1
-  skillIconColour: {r: 0.21960786, g: 0.9058824, b: 0.15686275, a: 1}
+  skillIconColour: {r: 0.6981132, g: 0, b: 0.03897866, a: 1}
   skillBorderColour: {r: 0, g: 0, b: 0, a: 1}
   skillSelectionColour: {r: 1, g: 0.97647065, b: 0, a: 1}
   maxSkillCount: 1

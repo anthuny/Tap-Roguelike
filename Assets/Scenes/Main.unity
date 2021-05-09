@@ -2516,7 +2516,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -118, y: 1348}
+  m_AnchoredPosition: {x: -118, y: 300}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1159792863
@@ -2882,6 +2882,7 @@ MonoBehaviour:
   _relicUIHiderOffVal: 0
   _relicUIHiderSelectVal: 0.45
   _relicUIHiderOnVal: 0.8
+  unitUI: {fileID: 8362088263819228071, guid: 4ccca4cfe2565db449a310a2cb44300f, type: 3}
   relicActiveSkill: {fileID: 0}
   enemyActiveSkill: {fileID: 0}
   targetSelections: []
@@ -3291,14 +3292,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _gamemode: {fileID: 578189406}
   _attackBar: {fileID: 1177160604}
+  _combatManager: {fileID: 1409981211}
   _devTextParent: {fileID: 1077348500}
   _devVisualsOn: 0
   _devTextOn: 1
+  _distAfterFirstText: 125
+  _distAfterSecondText: 160
   _devText: {fileID: 8324084206059333076, guid: 69866bc3c3b2bd54c9563ec0bd391223,
     type: 3}
   _font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
   _maxDevTextCount: 24
-  fontSize: 44
+  fontSize: 50
 --- !u!4 &1542996650
 Transform:
   m_ObjectHideFlags: 0

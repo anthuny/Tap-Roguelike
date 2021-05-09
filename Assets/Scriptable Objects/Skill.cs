@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 [CreateAssetMenu(fileName = "New Skill", menuName = "Skill")]
 public class Skill : ScriptableObject
@@ -8,11 +6,15 @@ public class Skill : ScriptableObject
     public string skillType;
     public string skillMode;
     public string targetType;
-    public string attackSequence;
     public string targetsAllowed;
-    public string inflictType;
-    public string inflictTarget;
-    public int inflictDuration;
+    public Effect effect;
+    public string effectTarget;
+    public int effectPower;
+    public int effectDuration;
+    public string effectHitEffect;
+    public string effectDurationDecrease;
+    public bool counterSkill;
+    public float stackValue;
 
     public int maxTargetSelections = 1;
 
@@ -22,8 +24,6 @@ public class Skill : ScriptableObject
     public string description;
     [Tooltip("The skill's turn cooldown, if not applicable set to 0")]
     public int turnCooldown;
-    [Tooltip("The skill's damage, if not applicable set to 0.")]
-    public float power;
 
     [Space(1)]
 
@@ -40,8 +40,6 @@ public class Skill : ScriptableObject
     [Space(1)]
     
     [Header("Proc chance and Multiplers")]
-    [Tooltip("The base value of chance for this skill's effects to apply. If not applicable set to 0")]
-    public float procChance;
     [Tooltip("The proc multiplier for missing. Multiplier is multiplied by proc chance for final outcome. If not applicable set to 0")]
     public float missProcMultiplier;
     [Tooltip("The proc multiplier for hitting a 'good'. Multiplier is multiplied by proc chance for final outcome. If not applicable set to 0")]

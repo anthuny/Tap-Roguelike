@@ -12,29 +12,31 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bdb88ad8c39cf8843bc7940801a6441f, type: 3}
   m_Name: Basic - Quick Slash
   m_EditorClassIdentifier: 
-  skillType: 3
+  skillType: Basic
   skillMode: Damage
-  targetType: Enemies
-  attackSequence: Individual
+  targetType: Single
   targetsAllowed: Enemies
-  inflictType: Mark
-  inflictTarget: Targeted
-  inflictDuration: 1
+  effect: {fileID: 11400000, guid: 563c4ab55f0ac124eaf71c67f558b663, type: 2}
+  effectTarget: Targeted
+  effectPower: 1
+  effectDuration: 1
+  effectHitEffect: 
+  effectDurationDecrease: Attacking
+  counterSkill: 0
+  stackValue: 0
   maxTargetSelections: 1
-  name: Parry
-  description: Parry the next attack onto you.
+  name: Quick Slash
+  description: Attack a single enemy Once.
   turnCooldown: 0
-  power: 0
   missValueMultiplier: 0
   goodValueMultiplier: 1
   greatValueMultiplier: 1.25
   perfectValueMultiplier: 1.5
-  procChance: 0
   missProcMultiplier: 0
-  goodProcMultiplier: 0
-  greatProcMultiplier: 0
-  perfectProcMultiplier: 0
-  skillIconColour: {r: 0.1568627, g: 0.75710577, b: 0.90588236, a: 1}
+  goodProcMultiplier: 0.85
+  greatProcMultiplier: 1
+  perfectProcMultiplier: 1
+  skillIconColour: {r: 0.90588236, g: 0.1568627, b: 0.3182267, a: 1}
   skillBorderColour: {r: 0, g: 0, b: 0, a: 1}
   skillSelectionColour: {r: 1, g: 0.97647065, b: 0, a: 1}
   maxSkillCount: 1

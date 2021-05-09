@@ -7,6 +7,7 @@ public class Room : ScriptableObject
 {
     [Header("Main")]
     public string roomName;
+    public int maxRoomSize = 6;
     public List<Enemy> roomEnemies = new List<Enemy>();
     public List<GameObject> roomEnemyGO = new List<GameObject>();
     public int roomMaxEnemies;

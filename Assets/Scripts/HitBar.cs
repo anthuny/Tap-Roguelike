@@ -45,8 +45,9 @@ public class HitBar : MonoBehaviour
             switch (curBarType)
             {
                 case BarType.PERFECT:
-                    
+
                     //StartCoroutine(_devManager.FlashText("Relic perfect hit")); // Debug
+                    Debug.Log("Perfect Hit");
 
                     _combatManager.relicActiveSkillValueModifier = _combatManager.relicActiveSkill.perfectValueMultiplier;
                     _combatManager.relicActiveSkillProcModifier = _combatManager.relicActiveSkill.perfectProcMultiplier;
@@ -57,6 +58,7 @@ public class HitBar : MonoBehaviour
                 case BarType.GREAT:
 
                     //StartCoroutine(_devManager.FlashText("Relic great hit")); // Debug
+                    Debug.Log("Great Hit");
 
                     _combatManager.relicActiveSkillValueModifier = _combatManager.relicActiveSkill.greatValueMultiplier;
                     _combatManager.relicActiveSkillProcModifier = _combatManager.relicActiveSkill.greatProcMultiplier;
@@ -67,6 +69,8 @@ public class HitBar : MonoBehaviour
                 case BarType.GOOD:
 
                     //StartCoroutine(_devManager.FlashText("Relic good hit")); // Debug
+                    Debug.Log("Good Hit");
+
                     _combatManager.relicActiveSkillValueModifier = _combatManager.relicActiveSkill.goodValueMultiplier;
                     _combatManager.relicActiveSkillProcModifier = _combatManager.relicActiveSkill.goodProcMultiplier;
 
@@ -76,6 +80,7 @@ public class HitBar : MonoBehaviour
                 case BarType.MISS:
 
                     //StartCoroutine(_devManager.FlashText("Relic missed")); // Debug
+                    Debug.Log("Miss Hit");
 
                     _combatManager.relicActiveSkillValueModifier = _combatManager.relicActiveSkill.missValueMultiplier;
                     _combatManager.relicActiveSkillProcModifier = _combatManager.relicActiveSkill.missProcMultiplier;

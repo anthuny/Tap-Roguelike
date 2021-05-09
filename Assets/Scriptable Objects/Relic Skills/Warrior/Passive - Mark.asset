@@ -15,27 +15,29 @@ MonoBehaviour:
   skillType: Passive
   skillMode: BaseDamage
   targetType: Single
-  attackSequence: Individual
   targetsAllowed: Enemies
-  inflictType: Bleed
-  inflictTarget: 
-  inflictDuration: 0
+  effect: {fileID: 0}
+  effectTarget: None
+  effectPower: 0
+  effectDuration: 0
+  effectHitEffect: 
+  effectDurationDecrease: None
+  counterSkill: 0
+  stackValue: 0
   maxTargetSelections: 0
   name: Bleed
   description: Attacks have a chance to apply bleed, Higher accuracy attacks increase
     the chance of applying bleed.
   turnCooldown: 0
-  power: 0
   missValueMultiplier: 0
   goodValueMultiplier: 1
   greatValueMultiplier: 1
   perfectValueMultiplier: 1
-  procChance: 1
   missProcMultiplier: 0
   goodProcMultiplier: 1
   greatProcMultiplier: 1.3
   perfectProcMultiplier: 1.6
-  skillIconColour: {r: 0.053738963, g: 0.6415094, b: 0, a: 1}
+  skillIconColour: {r: 0.9622642, g: 0.73810685, b: 0.29503384, a: 1}
   skillBorderColour: {r: 0, g: 0, b: 0, a: 1}
   skillSelectionColour: {r: 1, g: 0.97647065, b: 0, a: 1}
   maxSkillCount: 1

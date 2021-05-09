@@ -7,13 +7,12 @@ public class Relic : ScriptableObject
 {
     [Header("Main")]
     public new string name;
-    public int damage;
+    public int power;
     public int maxHealth;
     [HideInInspector]
     public int curHealth;
     public int speed;
     public int turnSpeed;
-    public int defence;
     public int durability;
     [Header("Aesthetics")]
     public Color color;
