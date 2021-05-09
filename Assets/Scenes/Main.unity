@@ -2054,6 +2054,12 @@ MonoBehaviour:
   relicSecondarySelect: {fileID: 1572749138}
   relicAlternateSelect: {fileID: 1349148434}
   relicUltimateSelect: {fileID: 1623557624}
+  skillUIText: {fileID: 6033569140648154706, guid: 517675aeff800404e89ae941aba772bb,
+    type: 3}
+  panSpeedUI: 40
+  textLifeLength: 2
+  spawnOffSet: {x: 0, y: 30, z: 0}
+  xDistBetweenUI: 60
 --- !u!4 &893500474
 Transform:
   m_ObjectHideFlags: 0
@@ -2878,6 +2884,8 @@ MonoBehaviour:
   postAllyAttackWait: 0.5
   breatheTime: 0.25
   enemyTimeWaitSpawn: 0
+  skillUIValuesPar: {fileID: 2195775145728399072, guid: 7fe1014ff0e37c04d88d8c4a7a67010f,
+    type: 3}
   _relicUIHider: {fileID: 1990521034}
   _relicUIHiderOffVal: 0
   _relicUIHiderSelectVal: 0.45
@@ -2896,6 +2904,7 @@ MonoBehaviour:
   curSkillSelections: 0
   activeRoomMaxEnemiesCount: 0
   oldCurTargetSelections: 0
+  skillUIManager: {fileID: 0}
   relicActiveSkillValueModifier: 0
   relicActiveSkillProcModifier: 0
 --- !u!4 &1409981212
@@ -3296,7 +3305,7 @@ MonoBehaviour:
   _combatManager: {fileID: 1409981211}
   _devTextParent: {fileID: 1077348500}
   _devVisualsOn: 0
-  _devTextOn: 1
+  _devTextOn: 0
   _distAfterFirstText: 125
   _distAfterSecondText: 160
   _devText: {fileID: 8324084206059333076, guid: 69866bc3c3b2bd54c9563ec0bd391223,
