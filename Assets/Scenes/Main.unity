@@ -2883,6 +2883,7 @@ MonoBehaviour:
   _relicUIHiderSelectVal: 0.45
   _relicUIHiderOnVal: 0.8
   unitUI: {fileID: 8362088263819228071, guid: 4ccca4cfe2565db449a310a2cb44300f, type: 3}
+  maxEffectsActive: 4
   relicActiveSkill: {fileID: 0}
   enemyActiveSkill: {fileID: 0}
   targetSelections: []
