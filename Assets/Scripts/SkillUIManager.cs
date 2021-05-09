@@ -12,14 +12,27 @@ public class SkillUIManager : MonoBehaviour
     [SerializeField] private SkillData _relicSecondarySkill;
     [SerializeField] private SkillData _relicAlternateSkill;
     [SerializeField] private SkillData _relicUltimateSkill;
-
+    [Space(5)]
     [Header("Skill UI")]
+    [Space(2)]
+    [Header("Initialization")]
     public Selector relicPassiveSelect;
     public Selector relicBasicSelect;
     public Selector relicPrimarySelect;
     public Selector relicSecondarySelect;
     public Selector relicAlternateSelect;
     public Selector relicUltimateSelect;
+    [Space(2)]
+    [Tooltip("Text GameObject to instantiate")]
+    [SerializeField] private GameObject skillUIText;
+    [Tooltip("The speed at which skill UI values travel upwards")]
+    public float panSpeedUI;
+    [Tooltip("How long the text remains on screen before destroying")]
+    public float textLifeLength;
+    [Tooltip("The offset texts spawn at from an enemy's position")]
+    public Vector3 spawnOffSet;
+    [Tooltip("The difference in X value between each skill UI value has")]
+    public float xDistBetweenUI;
 
     private void Awake()
     {
@@ -73,6 +86,23 @@ public class SkillUIManager : MonoBehaviour
         relicSecondarySelect.AssignSkillUIAesthetics();
         relicAlternateSelect.AssignSkillUIAesthetics();
         relicUltimateSelect.AssignSkillUIAesthetics();
+    }
+
+    public void DisplaySkillValue(int val, Transform activeSkillUIParent)
+    {
+        GameObject go = Instantiate(skillUIText, activeSkillUIParent.position, Quaternion.identity);    // Initialize
+        go.GetComponent<SkillValueUI>().skillUIManager = this;  // Initialization
+        go.transform.SetParent(activeSkillUIParent);    // Set parent
+        go.transform.position += spawnOffSet;   // Set offset
+
+        Text text = go.GetComponent<Text>();    // Initalization
+
+        // If unit successfully hit the skill
+        if (val != 0)
+            text.text = Mathf.Abs(val).ToString();  // Display damage
+        // If unit missed the skill
+        else
+            text.text = "Miss";   // Display miss text
     }
 }
 

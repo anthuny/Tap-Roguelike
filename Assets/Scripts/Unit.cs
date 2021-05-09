@@ -30,18 +30,19 @@ public class Unit : MonoBehaviour
     public int skillChance;
 
     [Header("UI")]
-    public GameObject unitUI;
     public Image healthImage;
     public Text nameText;
     public Transform effectParent;
     public List<Image> effectImages = new List<Image>();
-    
+    public Transform skillUIValueParent;
+
     private GameObject unitGO;
 
     [Header("Effects")]
     public List<Effect> effects = new List<Effect>();
     public List<Text> effectPowersText = new List<Text>();
     public List<int> effectPowers = new List<int>();
+    public float recievedDamageAmp;
 
 
     [Header("Skills")]
@@ -130,7 +131,7 @@ public class Unit : MonoBehaviour
                         }
                         // If skill does not have an effect
                         else
-                            _devManager.FlashText(this.name, targetSingle.name, skillData.name, power);   // Debug the attack
+                            _devManager.FlashText(this.name, targetSingle.name, skillData.name, power, targetSingle);   // Debug the attack
                         break;
 
                     case "Multiple":
@@ -168,7 +169,7 @@ public class Unit : MonoBehaviour
                             }
                             // If skill does not have an effect
                             else
-                                _devManager.FlashText(this.name, targetMultiple.name, skillData.name, power);   // Debug the attack
+                                _devManager.FlashText(this.name, targetMultiple.name, skillData.name, power, targetMultiple);   // Debug the attack
                         }
                             break;
 
@@ -229,7 +230,7 @@ public class Unit : MonoBehaviour
                 effectImages.Add(effectParent.GetChild(i).GetComponent<Image>());
 
                 EffectImage effectImage = effectImages[i].GetComponent<EffectImage>();
-
+                effectImage.unit = this;
                 effectImage.ToggleEffectImage(false);
                 effectImage.ToggleEffectPowerText(false);
             }
@@ -253,13 +254,18 @@ public class Unit : MonoBehaviour
     /// </summary>
     public void UpdateCurHealth(float val, bool inCombat = true)
     {
+        int combatValue = RoundFloatToInt((val * _combatManager.relicActiveSkillValueModifier) + (recievedDamageAmp * (val * _combatManager.relicActiveSkillValueModifier)));
+        int basicVal = RoundFloatToInt(val);
         if (inCombat)
         {
-            int combatValue = RoundFloatToInt(val * _combatManager.relicActiveSkillValueModifier);
             curHealth += combatValue;
+            _combatManager.skillUIManager.DisplaySkillValue(combatValue, skillUIValueParent);
         }
+
         else
-            curHealth += RoundFloatToInt(val);
+        {
+            curHealth += RoundFloatToInt(basicVal);
+        }
 
         UpdateCurHealthVisual(curHealth/maxHealth, true);
     }
@@ -271,18 +277,22 @@ public class Unit : MonoBehaviour
 
     public void AssignEffect(Effect effect, Unit caster, Unit target, SkillData skillData)
     {
-        float rand = Random.Range(0, _combatManager.relicActiveSkillProcModifier);
+        float rand = Random.Range(0f,1f);
+        // If unit successfully rolled for the proc
         if (rand <= _combatManager.relicActiveSkillProcModifier)
         {
-            //inflictedType = inflict;
+            _devManager.FlashText(caster.name, target.name, skillData.name, caster.power, target, skillData.effectPower, skillData.effect.name);
 
-            _devManager.FlashText(caster.name, target.name, skillData.name, caster.power, skillData.effectPower, skillData.effect.name);
-
-            UpdateEffectVisual(effect, skillData.effectPower, skillData.effectDuration);
+            UpdateEffectVisual(effect, skillData.effectPower, skillData.effectDuration, skillData);
+        }
+        // If unit failed the roll for the proc
+        else
+        {
+            _devManager.FlashText(caster.name, target.name, skillData.name, caster.power, target);
         }
     }
 
-    public void UpdateEffectVisual(Effect effect, int effectPower, int effectDuration)
+    public void UpdateEffectVisual(Effect effect, int effectPower, int effectDuration, SkillData skillData)
     {
         // If unit is currently already inflicted with an effect, increase the power of the same effect instead of adding a new effect
         for (int i = 0; i < effects.Count; i++)
@@ -293,10 +303,13 @@ public class Unit : MonoBehaviour
 
                 effectImage.UpdateEffectPower(effectPower);
 
+                effectImage.Functionality(skillData);
+
                 return;
             }
         }
 
+        // If this effect is unique to the current effects on the unit, spawn another one.
         for (int i = 0; i < effectImages.Count; i++)
         {
             if (!effectImages[i].enabled)
@@ -311,6 +324,8 @@ public class Unit : MonoBehaviour
                 effectImage.ToggleEffectImage(true);
                 effectImage.ToggleEffectPowerText(true);
                 effectImage.SetEffectImage(effect.effectImage);
+
+                effectImage.Functionality(skillData);
 
                 return;
             }

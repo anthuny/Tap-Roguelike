@@ -13,5 +13,7 @@ MonoBehaviour:
   m_Name: Curse
   m_EditorClassIdentifier: 
   name: Curse
+  effectType: Curse
+  stackValue: 0.2
   effectImage: {fileID: 10911, guid: 0000000000000000f000000000000000, type: 0}
   effectColor: {r: 0.93796444, g: 0, b: 1, a: 1}

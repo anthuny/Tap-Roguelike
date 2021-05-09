@@ -40,23 +40,19 @@ public class DevManager : MonoBehaviour
         }
     }
 
-    public void FlashText(string castorName, string targetName, string skillName, float skillVal, int inflictUpTime = 0, string inflictName = "Nothing")
+    public void FlashText(string castorName, string targetName, string skillName, float skillVal, Unit target, int inflictUpTime = 0, string inflictName = "Nothing")
     {
         // If dev mode is not on, do not continue
         if (!_devTextOn)
-        {
             return;          
-        }
 
-
-
-        PositionTexts(castorName, targetName, skillName, skillVal, inflictUpTime, inflictName);
+        PositionTexts(castorName, targetName, skillName, skillVal, inflictUpTime, target, inflictName);
     }
 
     /// <summary>
     /// Apply New Combat Text and position all texts
     /// </summary>
-    void PositionTexts(string castorName, string targetName, string skillName, float skillVal, int inflictUpTime, string inflictName = "Nothing")
+    void PositionTexts(string castorName, string targetName, string skillName, float skillVal, int inflictUpTime, Unit target, string inflictName = "Nothing")
     {
         GameObject go = Instantiate(_devText, _devTextParent.transform.position, Quaternion.identity);
         go.transform.SetParent(_devTextParent.transform);
@@ -68,8 +64,13 @@ public class DevManager : MonoBehaviour
         // Insert the new line of text at the start of the list
         devTexts.Insert(0, go);
 
+        int skillDamage = RoundFloatToInt(skillVal * _combatManager.relicActiveSkillValueModifier);
+        int recievedDamageAmp = RoundFloatToInt((target.recievedDamageAmp * (skillVal * _combatManager.relicActiveSkillValueModifier)));
+
         Text text = go.GetComponent<Text>();
-        text.text = castorName + " used " + skillName + " at " + targetName + " for ( " + skillVal * _combatManager.relicActiveSkillValueModifier + " ) applying " + inflictName + " ( " + inflictUpTime + " )";
+        text.text = castorName + " used " + skillName + " at " + targetName + " for ( " +
+            skillDamage + " + " + recievedDamageAmp + " ) applying " + inflictName + 
+            " ( " + inflictUpTime + " )";
         text.font = _font;
         text.fontSize = fontSize;
 
@@ -92,5 +93,10 @@ public class DevManager : MonoBehaviour
                 devTexts.RemoveAt(devTexts.Count - 1);
             }
         }
+    }
+
+    private int RoundFloatToInt(float f)
+    {
+        return Mathf.RoundToInt(f);
     }
 }

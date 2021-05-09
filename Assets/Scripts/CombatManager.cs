@@ -38,6 +38,9 @@ public class CombatManager : MonoBehaviour
     [Tooltip("The amount of time in seconds that must elapse after the enemy spawns before the next stage can begin")]
     public float enemyTimeWaitSpawn;
 
+    [Header("Skill Value UI")]
+    public GameObject skillUIValuesPar;
+
     [Header("Relic UI")]
     [SerializeField] private CanvasGroup _relicUIHider;
     [SerializeField] private float _relicUIHiderOffVal;
@@ -67,7 +70,7 @@ public class CombatManager : MonoBehaviour
     public int oldCurTargetSelections;
 
     private DevManager _devManager;
-    private SkillUIManager _skillUIManager;
+    public SkillUIManager skillUIManager;
 
     //[HideInInspector]
     public float relicActiveSkillValueModifier, relicActiveSkillProcModifier;
@@ -75,7 +78,7 @@ public class CombatManager : MonoBehaviour
     private void Awake()
     {
         _devManager = FindObjectOfType<DevManager>();
-        _skillUIManager = FindObjectOfType<SkillUIManager>();
+        skillUIManager = FindObjectOfType<SkillUIManager>();
 
         InitialLaunch();
     }
@@ -131,6 +134,7 @@ public class CombatManager : MonoBehaviour
 
             #region Initialize Unit
             activeEnemy = go.AddComponent<Unit>();
+            activeEnemy.skillUIValueParent = go.transform.Find("Skill UI Values");
 
             activeEnemy.UpdateUnitType(Unit.UnitType.ENEMY);
             activeEnemy.AssignUI(); // Initialize Unit UI
@@ -352,6 +356,13 @@ public class CombatManager : MonoBehaviour
         image.color = relic.color;
 
         activeRelic = go.AddComponent<Unit>();
+        GameObject skillUIPar = Instantiate(skillUIValuesPar, activeRelic.transform.position, Quaternion.identity);
+        activeRelic.skillUIValueParent = skillUIPar.transform;
+
+        skillUIPar.transform.SetParent(go.transform);
+
+        activeRelic.skillUIValueParent = go.transform.Find("Skill UI Values");
+
         activeRelic.UpdateUnitType(Unit.UnitType.ALLY);
         activeRelic.AssignUI(); // Initialize Unit UI
         activeRelic.UpdateName(relic.name);
@@ -394,9 +405,9 @@ public class CombatManager : MonoBehaviour
             relic.passiveSkill.perfectProcMultiplier,
             relic.passiveSkill.maxSkillCount);
 
-            _skillUIManager.relicPassiveSelect.skillIconColour = relic.passiveSkill.skillIconColour;
-            _skillUIManager.relicPassiveSelect.skillBorderColour = relic.passiveSkill.skillBorderColour;
-            _skillUIManager.relicPassiveSelect.skillSelectionColour = relic.passiveSkill.skillSelectionColour;
+            skillUIManager.relicPassiveSelect.skillIconColour = relic.passiveSkill.skillIconColour;
+            skillUIManager.relicPassiveSelect.skillBorderColour = relic.passiveSkill.skillBorderColour;
+            skillUIManager.relicPassiveSelect.skillSelectionColour = relic.passiveSkill.skillSelectionColour;
 
         activeRelic.basicSkill.InitializeSkill(
             relic.basicSkill.skillIconColour,
@@ -428,9 +439,9 @@ public class CombatManager : MonoBehaviour
             relic.basicSkill.perfectProcMultiplier,
             relic.basicSkill.maxSkillCount);
 
-            _skillUIManager.relicBasicSelect.skillIconColour = relic.basicSkill.skillIconColour;
-            _skillUIManager.relicBasicSelect.skillBorderColour = relic.basicSkill.skillBorderColour;
-            _skillUIManager.relicBasicSelect.skillSelectionColour = relic.basicSkill.skillSelectionColour;
+            skillUIManager.relicBasicSelect.skillIconColour = relic.basicSkill.skillIconColour;
+            skillUIManager.relicBasicSelect.skillBorderColour = relic.basicSkill.skillBorderColour;
+            skillUIManager.relicBasicSelect.skillSelectionColour = relic.basicSkill.skillSelectionColour;
 
         activeRelic.primarySkill.InitializeSkill(
             relic.primarySkill.skillIconColour,
@@ -462,9 +473,9 @@ public class CombatManager : MonoBehaviour
             relic.primarySkill.perfectProcMultiplier,
             relic.primarySkill.maxSkillCount);
 
-            _skillUIManager.relicPrimarySelect.skillIconColour = relic.primarySkill.skillIconColour;
-            _skillUIManager.relicPrimarySelect.skillBorderColour = relic.primarySkill.skillBorderColour;
-            _skillUIManager.relicPrimarySelect.skillSelectionColour = relic.primarySkill.skillSelectionColour;
+            skillUIManager.relicPrimarySelect.skillIconColour = relic.primarySkill.skillIconColour;
+            skillUIManager.relicPrimarySelect.skillBorderColour = relic.primarySkill.skillBorderColour;
+            skillUIManager.relicPrimarySelect.skillSelectionColour = relic.primarySkill.skillSelectionColour;
 
         activeRelic.secondarySkill.InitializeSkill(
             relic.secondarySkill.skillIconColour,
@@ -496,9 +507,9 @@ public class CombatManager : MonoBehaviour
             relic.secondarySkill.perfectProcMultiplier,
             relic.secondarySkill.maxSkillCount);
 
-            _skillUIManager.relicSecondarySelect.skillIconColour = relic.secondarySkill.skillIconColour;
-            _skillUIManager.relicSecondarySelect.skillBorderColour = relic.secondarySkill.skillBorderColour;
-            _skillUIManager.relicSecondarySelect.skillSelectionColour = relic.secondarySkill.skillSelectionColour;
+            skillUIManager.relicSecondarySelect.skillIconColour = relic.secondarySkill.skillIconColour;
+            skillUIManager.relicSecondarySelect.skillBorderColour = relic.secondarySkill.skillBorderColour;
+            skillUIManager.relicSecondarySelect.skillSelectionColour = relic.secondarySkill.skillSelectionColour;
 
         activeRelic.alternateSkill.InitializeSkill(
             relic.alternateSkill.skillIconColour,
@@ -530,9 +541,9 @@ public class CombatManager : MonoBehaviour
             relic.alternateSkill.perfectProcMultiplier,
             relic.alternateSkill.maxSkillCount);
 
-            _skillUIManager.relicAlternateSelect.skillIconColour = relic.alternateSkill.skillIconColour;
-            _skillUIManager.relicAlternateSelect.skillBorderColour = relic.alternateSkill.skillBorderColour;
-            _skillUIManager.relicAlternateSelect.skillSelectionColour = relic.alternateSkill.skillSelectionColour;
+            skillUIManager.relicAlternateSelect.skillIconColour = relic.alternateSkill.skillIconColour;
+            skillUIManager.relicAlternateSelect.skillBorderColour = relic.alternateSkill.skillBorderColour;
+            skillUIManager.relicAlternateSelect.skillSelectionColour = relic.alternateSkill.skillSelectionColour;
 
         activeRelic.ultimateSkill.InitializeSkill(
             relic.ultimateSkill.skillIconColour,
@@ -564,14 +575,14 @@ public class CombatManager : MonoBehaviour
             relic.ultimateSkill.perfectProcMultiplier,
             relic.ultimateSkill.maxSkillCount);
 
-            _skillUIManager.relicUltimateSelect.skillIconColour = relic.ultimateSkill.skillIconColour;
-            _skillUIManager.relicUltimateSelect.skillBorderColour = relic.ultimateSkill.skillBorderColour;
-            _skillUIManager.relicUltimateSelect.skillSelectionColour = relic.ultimateSkill.skillSelectionColour;
+            skillUIManager.relicUltimateSelect.skillIconColour = relic.ultimateSkill.skillIconColour;
+            skillUIManager.relicUltimateSelect.skillBorderColour = relic.ultimateSkill.skillBorderColour;
+            skillUIManager.relicUltimateSelect.skillSelectionColour = relic.ultimateSkill.skillSelectionColour;
         #endregion
 
         #endregion
 
-        _skillUIManager.InitializeSkills(); // Sets relics skills
+        skillUIManager.InitializeSkills(); // Sets relics skills
 
         _allies.Add(activeRelic);
         activeRelic.CalculateSpeedFinal();
@@ -641,10 +652,10 @@ public class CombatManager : MonoBehaviour
         {
             UpdateActiveRelic(_allies[i]);   // Update active enemy to i enemy
 
-            _skillUIManager.AssignFirstSkill(_allies[i].basicSkill);    // Assign relic's active skill  on the start of their turn
+            skillUIManager.AssignFirstSkill(_allies[i].basicSkill);    // Assign relic's active skill  on the start of their turn
 
             //AddSkillSelectionsManual(_allies[i].basicSkill);
-            _skillUIManager.relicBasicSelect.ToggleSelectionImage();    // Apply basic skill 
+            skillUIManager.relicBasicSelect.ToggleSelectionImage();    // Apply basic skill 
 
             _attackBar.UpdateIfRelicCanAttack(true);
 

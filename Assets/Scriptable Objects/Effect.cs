@@ -7,6 +7,8 @@ using UnityEngine.UI;
 public class Effect : ScriptableObject
 {
     public new string name;
+    public string effectType;
+    public float stackValue;
     public Sprite effectImage;
     public Color effectColor;
 }
