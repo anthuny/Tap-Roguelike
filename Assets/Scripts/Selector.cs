@@ -6,7 +6,7 @@ using UnityEngine.UI;
 public class Selector : MonoBehaviour
 {
     private CombatManager _combatManager;
-    private SkillUIManager _skillUIManager;
+    public SkillUIManager _skillUIManager;
 
     [SerializeField] private Button _selectButton;
     [HideInInspector]
@@ -21,8 +21,10 @@ public class Selector : MonoBehaviour
     [SerializeField] private Image skillSelectionIcon;
 
     [Header("Main")]
-    //[HideInInspector]
+    [HideInInspector]
     public SkillData skillData;
+    public Image cooldownImage;
+    public Text cooldownText;
 
     [Space(1)]
     [Header("Skill UI Settings")]
@@ -38,8 +40,6 @@ public class Selector : MonoBehaviour
     private void Awake()
     {
         _combatManager = FindObjectOfType<CombatManager>();
-        _skillUIManager = FindObjectOfType<SkillUIManager>();
-
         selectionImage = GetComponent<Image>();
     }
 

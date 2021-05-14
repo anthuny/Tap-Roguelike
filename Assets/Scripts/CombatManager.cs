@@ -5,32 +5,27 @@ using UnityEngine.UI;
 
 public class CombatManager : MonoBehaviour
 {
-
-
     [Header("General")]
-    public Relic startingRelic;
     [SerializeField] private Transform _enemySpawnPoint;
     [SerializeField] private Transform _relicSpawnPoint;
     [SerializeField] private Room _activeRoom;
-    public List<Unit> _enemies = new List<Unit>();
-    [Tooltip("Original position of enemies in active room")]
-    public List<Unit> _enemiesPosition = new List<Unit>();
-    public List<Unit> _allies = new List<Unit>();
     [SerializeField] private AttackBar _attackBar;
     [SerializeField] private Button _fightButton;
-    
-    [Space(1)]
-    [Header("Skill Keywords")]
-    public string[] skillType;
-    public string[] skillModes;
-    public string[] targetType;
-    public string[] attackSequence;
-    public string[] targetsAllowed;
-    public string[] inflictType;  
+    [HideInInspector]
+    public List<Unit> _enemies = new List<Unit>();
+    [HideInInspector]
+    [Tooltip("Original position of enemies in active room")]
+    public List<Unit> _enemiesPosition = new List<Unit>();
+    [HideInInspector]
+    public List<Unit> _allies = new List<Unit>();
+
+    [Space(3)]
 
     [Header("Combat Settings")]
     [SerializeField] private float postEnemyAttackWait;
     [SerializeField] private float postAllyAttackWait;
+
+    [Space(3)]
 
     [Header("Relic Settings")]
     [Tooltip("The time that must elapse before another thing happens")]
@@ -38,8 +33,7 @@ public class CombatManager : MonoBehaviour
     [Tooltip("The amount of time in seconds that must elapse after the enemy spawns before the next stage can begin")]
     public float enemyTimeWaitSpawn;
 
-    [Header("Skill Value UI")]
-    public GameObject skillUIValuesPar;
+    [Space(3)]
 
     [Header("Relic UI")]
     [SerializeField] private CanvasGroup _relicUIHider;
@@ -47,45 +41,65 @@ public class CombatManager : MonoBehaviour
     [SerializeField] private float _relicUIHiderSelectVal;
     [SerializeField] private float _relicUIHiderOnVal;
 
-    [Header("Unit UI")]
-    public GameObject unitUI;
+    [Space(3)]
 
-    [Header("Other Settings")]
+    [Header("Effects Settings")]
     public int maxEffectsActive;
+    [HideInInspector]
     public SkillData relicActiveSkill;
+    [HideInInspector]
     public SkillData enemyActiveSkill;
+    [HideInInspector]
     public List<Selector> targetSelections = new List<Selector>();
+    [HideInInspector]
     public List<Selector> skillSelections = new List<Selector>();
     [HideInInspector]
     public Unit activeRelic, activeEnemy;
-    private bool relicInitialized;
-    private bool relicTurn;
-    //[HideInInspector]
+
+    [Header("Active Stored Attacks")]
+    public List<AttackData> activeAttackData = new List<AttackData>();
+
+    [HideInInspector]
     public int maxTargetSelections;
+    [HideInInspector]
     public int curTargetSelections;
-    //[HideInInspector]
+    [HideInInspector]
     public int maxSkillSelections;
+    [HideInInspector]
     public int curSkillSelections;
+    [HideInInspector]
     public int activeRoomMaxEnemiesCount;
+    [HideInInspector]
     public int oldCurTargetSelections;
 
-    private DevManager _devManager;
-    public SkillUIManager skillUIManager;
+    [Space(3)]
 
-    //[HideInInspector]
+    [Header("Other Intitialization")]
+    public Relic startingRelic;
+    public GameObject skillUIValuesPar;
+    public GameObject unitUI;
+    [HideInInspector]
+    public SkillUIManager skillUIManager;
+    [HideInInspector]
     public float relicActiveSkillValueModifier, relicActiveSkillProcModifier;
+    private DevManager _devManager;
+    private bool relicInitialized;
+    private bool relicTurn;
+
+    [Space(3)]
+
+    [Header("Skill Keywords")]
+    public string[] skillType;
+    public string[] skillModes;
+    public string[] targetType;
+    public string[] attackSequence;
+    public string[] targetsAllowed;
+    public string[] inflictType;
 
     private void Awake()
     {
         _devManager = FindObjectOfType<DevManager>();
         skillUIManager = FindObjectOfType<SkillUIManager>();
-
-        InitialLaunch();
-    }
-
-    void InitialLaunch()
-    {
-
     }
 
     public void StartBattle()
@@ -95,6 +109,37 @@ public class CombatManager : MonoBehaviour
         SpawnEnemies(_activeRoom);
         DetermineTurnOrder();
     }
+
+    /// <summary>
+    /// Determine turn order in room
+    /// </summary>
+    void DetermineTurnOrder()
+    {
+        // Determine enemy turn order
+        _enemies.Sort(ApplyEnemyTurnOrder);
+        _enemies.Reverse();
+
+        // Determine relic turn order
+        for (int i = 0; i < _enemies.Count; i++)
+        {
+            if (_enemies[i].turnSpeed > activeRelic.turnSpeed)
+            {
+                relicTurn = false;
+                break;
+            }
+            else
+            {
+                relicTurn = true;
+            }
+        }
+
+        // If it's the enemy's starting turn
+        if (!relicTurn)
+            StartCoroutine(StartEnemysTurn());   // Start enemy turn 
+        else
+            StartCoroutine(StartRelicTurn());   // Start relic turn
+    }
+
 
     private void ToggleFightButton(bool cond)
     {
@@ -112,7 +157,6 @@ public class CombatManager : MonoBehaviour
 
         if (_relicUIHider.alpha == _relicUIHiderSelectVal)
             return false;
-
         else
             return false;
     }
@@ -120,15 +164,15 @@ public class CombatManager : MonoBehaviour
     /// <summary>
     /// Spawn enemies in room
     /// </summary>
-    /// <param name="room"></param>
     void SpawnEnemies(Room room)
     {
         activeRoomMaxEnemiesCount = room.roomMaxEnemies;
 
         for (int i = 0; i < room.roomEnemies.Count; i++)
         {
+            int val = i + 1;
             GameObject go = Instantiate(room.roomEnemyGO[i]);
-            go.name = room.roomEnemies[i].name;
+            go.name = room.roomEnemies[i].name + " " + val.ToString();
             go.transform.SetParent(_enemySpawnPoint.GetChild(i).transform);
             go.transform.position = _enemySpawnPoint.GetChild(i).transform.position;
 
@@ -158,6 +202,9 @@ public class CombatManager : MonoBehaviour
                 room.roomEnemies[i].passiveSkill.skillMode,
                 room.roomEnemies[i].passiveSkill.targetType,
                 room.roomEnemies[i].passiveSkill.targetsAllowed,
+                room.roomEnemies[i].passiveSkill.hitsRequired,
+                room.roomEnemies[i].passiveSkill.timeBetweenHitUI,
+                room.roomEnemies[i].passiveSkill.timeForNextHitMarker,
                 room.roomEnemies[i].passiveSkill.effect,
                 room.roomEnemies[i].passiveSkill.effectTarget,
                 room.roomEnemies[i].passiveSkill.effectPower,
@@ -166,6 +213,7 @@ public class CombatManager : MonoBehaviour
                 room.roomEnemies[i].passiveSkill.effectDurationDecrease,
                 room.roomEnemies[i].passiveSkill.counterSkill,
                 room.roomEnemies[i].passiveSkill.stackValue,
+                room.roomEnemies[i].passiveSkill.targetAmountPowerInc,
                 room.roomEnemies[i].passiveSkill.maxTargetSelections,
                 room.roomEnemies[i].passiveSkill.name,
                 room.roomEnemies[i].passiveSkill.description,
@@ -187,6 +235,9 @@ public class CombatManager : MonoBehaviour
                 room.roomEnemies[i].basicSkill.skillMode,
                 room.roomEnemies[i].basicSkill.targetType,
                 room.roomEnemies[i].basicSkill.targetsAllowed,
+                room.roomEnemies[i].basicSkill.hitsRequired,
+                room.roomEnemies[i].basicSkill.timeBetweenHitUI,
+                room.roomEnemies[i].basicSkill.timeForNextHitMarker,
                 room.roomEnemies[i].basicSkill.effect,
                 room.roomEnemies[i].basicSkill.effectTarget,
                 room.roomEnemies[i].basicSkill.effectPower,
@@ -195,6 +246,7 @@ public class CombatManager : MonoBehaviour
                 room.roomEnemies[i].basicSkill.effectDurationDecrease,
                 room.roomEnemies[i].basicSkill.counterSkill,
                 room.roomEnemies[i].basicSkill.stackValue,
+                room.roomEnemies[i].basicSkill.targetAmountPowerInc,
                 room.roomEnemies[i].basicSkill.maxTargetSelections,
                 room.roomEnemies[i].basicSkill.name,
                 room.roomEnemies[i].basicSkill.description,
@@ -216,6 +268,9 @@ public class CombatManager : MonoBehaviour
                 room.roomEnemies[i].primarySkill.skillMode,
                 room.roomEnemies[i].primarySkill.targetType,
                 room.roomEnemies[i].primarySkill.targetsAllowed,
+                room.roomEnemies[i].primarySkill.hitsRequired,
+                room.roomEnemies[i].primarySkill.timeBetweenHitUI,
+                room.roomEnemies[i].primarySkill.timeForNextHitMarker,
                 room.roomEnemies[i].primarySkill.effect,
                 room.roomEnemies[i].primarySkill.effectTarget,
                 room.roomEnemies[i].primarySkill.effectPower,
@@ -224,6 +279,7 @@ public class CombatManager : MonoBehaviour
                 room.roomEnemies[i].primarySkill.effectDurationDecrease,
                 room.roomEnemies[i].primarySkill.counterSkill,
                 room.roomEnemies[i].primarySkill.stackValue,
+                room.roomEnemies[i].primarySkill.targetAmountPowerInc,
                 room.roomEnemies[i].primarySkill.maxTargetSelections,
                 room.roomEnemies[i].primarySkill.name,
                 room.roomEnemies[i].primarySkill.description,
@@ -245,6 +301,9 @@ public class CombatManager : MonoBehaviour
                 room.roomEnemies[i].secondarySkill.skillMode,
                 room.roomEnemies[i].secondarySkill.targetType,
                 room.roomEnemies[i].secondarySkill.targetsAllowed,
+                room.roomEnemies[i].secondarySkill.hitsRequired,
+                room.roomEnemies[i].secondarySkill.timeBetweenHitUI,
+                room.roomEnemies[i].secondarySkill.timeForNextHitMarker,
                 room.roomEnemies[i].secondarySkill.effect,
                 room.roomEnemies[i].secondarySkill.effectTarget,
                 room.roomEnemies[i].secondarySkill.effectPower,
@@ -253,6 +312,7 @@ public class CombatManager : MonoBehaviour
                 room.roomEnemies[i].secondarySkill.effectDurationDecrease,
                 room.roomEnemies[i].secondarySkill.counterSkill,
                 room.roomEnemies[i].secondarySkill.stackValue,
+                room.roomEnemies[i].secondarySkill.targetAmountPowerInc,
                 room.roomEnemies[i].secondarySkill.maxTargetSelections,
                 room.roomEnemies[i].secondarySkill.name,
                 room.roomEnemies[i].secondarySkill.description,
@@ -274,6 +334,9 @@ public class CombatManager : MonoBehaviour
                 room.roomEnemies[i].alternateSkill.skillMode,
                 room.roomEnemies[i].alternateSkill.targetType,
                 room.roomEnemies[i].alternateSkill.targetsAllowed,
+                room.roomEnemies[i].alternateSkill.hitsRequired,
+                room.roomEnemies[i].alternateSkill.timeBetweenHitUI,
+                room.roomEnemies[i].alternateSkill.timeForNextHitMarker,
                 room.roomEnemies[i].alternateSkill.effect,
                 room.roomEnemies[i].alternateSkill.effectTarget,
                 room.roomEnemies[i].alternateSkill.effectPower,
@@ -282,6 +345,7 @@ public class CombatManager : MonoBehaviour
                 room.roomEnemies[i].alternateSkill.effectDurationDecrease,
                 room.roomEnemies[i].alternateSkill.counterSkill,
                 room.roomEnemies[i].alternateSkill.stackValue,
+                room.roomEnemies[i].alternateSkill.targetAmountPowerInc,
                 room.roomEnemies[i].alternateSkill.maxTargetSelections,
                 room.roomEnemies[i].alternateSkill.name,
                 room.roomEnemies[i].alternateSkill.description,
@@ -303,6 +367,9 @@ public class CombatManager : MonoBehaviour
                 room.roomEnemies[i].ultimateSkill.skillMode,
                 room.roomEnemies[i].ultimateSkill.targetType,
                 room.roomEnemies[i].ultimateSkill.targetsAllowed,
+                room.roomEnemies[i].ultimateSkill.hitsRequired,
+                room.roomEnemies[i].ultimateSkill.timeBetweenHitUI,
+                room.roomEnemies[i].ultimateSkill.timeForNextHitMarker,
                 room.roomEnemies[i].ultimateSkill.effect,
                 room.roomEnemies[i].ultimateSkill.effectTarget,
                 room.roomEnemies[i].ultimateSkill.effectPower,
@@ -311,6 +378,7 @@ public class CombatManager : MonoBehaviour
                 room.roomEnemies[i].ultimateSkill.effectDurationDecrease,
                 room.roomEnemies[i].ultimateSkill.counterSkill,
                 room.roomEnemies[i].ultimateSkill.stackValue,
+                room.roomEnemies[i].ultimateSkill.targetAmountPowerInc,
                 room.roomEnemies[i].ultimateSkill.maxTargetSelections,
                 room.roomEnemies[i].ultimateSkill.name,
                 room.roomEnemies[i].ultimateSkill.description,
@@ -339,7 +407,6 @@ public class CombatManager : MonoBehaviour
     /// <summary>
     /// Spawns a relic
     /// </summary>
-    /// <param name="relic"></param>
     void SpawnRelic(Relic relic)
     {
         if (relicInitialized)
@@ -383,14 +450,18 @@ public class CombatManager : MonoBehaviour
             relic.passiveSkill.skillMode,
             relic.passiveSkill.targetType,
             relic.passiveSkill.targetsAllowed,
+            relic.passiveSkill.hitsRequired,
+            relic.passiveSkill.timeBetweenHitUI,
+            relic.passiveSkill.timeForNextHitMarker,
             relic.passiveSkill.effect,
-            relic.passiveSkill.effectTarget,
+            relic.passiveSkill.effectTarget,    
             relic.passiveSkill.effectPower,
             relic.passiveSkill.effectDuration,
             relic.passiveSkill.effectHitEffect,
             relic.passiveSkill.effectDurationDecrease,
             relic.passiveSkill.counterSkill,
             relic.passiveSkill.stackValue,
+            relic.passiveSkill.targetAmountPowerInc,
             relic.passiveSkill.maxTargetSelections,
             relic.passiveSkill.name,
             relic.passiveSkill.description,
@@ -417,6 +488,9 @@ public class CombatManager : MonoBehaviour
             relic.basicSkill.skillMode,
             relic.basicSkill.targetType,
             relic.basicSkill.targetsAllowed,
+            relic.basicSkill.hitsRequired,
+            relic.basicSkill.timeBetweenHitUI,
+            relic.basicSkill.timeForNextHitMarker,
             relic.basicSkill.effect,
             relic.basicSkill.effectTarget,
             relic.basicSkill.effectPower,
@@ -425,6 +499,7 @@ public class CombatManager : MonoBehaviour
             relic.basicSkill.effectDurationDecrease,
             relic.basicSkill.counterSkill,
             relic.basicSkill.stackValue,
+            relic.basicSkill.targetAmountPowerInc,
             relic.basicSkill.maxTargetSelections,
             relic.basicSkill.name,
             relic.basicSkill.description,
@@ -451,6 +526,9 @@ public class CombatManager : MonoBehaviour
             relic.primarySkill.skillMode,
             relic.primarySkill.targetType,
             relic.primarySkill.targetsAllowed,
+            relic.primarySkill.hitsRequired,
+            relic.primarySkill.timeBetweenHitUI,
+            relic.primarySkill.timeForNextHitMarker,
             relic.primarySkill.effect,
             relic.primarySkill.effectTarget,
             relic.primarySkill.effectPower,
@@ -459,6 +537,7 @@ public class CombatManager : MonoBehaviour
             relic.primarySkill.effectDurationDecrease,
             relic.primarySkill.counterSkill,
             relic.primarySkill.stackValue,
+            relic.primarySkill.targetAmountPowerInc,
             relic.primarySkill.maxTargetSelections,
             relic.primarySkill.name,
             relic.primarySkill.description,
@@ -485,6 +564,9 @@ public class CombatManager : MonoBehaviour
             relic.secondarySkill.skillMode,
             relic.secondarySkill.targetType,
             relic.secondarySkill.targetsAllowed,
+            relic.secondarySkill.hitsRequired,
+            relic.secondarySkill.timeBetweenHitUI,
+            relic.secondarySkill.timeForNextHitMarker,
             relic.secondarySkill.effect,
             relic.secondarySkill.effectTarget,
             relic.secondarySkill.effectPower,
@@ -493,6 +575,7 @@ public class CombatManager : MonoBehaviour
             relic.secondarySkill.effectDurationDecrease,
             relic.secondarySkill.counterSkill,
             relic.secondarySkill.stackValue,
+            relic.secondarySkill.targetAmountPowerInc,
             relic.secondarySkill.maxTargetSelections,
             relic.secondarySkill.name,
             relic.secondarySkill.description,
@@ -519,6 +602,9 @@ public class CombatManager : MonoBehaviour
             relic.alternateSkill.skillMode,
             relic.alternateSkill.targetType,
             relic.alternateSkill.targetsAllowed,
+            relic.alternateSkill.hitsRequired,
+            relic.alternateSkill.timeBetweenHitUI,
+            relic.alternateSkill.timeForNextHitMarker,
             relic.alternateSkill.effect,
             relic.alternateSkill.effectTarget,
             relic.alternateSkill.effectPower,
@@ -527,6 +613,7 @@ public class CombatManager : MonoBehaviour
             relic.alternateSkill.effectDurationDecrease,
             relic.alternateSkill.counterSkill,
             relic.alternateSkill.stackValue,
+            relic.alternateSkill.targetAmountPowerInc,
             relic.alternateSkill.maxTargetSelections,
             relic.alternateSkill.name,
             relic.alternateSkill.description,
@@ -553,6 +640,9 @@ public class CombatManager : MonoBehaviour
             relic.ultimateSkill.skillMode,
             relic.ultimateSkill.targetType,
             relic.ultimateSkill.targetsAllowed,
+            relic.ultimateSkill.hitsRequired,
+            relic.ultimateSkill.timeBetweenHitUI,
+            relic.ultimateSkill.timeForNextHitMarker,
             relic.ultimateSkill.effect,
             relic.ultimateSkill.effectTarget,
             relic.ultimateSkill.effectPower,
@@ -561,6 +651,7 @@ public class CombatManager : MonoBehaviour
             relic.ultimateSkill.effectDurationDecrease,
             relic.ultimateSkill.counterSkill,
             relic.ultimateSkill.stackValue,
+            relic.ultimateSkill.targetAmountPowerInc,
             relic.ultimateSkill.maxTargetSelections,
             relic.ultimateSkill.name,
             relic.ultimateSkill.description,
@@ -611,53 +702,18 @@ public class CombatManager : MonoBehaviour
         return 0;
     }
 
-    /// <summary>
-    /// Determine turn order in room
-    /// </summary>
-    void DetermineTurnOrder()
-    {
-        // Determine enemy turn order
-        _enemies.Sort(ApplyEnemyTurnOrder);
-        _enemies.Reverse();
-
-        // Determine relic turn order
-        for (int i = 0; i < _enemies.Count; i++)
-        {
-            if (_enemies[i].turnSpeed > activeRelic.turnSpeed)
-            {
-                relicTurn = false;
-                break;
-            }
-            else
-            {
-                relicTurn = true;
-            }
-        }
-
-        // If it's the enemy's starting turn
-        if (!relicTurn)
-            StartCoroutine(StartEnemysTurn());   // Start enemy turn 
-        else
-            StartCoroutine(StartRelicTurn());   // Start relic turn
-    }
-
     public IEnumerator StartRelicTurn()
     {
         relicTurn = true;
-
-        _attackBar.BeginHitMarkerStartingSequence();     // Start attack bar hit marker
 
         // Loop through room's allies for their turns
         for (int i = 0; i < _allies.Count; i++)
         {
             UpdateActiveRelic(_allies[i]);   // Update active enemy to i enemy
 
-            skillUIManager.AssignFirstSkill(_allies[i].basicSkill);    // Assign relic's active skill  on the start of their turn
+            //skillUIManager.AssignFirstSkill(_allies[i].basicSkill);    // Assign relic's active skill  on the start of their turn
 
-            //AddSkillSelectionsManual(_allies[i].basicSkill);
-            skillUIManager.relicBasicSelect.ToggleSelectionImage();    // Apply basic skill 
-
-            _attackBar.UpdateIfRelicCanAttack(true);
+            //skillUIManager.relicBasicSelect.ToggleSelectionImage();    // Apply basic skill 
 
             yield return new WaitForSeconds(postAllyAttackWait);             // Wait time before continuing for loop
         }
@@ -676,6 +732,11 @@ public class CombatManager : MonoBehaviour
         StartCoroutine(StartRelicTurn());
     }
 
+    public void EndTurn()
+    {
+        //skillUIManager.UpdateSkillCooldown()
+    }
+
     #region Selection Manager
 
     #region Edit Target Selections
@@ -690,6 +751,7 @@ public class CombatManager : MonoBehaviour
         }
 
         curTargetSelections = 0;
+        relicActiveSkill.curTargetCount = 0;
         targetSelections.Clear();
         UpdateRelicUIHider();
     }
@@ -705,6 +767,8 @@ public class CombatManager : MonoBehaviour
                 targetSelections.Add(_enemiesPosition[i].transform.GetChild(0).GetComponent<Selector>()); // Add target selection to stored list
                 _enemiesPosition[i].transform.GetChild(0).GetComponent<Selector>().selectEnabled = true; // Tell the oldest image script in stored selection list that the image is disabled
                 _enemiesPosition[i].transform.GetChild(0).GetComponent<Image>().enabled = true; // Disable the oldest image in stored selection list
+
+                relicActiveSkill.curTargetCount++;
             }
 
             UpdateRelicUIHider();
@@ -774,6 +838,8 @@ public class CombatManager : MonoBehaviour
                 skillSelections[i].transform.GetComponent<Image>().enabled = true; // Disable the oldest image in stored selection list
             }
         }
+
+        StartCoroutine(_attackBar.SpawnHitMarker(skillData));
     }
     #endregion
 

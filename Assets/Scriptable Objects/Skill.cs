@@ -7,6 +7,9 @@ public class Skill : ScriptableObject
     public string skillMode;
     public string targetType;
     public string targetsAllowed;
+    public int hitsRequired;
+    public float timeBetweenHitUI;
+    public float timeForNextHitMarker;
     public Effect effect;
     public string effectTarget;
     public int effectPower;
@@ -15,7 +18,7 @@ public class Skill : ScriptableObject
     public string effectDurationDecrease;
     public bool counterSkill;
     public float stackValue;
-
+    public int targetAmountPowerInc;
     public int maxTargetSelections = 1;
 
     [Tooltip("The name of the skill")]

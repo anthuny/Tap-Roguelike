@@ -16,6 +16,8 @@ MonoBehaviour:
   skillMode: UsedSkillDamage
   targetType: Single
   targetsAllowed: None
+  hitsRequired: 1
+  timeForNextHitMarker: 0
   effect: {fileID: 11400000, guid: 563c4ab55f0ac124eaf71c67f558b663, type: 2}
   effectTarget: Hitter
   effectPower: 1
@@ -24,6 +26,7 @@ MonoBehaviour:
   effectDurationDecrease: Attacking
   counterSkill: 1
   stackValue: 0
+  targetAmountPowerInc: 0
   maxTargetSelections: 0
   name: Parry
   description: While in defence mode, parry the upcoming attack.

@@ -40,7 +40,7 @@ public class DevManager : MonoBehaviour
         }
     }
 
-    public void FlashText(string castorName, string targetName, string skillName, float skillVal, Unit target, int inflictUpTime = 0, string inflictName = "Nothing")
+    public void FlashText(string castorName = "", string targetName = "", string skillName = "", float skillVal = 0, Unit target = null, int inflictUpTime = 0, string inflictName = "Nothing")
     {
         // If dev mode is not on, do not continue
         if (!_devTextOn)

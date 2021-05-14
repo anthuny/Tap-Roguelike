@@ -1,0 +1,16 @@
+15/05/2021 (Saturday) (3:00 am)
+
+Bugs:
+
+Hit Marker doesnt register often
+Changing skills doesnt result in correct amount of hit markers.
+Selecting a skill too early makes attack bar dark, breaking everything
+
+Wanted Features:
+Skill CD functionality / visual
+Energy remaining UI
+Combat turn order
+enemy attacks
+
+
+

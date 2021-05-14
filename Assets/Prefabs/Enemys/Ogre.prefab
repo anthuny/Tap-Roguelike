@@ -252,10 +252,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fb4fb574b1d4f8b41b247f8affa8e1a3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  curCooldown: 0
+  curHitsCompleted: 0
   skillType: 
   skillMode: 
   targetType: 
   targetsAllowed: 
+  hitsRequired: 0
+  timeBetweenHitUI: 0
+  timeForNextHitMarker: 0
   effect: {fileID: 0}
   effectTarget: 
   effectPower: 0
@@ -264,6 +269,7 @@ MonoBehaviour:
   effectDurationDecrease: 
   counterSkill: 0
   stackValue: 0
+  targetAmountPowerInc: 0
   maxTargetCount: 1
   name: 
   description: 
@@ -368,6 +374,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 97fc8c0553f58d04482e2c6764096ad8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _skillUIManager: {fileID: 0}
   _selectButton: {fileID: 5101653388698665898}
   selectEnabled: 0
   selectionImage: {fileID: 1901071690769376559}
@@ -376,6 +383,8 @@ MonoBehaviour:
   skillBorderIcon: {fileID: 0}
   skillSelectionIcon: {fileID: 0}
   skillData: {fileID: 0}
+  cooldownImage: {fileID: 0}
+  cooldownText: {fileID: 0}
   skillIconColour: {r: 0, g: 0, b: 0, a: 0}
   skillBorderColour: {r: 0, g: 0, b: 0, a: 0}
   skillSelectionColour: {r: 0, g: 0, b: 0, a: 0}
@@ -478,7 +487,7 @@ PrefabInstance:
     - target: {fileID: 6023232195439488955, guid: 7fe1014ff0e37c04d88d8c4a7a67010f,
         type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: -10
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6023232195439488955, guid: 7fe1014ff0e37c04d88d8c4a7a67010f,
         type: 3}

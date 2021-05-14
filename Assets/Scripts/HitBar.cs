@@ -39,7 +39,7 @@ public class HitBar : MonoBehaviour
     public void CheckIfMarkerHit()
     {
         // Check if the hit marker collider is touching any hit bar collider
-        if (_attackBar.hitMarkerCollider.IsTouching(hitAreaCollider))
+        if (_attackBar.activeHitMarkerCollider.IsTouching(hitAreaCollider))
         {
             // Determine which type of hit bar this is
             switch (curBarType)

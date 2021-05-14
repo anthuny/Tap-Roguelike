@@ -16,6 +16,8 @@ MonoBehaviour:
   skillMode: None
   targetType: Multiple
   targetsAllowed: Enemies
+  hitsRequired: 2
+  timeForNextHitMarker: 0
   effect: {fileID: 0}
   effectTarget: None
   effectPower: 0
@@ -24,6 +26,7 @@ MonoBehaviour:
   effectDurationDecrease: None
   counterSkill: 0
   stackValue: 0
+  targetAmountPowerInc: 0
   maxTargetSelections: 2
   name: Death Bind
   description: Bind two enemies together. Damage upon a binded target will deal 75%

@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.UI;
 
 public class SkillUIManager : MonoBehaviour
@@ -29,10 +31,13 @@ public class SkillUIManager : MonoBehaviour
     public float panSpeedUI;
     [Tooltip("How long the text remains on screen before destroying")]
     public float textLifeLength;
-    [Tooltip("The offset texts spawn at from an enemy's position")]
-    public Vector3 spawnOffSet;
-    [Tooltip("The difference in X value between each skill UI value has")]
-    public float xDistBetweenUI;
+    [Tooltip("The difference in Y value between each skill UI value has")]
+    public float yDistBetweenUI;
+    public float xDisplacementStr;
+    public float SkillUIFadeOutSpeed;
+
+    [Header("Active Stored Attacks")]
+    public AttackData activeAttackData;
 
     private void Awake()
     {
@@ -48,7 +53,7 @@ public class SkillUIManager : MonoBehaviour
     {
         _combatManager.relicActiveSkill = skillData;
     }
-    public void AssignSkillAesthetics(Image skillIcon, Image skillSelectionIcon, Image skillBorderIcon, 
+    public void AssignSkillAesthetics(Image skillIcon, Image skillSelectionIcon, Image skillBorderIcon,
         Color skillIconColour, Color skillSelectionColour, Color skillBorderColour)
     {
         skillIcon.color = skillIconColour;
@@ -88,21 +93,58 @@ public class SkillUIManager : MonoBehaviour
         relicUltimateSelect.AssignSkillUIAesthetics();
     }
 
-    public void DisplaySkillValue(int val, Transform activeSkillUIParent)
+    public void SetActiveAttackData(AttackData attackData)
     {
-        GameObject go = Instantiate(skillUIText, activeSkillUIParent.position, Quaternion.identity);    // Initialize
+        activeAttackData = attackData;
+    }
+
+    public void DisplaySkillValue(Unit caster, AttackData attackData, Transform skillUIValueParent, int val, SkillData skillData, int curHitsCompleted)
+    {
+        GameObject go = Instantiate(skillUIText, skillUIValueParent.position, Quaternion.identity);    // Initialize
+        SkillValueUI skillValueUI = go.GetComponent<SkillValueUI>();
         go.GetComponent<SkillValueUI>().skillUIManager = this;  // Initialization
-        go.transform.SetParent(activeSkillUIParent);    // Set parent
-        go.transform.position += spawnOffSet;   // Set offset
+        go.transform.SetParent(skillUIValueParent);    // Set parent
+
+        float yVal = yDistBetweenUI * caster.hitWaveCount;
+        Vector3 pos = go.transform.localPosition;
+        pos.y = go.transform.localPosition.y + yVal;
+        pos.x = Random.Range(-xDisplacementStr, xDisplacementStr);
+        go.transform.localPosition = pos;
+
+        skillValueUI.canvas.sortingOrder = caster.hitWaveCount;
 
         Text text = go.GetComponent<Text>();    // Initalization
-
-        // If unit successfully hit the skill
         if (val != 0)
             text.text = Mathf.Abs(val).ToString();  // Display damage
-        // If unit missed the skill
+                                                    // If unit missed the skill
         else
             text.text = "Miss";   // Display miss text
+
+        if (caster.hitCount == attackData.curTargetCount * attackData.hitsRequired)
+        {
+            caster.hitWaveCount = 0;
+            caster.hitCount = 0;
+        }        
+    }
+
+    public void SetSkillCooldown(SkillData skillData)
+    {
+        skillData.curCooldown = skillData.turnCooldown;
+    }
+
+    public void UpdateSkillCooldown(SkillData skillData, Selector selector)
+    {
+        selector.cooldownImage.fillAmount = skillData.curCooldown / skillData.turnCooldown;
+
+        if (skillData.turnCooldown == 0)
+            selector.cooldownText.text = "";
+        else
+            selector.cooldownText.text = skillData.curCooldown.ToString();
+    }
+
+    private int RoundFloatToInt(float f)
+    {
+        return Mathf.RoundToInt(f);
     }
 }
 

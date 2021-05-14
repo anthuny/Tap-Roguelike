@@ -55,15 +55,27 @@ public class Unit : MonoBehaviour
 
     private DevManager _devManager;
     private Skill _activeSkill;
-    //[HideInInspector]
+    [HideInInspector]
     public List<Unit> targets = new List<Unit>();
     private CombatManager _combatManager;
+    private SkillUIManager _skillUIManager;
+
+    private AttackData curAttackData;
+    private AttackData prevAttackData;
+    private float time = 0;
+    private bool started;
+    //[HideInInspector]
+    public int hitWaveCount;
+    //[HideInInspector]
+    public int hitCount;
+    bool storingAttack;
 
 
     private void Awake()
     {
         _devManager = FindObjectOfType<DevManager>();
         _combatManager = FindObjectOfType<CombatManager>();
+        _skillUIManager = FindObjectOfType<SkillUIManager>();
     }
 
     public void DetermineUnitMoveChoice(Unit unit, SkillData skillData)
@@ -81,16 +93,29 @@ public class Unit : MonoBehaviour
 
         if (unitType == UnitType.ALLY)
         {
-            UnitSkillFunctionality(skillData);
+            StartCoroutine(UnitSkillFunctionality(skillData));
         }
     }
 
     /// <summary>
     /// Caster performs a skill on a target
     /// </summary>
-    public void UnitSkillFunctionality(SkillData skillData)
+    public IEnumerator UnitSkillFunctionality(SkillData skillData)
     {
         AssignSelectionCount(skillData);
+
+        skillData.curHitsCompleted++;   // Increase current hits completed by 1
+
+        if (skillData.curHitsCompleted == skillData.hitsRequired)
+        {
+            _skillUIManager.SetSkillCooldown(skillData);
+            //_skillUIManager.UpdateSkillCooldown(skillData, _combatManager.relicActiveSkill)
+        }
+        else if (skillData.curHitsCompleted >= skillData.hitsRequired)
+        {
+            Debug.LogWarning("1 Extra hit was not valid");
+            yield return null;
+        }
 
         switch (skillData.targetsAllowed)
         {
@@ -102,75 +127,83 @@ public class Unit : MonoBehaviour
 
                         Unit targetSingle = _combatManager.targetSelections[0].GetComponentInParent<Unit>();
 
+                        hitCount++;
+
                         switch (skillData.skillMode)
                         {
                             case "Damage":
-                                targetSingle.UpdateCurHealth(-power);
+                                StoreSkillCause(targetSingle, this, skillData, -power, true); 
                                 break;
 
                             case "PercentMaxHealthDamage":
-                                targetSingle.UpdateCurHealth(-((power / 100) * targetSingle.maxHealth));
+                                StoreSkillCause(targetSingle, this, skillData, -((power / 100) * targetSingle.maxHealth), true);
                                 break;
 
                             case "Heal":
-                                targetSingle.UpdateCurHealth(power);
+                                StoreSkillCause(targetSingle, this, skillData, power, true);
                                 break;
-                                
+
                             case "PercentMaxHealHeal":
-                                targetSingle.UpdateCurHealth(((power / 100) * targetSingle.maxHealth));
+                                StoreSkillCause(targetSingle, this, skillData, ((power / 100) * targetSingle.maxHealth), true);
                                 break;
                         }
+                            /*
+                            // If skill has an effect
+                            if (skillData.effect.name != "None")
+                            {
+                                // If Relic didn't miss
+                                if (_combatManager.relicActiveSkillProcModifier != 0)
+                                    StoreSkillCause(targetSingle, this, skillData, -power, true);
 
-                        // If skill has an effect
-                        if (skillData.effect.name != "None")
-                        {
-                            // If Relic didn't miss
-                            if (_combatManager.relicActiveSkillProcModifier != 0)
-                                targetSingle.AssignEffect(skillData.effect, this, targetSingle, skillData);     // Attempt Assign effect
-
-                        }
-                        // If skill does not have an effect
-                        else
+                            }
+                            // If skill does not have an effect
+                            */
+                            
                             _devManager.FlashText(this.name, targetSingle.name, skillData.name, power, targetSingle);   // Debug the attack
+
                         break;
+
 
                     case "Multiple":
 
                         for (int i = 0; i < _combatManager.targetSelections.Count; i++)
                         {
                             Unit targetMultiple = _combatManager.targetSelections[i].GetComponentInParent<Unit>();
+                            hitCount++;
 
                             switch (skillData.skillMode)
                             {
                                 case "Damage":
-                                    targetMultiple.UpdateCurHealth(-power);
+                                    if (!storingAttack)
+                                        StoreSkillCause(targetMultiple, this, skillData, -power, true);
                                     break;
 
                                 case "PercentMaxHealthDamage":
-                                    targetMultiple.UpdateCurHealth(-((power / 100) * targetMultiple.maxHealth));
+                                    StoreSkillCause(targetMultiple, this, skillData, -((power / 100) * targetMultiple.maxHealth), true);
                                     break;
 
                                 case "Heal":
-                                    targetMultiple.UpdateCurHealth(power);
+                                    StoreSkillCause(targetMultiple, this, skillData, power, true);
                                     break;
 
                                 case "PercentMaxHealHeal":
-                                    targetMultiple.UpdateCurHealth(((power / 100) * targetMultiple.maxHealth));
+                                    StoreSkillCause(targetMultiple, this, skillData, ((power / 100) * targetMultiple.maxHealth), true);
                                     break;
                             }
-
+                            /*
                             // If skill has an effect
                             if (skillData.effect.name != "None")
                             {
                                 // If Relic didn't miss
                                 if (_combatManager.relicActiveSkillProcModifier != 0)
-                                    targetMultiple.AssignEffect(skillData.effect, this, targetMultiple, skillData);     // Attempt Assign effect
+                                    StoreSkillCause(targetMultiple, this, skillData, -power, true);
 
                             }
+                            */
                             // If skill does not have an effect
-                            else
-                                _devManager.FlashText(this.name, targetMultiple.name, skillData.name, power, targetMultiple);   // Debug the attack
+                            _devManager.FlashText(this.name, targetMultiple.name, skillData.name, power, targetMultiple);   // Debug the attack
                         }
+
                             break;
 
                     case "None":
@@ -197,9 +230,149 @@ public class Unit : MonoBehaviour
                 break;
         }
 
-        _combatManager.StartCoroutine("StartEnemysTurn");
+        // If this attack was the last required hit
+        if (skillData.curHitsCompleted == skillData.hitsRequired)
+        {
+            StartCoroutine(SendSkillUI());
+            skillData.curHitsCompleted = 0;
+        }
+
+
+        //_combatManager.StartCoroutine("StartEnemysTurn");
     }
 
+    void StoreSkillCause(Unit target, Unit caster, SkillData skillData, float val = 0, bool inCombat = true)
+    {
+        //storingAttack = true;
+
+        curAttackData = _combatManager.gameObject.AddComponent<AttackData>();
+        _combatManager.activeAttackData.Add(curAttackData);
+
+        curAttackData.skillData = skillData;
+        curAttackData.inCombat = inCombat;
+        curAttackData.target = target;
+        curAttackData.val = val;
+        curAttackData.effect = skillData.effect;
+        curAttackData.skillName = skillData.name;
+        curAttackData.skillEffectName = skillData.effect.name;
+        curAttackData.effectPower = skillData.effectPower;
+        curAttackData.effectDuration = skillData.effectDuration;
+        curAttackData.curHitsCompleted = skillData.curHitsCompleted;
+        curAttackData.hitsRequired = skillData.hitsRequired;
+        curAttackData.timeBetweenHitUI = skillData.timeBetweenHitUI;
+        curAttackData.skillUIValueParent = target.skillUIValueParent;
+        curAttackData.curTargetCount = skillData.curTargetCount;
+
+        //storingAttack = false;
+    }
+
+    IEnumerator SendSkillUI(Unit target = null, Unit caster = null)
+    {
+        for (int i = 0; i < _combatManager.activeAttackData.Count; i++)
+        {
+            if (i % curAttackData.curTargetCount == 0 && i != 0)
+            {
+                hitWaveCount++;
+                yield return new WaitForSeconds(curAttackData.timeBetweenHitUI);
+            }
+
+            // send values to target
+            _combatManager.activeAttackData[i].target.UpdateCurHealth(_combatManager.activeAttackData[i].val,
+                    _combatManager.activeAttackData[i].inCombat, _combatManager.activeAttackData[i].skillUIValueParent,
+                _combatManager.activeAttackData[i], _combatManager.activeAttackData[i].skillData, _combatManager.activeAttackData[i].curHitsCompleted, this);
+
+            // Attempt Assign effect
+            _combatManager.activeAttackData[i].target.AssignEffect(_combatManager.activeAttackData[i].effect,
+                _combatManager.activeAttackData[i].effectPower, _combatManager.activeAttackData[i].effectDuration,
+                _combatManager.activeAttackData[i].skillData,
+                caster, target);
+
+            if (i == _combatManager.activeAttackData.Count - 1)
+                _combatManager.activeAttackData.Clear();
+        }
+
+        hitWaveCount = 0;
+    }
+    /// <summary>
+    /// Adjust max current health of unit
+    /// </summary>
+    public void UpdateCurHealth(float val, bool inCombat = true, Transform activeSkillUIParent = null, AttackData attackData = null, SkillData skillData = null, int curHitsCompleted = 0, Unit caster = null)
+    {
+        int combatValue = RoundFloatToInt((val * _combatManager.relicActiveSkillValueModifier) + (recievedDamageAmp * (val * _combatManager.relicActiveSkillValueModifier)));
+        int basicVal = RoundFloatToInt(val);
+
+        if (inCombat)
+        {
+            curHealth += combatValue;
+ 
+            _combatManager.skillUIManager.DisplaySkillValue(caster, attackData, attackData.skillUIValueParent,
+                RoundFloatToInt(attackData.val), attackData.skillData, attackData.curHitsCompleted);
+        }
+        else
+            curHealth += RoundFloatToInt(basicVal);
+
+        UpdateCurHealthVisual(curHealth / maxHealth, true);
+    }
+     
+    public void UpdateCurHealthVisual(float val, bool inCombat = true)
+    {
+        healthImage.fillAmount = val;
+    }
+
+    public void AssignEffect(Effect effect, int effectPower, int effectDuration, SkillData skillData, Unit caster = null, Unit target = null)
+    {
+        float rand = Random.Range(0f, 1f);
+        // If unit successfully rolled for the proc
+        if (rand <= _combatManager.relicActiveSkillProcModifier)
+        {
+            _devManager.FlashText();
+
+            UpdateEffectVisual(effect, effectPower, effectDuration, skillData);
+        }
+        // If unit failed the roll for the proc
+        else
+            _devManager.FlashText();
+    }
+
+    public void UpdateEffectVisual(Effect effect, int effectPower, int effectDuration, SkillData skillData)
+    {
+        // If unit is currently already inflicted with an effect, increase the power of the same effect instead of adding a new effect
+        for (int i = 0; i < effects.Count; i++)
+        {
+            if (effect.name == effects[i].name)
+            {
+                EffectImage effectImage = effectImages[i].GetComponent<EffectImage>();
+
+                effectImage.UpdateEffectPower(effectPower);
+
+                effectImage.Functionality(skillData);
+
+                return;
+            }
+        }
+
+        // If this effect is unique to the current effects on the unit, spawn another one.
+        for (int i = 0; i < effectImages.Count; i++)
+        {
+            if (!effectImages[i].enabled)
+            {
+                EffectImage effectImage = effectImages[i].GetComponent<EffectImage>();
+
+                effects.Add(effect);
+                effectPowers.Add(effectPower);
+
+                effectImage.UpdateEffectPower(effectPower);
+                effectImage.UpdateEffectDuration(effectDuration);
+                effectImage.ToggleEffectImage(true);
+                effectImage.ToggleEffectPowerText(true);
+                effectImage.SetEffectImage(effect.effectImage);
+
+                effectImage.Functionality(skillData);
+
+                return;
+            }
+        }
+    }
     void AssignSelectionCount(SkillData skill)
     {
         _combatManager.maxTargetSelections = skill.maxTargetCount;
@@ -249,88 +422,6 @@ public class Unit : MonoBehaviour
         maxHealth += val;
     }
 
-    /// <summary>
-    /// Adjust max current health of unit
-    /// </summary>
-    public void UpdateCurHealth(float val, bool inCombat = true)
-    {
-        int combatValue = RoundFloatToInt((val * _combatManager.relicActiveSkillValueModifier) + (recievedDamageAmp * (val * _combatManager.relicActiveSkillValueModifier)));
-        int basicVal = RoundFloatToInt(val);
-        if (inCombat)
-        {
-            curHealth += combatValue;
-            _combatManager.skillUIManager.DisplaySkillValue(combatValue, skillUIValueParent);
-        }
-
-        else
-        {
-            curHealth += RoundFloatToInt(basicVal);
-        }
-
-        UpdateCurHealthVisual(curHealth/maxHealth, true);
-    }
-
-    public void UpdateCurHealthVisual(float val, bool inCombat = true)
-    {
-        healthImage.fillAmount = val;
-    }
-
-    public void AssignEffect(Effect effect, Unit caster, Unit target, SkillData skillData)
-    {
-        float rand = Random.Range(0f,1f);
-        // If unit successfully rolled for the proc
-        if (rand <= _combatManager.relicActiveSkillProcModifier)
-        {
-            _devManager.FlashText(caster.name, target.name, skillData.name, caster.power, target, skillData.effectPower, skillData.effect.name);
-
-            UpdateEffectVisual(effect, skillData.effectPower, skillData.effectDuration, skillData);
-        }
-        // If unit failed the roll for the proc
-        else
-        {
-            _devManager.FlashText(caster.name, target.name, skillData.name, caster.power, target);
-        }
-    }
-
-    public void UpdateEffectVisual(Effect effect, int effectPower, int effectDuration, SkillData skillData)
-    {
-        // If unit is currently already inflicted with an effect, increase the power of the same effect instead of adding a new effect
-        for (int i = 0; i < effects.Count; i++)
-        {
-            if (effect.name == effects[i].name)
-            {
-                EffectImage effectImage = effectImages[i].GetComponent<EffectImage>();
-
-                effectImage.UpdateEffectPower(effectPower);
-
-                effectImage.Functionality(skillData);
-
-                return;
-            }
-        }
-
-        // If this effect is unique to the current effects on the unit, spawn another one.
-        for (int i = 0; i < effectImages.Count; i++)
-        {
-            if (!effectImages[i].enabled)
-            {
-                EffectImage effectImage = effectImages[i].GetComponent<EffectImage>();
-
-                effects.Add(effect);
-                effectPowers.Add(effectPower);
-
-                effectImage.UpdateEffectPower(effectPower);
-                effectImage.UpdateEffectDuration(effectDuration);
-                effectImage.ToggleEffectImage(true);
-                effectImage.ToggleEffectPowerText(true);
-                effectImage.SetEffectImage(effect.effectImage);
-
-                effectImage.Functionality(skillData);
-
-                return;
-            }
-        }
-    }
 
     public void UpdateUnitType(UnitType unitType)
     {
