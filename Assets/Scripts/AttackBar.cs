@@ -5,12 +5,6 @@ using UnityEngine.UI;
 
 public class AttackBar : MonoBehaviour 
 {
-    // Enums
-    [HideInInspector]
-    public enum AttackBarState {MOVING, IDLE};
-    [HideInInspector]
-    public AttackBarState curHitMarkerState;
-
     // Inspector variables
     [Header("Main")]
     [SerializeField] private Gamemode _gamemode; 
@@ -32,7 +26,9 @@ public class AttackBar : MonoBehaviour
     [SerializeField] private List<Transform> _hitAreas = new List<Transform>();
 
     [Header("Relic UI")]
-    [SerializeField] private CanvasGroup _relicUIHider;
+    public GraphicRaycaster relicUIGR;
+    private CanvasGroup relicUICG;
+    public CanvasGroup relicUIHider;
     public float _relicUIHiderOffVal;
     public float _relicUIHiderSelectVal;
     public float _relicUIHiderOnVal;
@@ -42,15 +38,26 @@ public class AttackBar : MonoBehaviour
     public float hitMarkerAlpha2;
     public float hitMarkerAlpha3Plus;
     [SerializeField] private float timeTillHitMarkerDestroys;
+
+    [Space(3)]
+    [SerializeField] GameObject backGO;
+    [Space(3)]
+    [Header("Attack Bar Skill Movement")]
+    public Transform skillActiveTrans;
+    public Transform defaultTrans;
+    [HideInInspector]
+    public bool skillActive;
+    private bool activatedBackButton;
+
     private HitBar _hitBar;
     // Public
-    //[HideInInspector]
-    public Collider2D activeHitMarkerCollider;
     [HideInInspector]
+    public Collider2D activeHitMarkerCollider;
+    //[HideInInspector]
     public List<HitMarker> hitMarkers = new List<HitMarker>();
     [HideInInspector]
     public HitMarker activeHitMarker;
-    //[HideInInspector]
+    [HideInInspector]
     public HitBar curCollidingHitArea;
     [HideInInspector]
     public bool canHit;
@@ -86,7 +93,7 @@ public class AttackBar : MonoBehaviour
     public void LandHitMarker()
     {      
         // Check if the user performed the land hit marker input
-        if (CheckRelicUIHiderStatus())
+        if (CheckRelicUIHiderStatus() && skillActive)
         {
             //Debug.Log("Triggered");
             BeginHitMarkerStoppingSequence(); // Stop the hit marker
@@ -95,7 +102,10 @@ public class AttackBar : MonoBehaviour
 
     void InitialLaunch()
     {
-        _combatManager = FindObjectOfType<CombatManager>();               
+        _combatManager = FindObjectOfType<CombatManager>();
+        relicUICG = relicUIGR.gameObject.GetComponent<CanvasGroup>();
+
+        ToggleBackButton(false);
     }
 
     public void DisableBarVisuals()
@@ -145,25 +155,72 @@ public class AttackBar : MonoBehaviour
         return Vector3.zero;
     }
 
-    void DestroyAllHitMarkers()
+    public void MoveAttackBar(bool activating)
     {
-        for (int i = 0; i < hitMarkers.Count; i++)
+        ToggleBackButton(activating);
+
+        if (activating)
         {
-            StartCoroutine(hitMarkers[i].DestroyHitMarker());
-            hitMarkers.RemoveAt(i);
+            transform.position = skillActiveTrans.position;
+            ToggleRelicSkillUIInput(false);
+            UpdateUIAlpha(relicUICG, 0);
+        }
 
-            if (i == hitMarkers.Count - 1)
+        else
+        {
+            transform.position = defaultTrans.position;
+            ToggleRelicSkillUIInput(true);
+            UpdateUIAlpha(relicUICG, 1);
+        }
+    }
+
+    public void BackButtonFunctionality()
+    {
+        if (!activatedBackButton)
+            activatedBackButton = true;
+        else
+            activatedBackButton = false;
+
+        if (activatedBackButton)
+            MoveAttackBar(true);
+        else
+            MoveAttackBar(false);
+    }
+
+    public void ToggleBackButton(bool cond, bool iso = false)
+    {
+        backGO.SetActive(cond);
+
+        if (!iso)
+        {
+            skillActive = cond;
+
+            if (!cond)
             {
-                for (int x = 0; x < hitMarkers.Count; x++)
-                {
-                    StartCoroutine(hitMarkers[i].DestroyHitMarker());
-                }
-
-                hitMarkers.Clear();
+                DestroyAllHitMarkers();
+                _combatManager.activeAttackData.Clear();
+                _combatManager.ClearTargetSelections();
+                _combatManager.ClearSkillSelections();
             }
         }
     }
 
+    public void DestroyAllHitMarkers()
+    {
+        if (hitMarkers.Count == 0)
+            return;
+
+        for (int i = 0; i < hitMarkers.Count; i++)
+            hitMarkers[i].DestroyHitMarkerInstant();
+
+        hitMarkers.Clear();
+    }
+
+    public IEnumerator DestroyAllHitMarkersCo()
+    {
+        yield return new WaitForSeconds(0);
+        Invoke("DestroyAllHitMarkers", timeTillHitMarkerDestroys);
+    }
     public IEnumerator SpawnHitMarker(SkillData skillData)
     {
         DestroyAllHitMarkers();
@@ -184,7 +241,6 @@ public class AttackBar : MonoBehaviour
             hitMarkerScript.speed = _speed;
             hitMarkerScript.attackBar = this;
 
-
             if (i == 0)
             {
                 activeHitMarkerCollider = go.GetComponent<BoxCollider2D>();
@@ -203,24 +259,6 @@ public class AttackBar : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Stops Hit Marker. Called when the hit marker lands on any hit bar (miss, good, great, perfect)
-    /// </summary>
-    private void StopHitMarker()
-    {
-        curHitMarkerState = AttackBar.AttackBarState.IDLE;
-
-        activeHitMarker.stopped = true;
-    }
-
-    private void ResetAttackBarToDefault()
-    {
-        curHitMarkerState = AttackBar.AttackBarState.IDLE;
-        _initialPos = SetHitMarkerStartingAndEndingPos();
-
-        _step = 0;
-    }
-
     void UpdateActiveHitMarker()
     {
         if (hitMarkers.Count >= 1)
@@ -230,7 +268,7 @@ public class AttackBar : MonoBehaviour
                 if (i == 0)
                 {
                     hitMarkers.RemoveAt(i);
-                    StartCoroutine(activeHitMarker.DestroyHitMarker(timeTillHitMarkerDestroys));
+                    StartCoroutine(activeHitMarker.DestroyHitMarker(timeTillBarTurnsInvis));
 
                     if (hitMarkers.Count == 0)
                     {
@@ -265,29 +303,10 @@ public class AttackBar : MonoBehaviour
     /// </summary>
     public void BeginHitMarkerStoppingSequence()
     {
-        // Stop hit marker
-        StopHitMarker();
-
         // Check to see which hit bar the hit marker hit
         curCollidingHitArea.CheckIfMarkerHit();
 
         UpdateActiveHitMarker();
-    }
-
-    /// <summary>
-    /// Reset hit marker to default,
-    /// Make hit marker start again
-    /// </summary>
-    public void BeginHitMarkerStartingSequence()
-    {
-        // Reset values
-        ResetAttackBarToDefault();
-
-        // Resume or start the hit marker's attack bar movement
-        curHitMarkerState = AttackBar.AttackBarState.MOVING;
-
-        int rand = Random.Range(0, 1);
-        _step = rand;
     }
 
     public IEnumerator ToggleHitMarkerVisibility(HitMarker hitMarker, GameObject visual, bool toggle, float time = 0)
@@ -306,21 +325,26 @@ public class AttackBar : MonoBehaviour
     /// Toggles the attack bar hider's display
     /// </summary>
     /// <param name="cond"></param>
-    public void UpdateRelicUIHider(float alpha)
+    public void UpdateUIAlpha(CanvasGroup canvasGroup, float alpha)
     {
-        _relicUIHider.alpha = alpha;
+        canvasGroup.alpha = alpha;
+    }
+
+    void ToggleRelicSkillUIInput(bool cond)
+    {
+        relicUIGR.enabled = cond;
     }
 
     public bool CheckRelicUIHiderStatus()
     {
         // If the relic UI hider is off
-        if (_relicUIHider.alpha == _relicUIHiderOffVal)
+        if (relicUIHider.alpha == _relicUIHiderOffVal)
             return true;
 
-        if (_relicUIHider.alpha == _relicUIHiderOnVal)
+        if (relicUIHider.alpha == _relicUIHiderOnVal)
             return false;
 
-        if (_relicUIHider.alpha == _relicUIHiderSelectVal)
+        if (relicUIHider.alpha == _relicUIHiderSelectVal)
             return false;
         else
             return false;

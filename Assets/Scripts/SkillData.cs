@@ -24,7 +24,8 @@ public class SkillData : MonoBehaviour
     public string effectDurationDecrease;
     public bool counterSkill;
     public float stackValue;
-    public int targetAmountPowerInc;
+    public float targetAmountPowerInc;
+    public bool isTargetCountValAmp;
     public int maxTargetCount = 1;
 
     [Tooltip("The name of the skill")]
@@ -67,7 +68,7 @@ public class SkillData : MonoBehaviour
     public void InitializeSkill(Color skillIconColour, Color skillBorderColour, Color skillSelectionColour, string skillType = "Basic", string skillMode = "None",
         string targetType = "None", string targetsAllowed = "0", int hitsRequired = 0, float timeBetweenHitUI = 0, float timeForNextHitMarker = 0, Effect effect = null, string effectTarget = "None", int effectPower = 0,
         int effectDuration = 0, string effectHitEffect = "None", string effectDurationDecrease = "None", bool counterSkill = false, float stackValue = 0,
-        int targetAmountPowerInc = 1, int targetCount = 0, string name = "", string description = "", int turnCooldown = 0, float missDamageMultiplier = 0, float goodDamageMultiplier = 0,
+        float targetAmountPowerInc = 1, bool isTargetCountValAmp = false, int targetCount = 0, string name = "", string description = "", int turnCooldown = 0, float missDamageMultiplier = 0, float goodDamageMultiplier = 0,
         float greatDamageMultiplier = 0, float perfectDamageMultiplier = 0, float missProcMultiplier = 0, float goodProcMultiplier = 0, 
         float greatProcMultiplier = 0, float perfectProcMultiplier = 0, int maxSkillCount = 0)
     {
@@ -89,6 +90,7 @@ public class SkillData : MonoBehaviour
         this.counterSkill = counterSkill;
         this.stackValue = stackValue;
         this.targetAmountPowerInc = targetAmountPowerInc;
+        this.isTargetCountValAmp = isTargetCountValAmp;
         this.maxTargetCount = targetCount;
         this.name = name;
         this.description = description;

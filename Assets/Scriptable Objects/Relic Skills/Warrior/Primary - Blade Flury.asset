@@ -27,7 +27,8 @@ MonoBehaviour:
   effectDurationDecrease: Attacking
   counterSkill: 0
   stackValue: 0
-  targetAmountPowerInc: 1
+  targetAmountPowerInc: 0.3
+  isTargetCountValAmp: 1
   maxTargetSelections: 6
   name: Blade Flury
   description: Send a flurry of blade slashes at up to 6 enemies. Deal increased

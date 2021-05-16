@@ -18,7 +18,8 @@ public class Skill : ScriptableObject
     public string effectDurationDecrease;
     public bool counterSkill;
     public float stackValue;
-    public int targetAmountPowerInc;
+    public float targetAmountPowerInc;
+    public bool isTargetCountValAmp;
     public int maxTargetSelections = 1;
 
     [Tooltip("The name of the skill")]

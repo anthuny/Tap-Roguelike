@@ -33,9 +33,7 @@ public class Selector : MonoBehaviour
     public Color skillSelectionColour;
   
     [SerializeField] private bool isSkill;
-    public bool startingSkill;
-    public bool startingSkillActivated;
-    public int enemyCount;
+    public int enemyIndex;
 
     private void Awake()
     {
@@ -55,32 +53,18 @@ public class Selector : MonoBehaviour
     {
         if (isSkill)
         {
-            // If selection is not displayed, display it
-            if (!selectEnabled)
-            {
-                if (startingSkill && !startingSkillActivated)
-                {
-                    startingSkillActivated = true;
-
-                    _combatManager.ManageSelectionCount(true, this,
-                    _combatManager.curSkillSelections, skillData.maxSkillCount, _combatManager.curTargetSelections, skillData.maxTargetCount, skillData, true);
-                }
-                else
-                {
-                    _combatManager.ManageSelectionCount(true, this,
-                    _combatManager.curSkillSelections, skillData.maxSkillCount, _combatManager.curTargetSelections, skillData.maxTargetCount, skillData, false);
-                }
-            }
+            _combatManager.ManageSelectionCount(true, this,
+            _combatManager.curSkillSelections, skillData.maxSkillCount, _combatManager.curTargetSelections, skillData.maxTargetCount, skillData);
         }
         else
         {
             // If selection is not displayed, display it 
             if (!selectEnabled)
-                _combatManager.UpdateTargetSelection(this, enemyCount, true);
+                _combatManager.UpdateTargetSelection(this, enemyIndex, true);
 
             // If selection is displayed, hide it
             else
-                    _combatManager.UpdateTargetSelection(this, enemyCount, false);
+                _combatManager.UpdateTargetSelection(this, enemyIndex, false);
         }
     }
 

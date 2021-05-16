@@ -80,8 +80,14 @@ public class HitMarker : MonoBehaviour
         _canvasgroup.alpha = alpha;
     }
 
-    public IEnumerator DestroyHitMarker(float time = 0)
+    public void DestroyHitMarkerInstant()
     {
+        Destroy(this.gameObject);
+    }
+
+    public IEnumerator DestroyHitMarker(float time)
+    {
+        stopped = true;
         yield return new WaitForSeconds(time);
 
         Destroy(this.gameObject);

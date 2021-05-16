@@ -3,11 +3,12 @@
 Bugs:
 
 //Hit Marker doesnt register often
-Changing skills doesnt result in correct amount of hit markers.
+////Changing skills doesnt result in correct amount of hit markers.
 //Selecting a skill too early makes attack bar dark, breaking everything
 //Damage is always a static number, instead of being different.
 
 Wanted Features:
+Make dmg inflciting effects deal seperate lines of attacks, proceeding during or after the inflicting attack.
 Skill CD functionality / visual
 Energy remaining UI
 Combat turn order
@@ -15,5 +16,15 @@ enemy attacks
 
 
 16/05/2021 Sunday (9:48pm)
-After the use of a skill (Warrior basic/primary) attacking again gives an exception error.
-The user must not be able to use the skill again. (do cooldowns) (ok doing it).
+//After the use of a skill (Warrior basic/primary) attacking again gives an exception error.
+Unit's don't recieve damage from being marked
+Units can be selected even when not having a skill active
+
+Changes:
+Attack Bar now moves to a higher position when a skill is active.
+User no longer has a default starting skill.
+Players can optionally press the cancel button to exit the skill, if the player hasn't began attacking with it yet.
+
+
+Attack Bar Hider no longer works.
+

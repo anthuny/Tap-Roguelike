@@ -47,6 +47,8 @@ public class SkillUIManager : MonoBehaviour
     public void AssignActiveSkill(Button button)
     {
         _combatManager.relicActiveSkill = button.transform.parent.parent.GetComponent<Selector>().skillData;  // Assign the selected skill
+
+        _combatManager.activeAttackBar.MoveAttackBar(true);
     }
 
     public void AssignFirstSkill(SkillData skillData)

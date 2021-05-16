@@ -203,7 +203,6 @@ public class Unit : MonoBehaviour
                             // If skill does not have an effect
                             _devManager.FlashText(this.name, targetMultiple.name, skillData.name, power, targetMultiple);   // Debug the attack
                         }
-
                             break;
 
                     case "None":
@@ -230,28 +229,34 @@ public class Unit : MonoBehaviour
                 break;
         }
 
+        // Disable the back button after the first hit of the skill
+        if (skillData.curHitsCompleted == 1)
+            _combatManager.activeAttackBar.ToggleBackButton(false, true);
+
         // If this attack was the last required hit
         if (skillData.curHitsCompleted == skillData.hitsRequired)
         {
             StartCoroutine(SendSkillUI());
             skillData.curHitsCompleted = 0;
+            StartCoroutine(_combatManager.activeAttackBar.DestroyAllHitMarkersCo());
         }
-
-
-        //_combatManager.StartCoroutine("StartEnemysTurn");
     }
 
     void StoreSkillCause(Unit target, Unit caster, SkillData skillData, float val = 0, bool inCombat = true)
     {
-        //storingAttack = true;
-
         curAttackData = _combatManager.gameObject.AddComponent<AttackData>();
         _combatManager.activeAttackData.Add(curAttackData);
 
         curAttackData.skillData = skillData;
         curAttackData.inCombat = inCombat;
         curAttackData.target = target;
-        curAttackData.val = _combatManager.CalculateDamageDealt(val, _combatManager.relicActiveSkillValueModifier);
+
+        // fs skill is not dealing more damage based on the amount of targets selected
+        if (!skillData.isTargetCountValAmp)
+            curAttackData.val = _combatManager.CalculateDamageDealt(val, _combatManager.relicActiveSkillValueModifier);
+        else
+            curAttackData.val = _combatManager.CalculateDamageDealt(val, _combatManager.relicActiveSkillValueModifier, skillData.targetAmountPowerInc, _combatManager.targetSelections.Count);
+
         curAttackData.effect = skillData.effect;
         curAttackData.skillName = skillData.name;
         curAttackData.skillEffectName = skillData.effect.name;
@@ -261,10 +266,7 @@ public class Unit : MonoBehaviour
         curAttackData.hitsRequired = skillData.hitsRequired;
         curAttackData.timeBetweenHitUI = skillData.timeBetweenHitUI;
         curAttackData.skillUIValueParent = target.skillUIValueParent;
-        curAttackData.curTargetCount = skillData.curTargetCount;
-
-
-        //storingAttack = false;
+        curAttackData.curTargetCount = _combatManager.targetSelections.Count;
     }
 
     IEnumerator SendSkillUI(Unit target = null, Unit caster = null)
@@ -293,6 +295,9 @@ public class Unit : MonoBehaviour
         }
 
         hitWaveCount = 0;
+
+        yield return new WaitForSeconds(_combatManager.postHitTime);
+        _combatManager.activeAttackBar.MoveAttackBar(false);
     }
     /// <summary>
     /// Adjust max current health of unit
