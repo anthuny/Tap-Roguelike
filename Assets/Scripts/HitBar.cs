@@ -27,10 +27,8 @@ public class HitBar : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.CompareTag("HitMarker"))
-        {
+        if (collision.CompareTag(_attackBar.activeHitMarkerTag))
             _attackBar.curCollidingHitArea = this;
-        }
     }
 
     /// <summary>
@@ -38,8 +36,14 @@ public class HitBar : MonoBehaviour
     /// </summary>
     public void CheckIfMarkerHit()
     {
+        _attackBar.hitMarkers[0].SetActiveHitMarker();
+
+        _attackBar.SetActiveHitMarkerCollider(_attackBar.hitMarkers[0].gameObject.GetComponent<Collider2D>());
+
+        Collider2D coll = _attackBar.activeHitMarkerColl;
+
         // Check if the hit marker collider is touching any hit bar collider
-        if (_attackBar.activeHitMarkerCollider.IsTouching(hitAreaCollider))
+        if (coll.IsTouching(hitAreaCollider))
         {
             // Determine which type of hit bar this is
             switch (curBarType)
@@ -94,6 +98,4 @@ public class HitBar : MonoBehaviour
             Debug.LogWarning("This hit bar isn't being collided with");
         }
     }
-
-
 }

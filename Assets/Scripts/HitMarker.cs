@@ -23,11 +23,13 @@ public class HitMarker : MonoBehaviour
     public GameObject _hitMarkerImageGO;
     [SerializeField] private CanvasGroup _canvasgroup;
     [SerializeField] private RectTransform _hitMarkerRT;
+    private BoxCollider2D hitMarkerCollider;
 
     private void Start()
     {
         _hitMarkerRT = gameObject.GetComponent<RectTransform>();
         _hitMarkerImageGO.SetActive(false);
+        hitMarkerCollider = GetComponent<BoxCollider2D>();
     }
 
     // Update is called once per frame
@@ -36,6 +38,10 @@ public class HitMarker : MonoBehaviour
         PingPong();
     }
 
+    public void SetActiveHitMarker()
+    {
+        attackBar.activeHitMarkerColl = hitMarkerCollider;
+    }
     void ToggleDisplay()
     {
         StartCoroutine(attackBar.ToggleHitMarkerVisibility(this, _hitMarkerImageGO, true, 0));

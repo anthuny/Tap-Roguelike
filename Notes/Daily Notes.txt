@@ -2,9 +2,10 @@
 
 Bugs:
 
-Hit Marker doesnt register often
+//Hit Marker doesnt register often
 Changing skills doesnt result in correct amount of hit markers.
-Selecting a skill too early makes attack bar dark, breaking everything
+//Selecting a skill too early makes attack bar dark, breaking everything
+//Damage is always a static number, instead of being different.
 
 Wanted Features:
 Skill CD functionality / visual
@@ -13,4 +14,6 @@ Combat turn order
 enemy attacks
 
 
-
+16/05/2021 Sunday (9:48pm)
+After the use of a skill (Warrior basic/primary) attacking again gives an exception error.
+The user must not be able to use the skill again. (do cooldowns) (ok doing it).

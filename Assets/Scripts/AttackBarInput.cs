@@ -8,6 +8,7 @@ public class AttackBarInput : MonoBehaviour
 
     public void StopAttackBarHitMarker()
     {
+        
         _attackBar.LandHitMarker();
     }   
 }

@@ -698,10 +698,11 @@ MonoBehaviour:
   hitMarker: {fileID: 2559584680975656008}
   _attackButton: {fileID: 5384006193597086159}
   _hitMarkerStopMouseCode: 0
+  hitMarkerInvisTime: 1
+  skillUIFontSize: 140
+  skillUIMissFontSize: 110
   _speed: 2
-  timeTillBarResumes: 1
   timeTillBarTurnsInvis: 1
-  timeTillHitMarkerRespawn: 0
   _checkPoints:
   - {fileID: 8856057089479029008}
   - {fileID: 7416382086748910729}
@@ -719,14 +720,21 @@ MonoBehaviour:
   - {fileID: 7238461734508647827}
   - {fileID: 1215747287947910610}
   - {fileID: 441571552}
-  hitMarkerCollider: {fileID: 0}
+  hitMarkerAlpha1: 1
+  hitMarkerAlpha2: 0.1
+  hitMarkerAlpha3Plus: 0.03
+  timeTillHitMarkerDestroys: 0.65
+  activeHitMarkerCollider: {fileID: 0}
+  hitMarkers: []
+  activeHitMarker: {fileID: 0}
   curCollidingHitArea: {fileID: 0}
   canHit: 0
   startingMoving: 0
-  pingPong: 0
-  hitMarkers: []
   hitMarkerGO: {fileID: 3665535719716308601, guid: 87d16d5c98dfb0c4ab42f445e57e13c5,
     type: 3}
+  activeHitMarkerTag: ActiveHitMarker
+  regHitMarkerTag: HitMarker
+  activeHitMarkerColl: {fileID: 0}
 --- !u!1 &2559584680975656008
 GameObject:
   m_ObjectHideFlags: 0

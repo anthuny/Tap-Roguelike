@@ -35,11 +35,6 @@ public class CombatManager : MonoBehaviour
 
     [Space(3)]
 
-    [Header("Relic UI")]
-    [SerializeField] private CanvasGroup _relicUIHider;
-    [SerializeField] private float _relicUIHiderOffVal;
-    [SerializeField] private float _relicUIHiderSelectVal;
-    [SerializeField] private float _relicUIHiderOnVal;
 
     [Space(3)]
 
@@ -81,8 +76,11 @@ public class CombatManager : MonoBehaviour
     [HideInInspector]
     public SkillUIManager skillUIManager;
     [HideInInspector]
+    public AttackBar activeAttackBar;
+    [HideInInspector]
     public float relicActiveSkillValueModifier, relicActiveSkillProcModifier;
     private DevManager _devManager;
+
     private bool relicInitialized;
     private bool relicTurn;
 
@@ -100,6 +98,7 @@ public class CombatManager : MonoBehaviour
     {
         _devManager = FindObjectOfType<DevManager>();
         skillUIManager = FindObjectOfType<SkillUIManager>();
+        activeAttackBar = FindObjectOfType<AttackBar>();
     }
 
     public void StartBattle()
@@ -144,21 +143,6 @@ public class CombatManager : MonoBehaviour
     private void ToggleFightButton(bool cond)
     {
         _fightButton.gameObject.SetActive(cond);
-    }
-
-    public bool CheckRelicUIHiderStatus()
-    {
-        // If the relic UI hider is off
-        if (_relicUIHider.alpha == _relicUIHiderOffVal)
-            return true;
-
-        if (_relicUIHider.alpha == _relicUIHiderOnVal)
-            return false;
-
-        if (_relicUIHider.alpha == _relicUIHiderSelectVal)
-            return false;
-        else
-            return false;
     }
 
     /// <summary>
@@ -753,7 +737,7 @@ public class CombatManager : MonoBehaviour
         curTargetSelections = 0;
         relicActiveSkill.curTargetCount = 0;
         targetSelections.Clear();
-        UpdateRelicUIHider();
+        _attackBar.UpdateRelicUIHider(_attackBar._relicUIHiderSelectVal);
     }
 
     void AddTargetSelections(ref int maxTargetSelections, ref List<Unit> _enemiesPosition, ref List<Selector> targetSelections)
@@ -771,7 +755,7 @@ public class CombatManager : MonoBehaviour
                 relicActiveSkill.curTargetCount++;
             }
 
-            UpdateRelicUIHider();
+            _attackBar.UpdateRelicUIHider(_attackBar._relicUIHiderOffVal);
         }
     }
 
@@ -802,7 +786,7 @@ public class CombatManager : MonoBehaviour
         _enemiesPosition[selectedTargetIndex].transform.GetChild(0).GetComponent<Selector>().selectEnabled = cond; // Tell the oldest image script in stored selection list that the image is disabled
         _enemiesPosition[selectedTargetIndex].transform.GetChild(0).GetComponent<Image>().enabled = cond; // Disable the oldest image in stored selection list
 
-        UpdateRelicUIHider();
+        _attackBar.UpdateRelicUIHider(_attackBar._relicUIHiderOffVal);
     }
 
     #endregion
@@ -870,24 +854,7 @@ public class CombatManager : MonoBehaviour
     }
     #endregion
 
-    /// <summary>
-    /// Toggles the attack bar hider's display
-    /// </summary>
-    /// <param name="cond"></param>
-    private void UpdateRelicUIHider()
-    {
-        if (relicTurn)
-        {
-            if (curTargetSelections == maxTargetSelections)
-                _relicUIHider.alpha = _relicUIHiderOffVal;
 
-            else if (curTargetSelections <= maxTargetSelections)
-                _relicUIHider.alpha = _relicUIHiderSelectVal;
-        }
-
-        else
-            _relicUIHider.alpha = _relicUIHiderOnVal;
-    }
 
     void UpdateActiveRelic(Unit relic)
     {
@@ -899,6 +866,11 @@ public class CombatManager : MonoBehaviour
     {
         if (activeEnemy != enemy)
             activeEnemy = enemy;
+    }
+
+    public float CalculateDamageDealt(float value, float valueModifier)
+    {
+        return value * valueModifier;
     }
 
     #region Utility

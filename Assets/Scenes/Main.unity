@@ -795,7 +795,7 @@ MonoBehaviour:
   panSpeedUI: 40
   textLifeLength: 2
   yDistBetweenUI: 100
-  xDisplacementStr: 8
+  xDisplacementStr: 4
   SkillUIFadeOutSpeed: 2
   activeAttackData: {fileID: 0}
 --- !u!4 &893500474
@@ -1284,10 +1284,6 @@ MonoBehaviour:
   postAllyAttackWait: 0.5
   breatheTime: 0.25
   enemyTimeWaitSpawn: 0
-  _relicUIHider: {fileID: 1990521034}
-  _relicUIHiderOffVal: 0
-  _relicUIHiderSelectVal: 0.45
-  _relicUIHiderOnVal: 0.8
   maxEffectsActive: 4
   relicActiveSkill: {fileID: 0}
   enemyActiveSkill: {fileID: 0}
@@ -1307,6 +1303,7 @@ MonoBehaviour:
     type: 3}
   unitUI: {fileID: 8362088263819228071, guid: 4ccca4cfe2565db449a310a2cb44300f, type: 3}
   skillUIManager: {fileID: 0}
+  activeAttackBar: {fileID: 0}
   relicActiveSkillValueModifier: 0
   relicActiveSkillProcModifier: 0
   skillType:
@@ -1337,7 +1334,6 @@ MonoBehaviour:
   inflictType:
   - None
   - Bleed
-  skillHitInstances: 0
 --- !u!4 &1409981212
 Transform:
   m_ObjectHideFlags: 0
@@ -2975,53 +2971,23 @@ PrefabInstance:
       objectReference: {fileID: 578189406}
     - target: {fileID: 742406537784441409, guid: 742cd60e0bb1e24498022f696bafffbc,
         type: 3}
+      propertyPath: _relicUIHider
+      value: 
+      objectReference: {fileID: 1990521034}
+    - target: {fileID: 742406537784441409, guid: 742cd60e0bb1e24498022f696bafffbc,
+        type: 3}
       propertyPath: _combatManager
       value: 
       objectReference: {fileID: 1409981211}
     - target: {fileID: 742406537784441409, guid: 742cd60e0bb1e24498022f696bafffbc,
         type: 3}
-      propertyPath: hitMarkerAlpha1
-      value: 1
+      propertyPath: skillUIFontSize
+      value: 150
       objectReference: {fileID: 0}
     - target: {fileID: 742406537784441409, guid: 742cd60e0bb1e24498022f696bafffbc,
         type: 3}
-      propertyPath: hitMarkerAlpha2
-      value: 0.1
-      objectReference: {fileID: 0}
-    - target: {fileID: 742406537784441409, guid: 742cd60e0bb1e24498022f696bafffbc,
-        type: 3}
-      propertyPath: hitmarkeralpha2
-      value: 0.35
-      objectReference: {fileID: 0}
-    - target: {fileID: 742406537784441409, guid: 742cd60e0bb1e24498022f696bafffbc,
-        type: 3}
-      propertyPath: hitMarkerInvisTime
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 742406537784441409, guid: 742cd60e0bb1e24498022f696bafffbc,
-        type: 3}
-      propertyPath: hitMarkerAlpha3Plus
-      value: 0.03
-      objectReference: {fileID: 0}
-    - target: {fileID: 742406537784441409, guid: 742cd60e0bb1e24498022f696bafffbc,
-        type: 3}
-      propertyPath: hitmarkeralpha3Plus
-      value: 0.08
-      objectReference: {fileID: 0}
-    - target: {fileID: 742406537784441409, guid: 742cd60e0bb1e24498022f696bafffbc,
-        type: 3}
-      propertyPath: activeHitMarkerAlpha
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 742406537784441409, guid: 742cd60e0bb1e24498022f696bafffbc,
-        type: 3}
-      propertyPath: nonActiveHitMarkerAlpha
-      value: 0.15
-      objectReference: {fileID: 0}
-    - target: {fileID: 742406537784441409, guid: 742cd60e0bb1e24498022f696bafffbc,
-        type: 3}
-      propertyPath: timeTillHitMarkerDestroys
-      value: 0.65
+      propertyPath: skillUIMissFontSize
+      value: 120
       objectReference: {fileID: 0}
     - target: {fileID: 884555098298772758, guid: 742cd60e0bb1e24498022f696bafffbc,
         type: 3}

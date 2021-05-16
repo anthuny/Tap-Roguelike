@@ -251,7 +251,7 @@ public class Unit : MonoBehaviour
         curAttackData.skillData = skillData;
         curAttackData.inCombat = inCombat;
         curAttackData.target = target;
-        curAttackData.val = val;
+        curAttackData.val = _combatManager.CalculateDamageDealt(val, _combatManager.relicActiveSkillValueModifier);
         curAttackData.effect = skillData.effect;
         curAttackData.skillName = skillData.name;
         curAttackData.skillEffectName = skillData.effect.name;
@@ -262,6 +262,7 @@ public class Unit : MonoBehaviour
         curAttackData.timeBetweenHitUI = skillData.timeBetweenHitUI;
         curAttackData.skillUIValueParent = target.skillUIValueParent;
         curAttackData.curTargetCount = skillData.curTargetCount;
+
 
         //storingAttack = false;
     }

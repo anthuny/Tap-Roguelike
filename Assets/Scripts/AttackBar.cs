@@ -19,30 +19,38 @@ public class AttackBar : MonoBehaviour
     [SerializeField] private Button _attackButton;
     [SerializeField] private int _hitMarkerStopMouseCode;
     public float hitMarkerInvisTime;
+    public int skillUIFontSize;
+    public int skillUIMissFontSize;
 
     [Header("Statistics")]
     [SerializeField] private float _speed;
     [SerializeField] public float timeTillBarTurnsInvis;
-
 
     [Header("Declerations")]
     public List<Transform> _checkPoints = new List<Transform>();
     [SerializeField] private List<Transform> _spawnPoints = new List<Transform>();
     [SerializeField] private List<Transform> _hitAreas = new List<Transform>();
 
+    [Header("Relic UI")]
+    [SerializeField] private CanvasGroup _relicUIHider;
+    public float _relicUIHiderOffVal;
+    public float _relicUIHiderSelectVal;
+    public float _relicUIHiderOnVal;
+
     [Header("Hit Markers")]
     public float hitMarkerAlpha1;
     public float hitMarkerAlpha2;
     public float hitMarkerAlpha3Plus;
     [SerializeField] private float timeTillHitMarkerDestroys;
+    private HitBar _hitBar;
     // Public
     //[HideInInspector]
     public Collider2D activeHitMarkerCollider;
-        //[HideInInspector]
+    [HideInInspector]
     public List<HitMarker> hitMarkers = new List<HitMarker>();
     [HideInInspector]
     public HitMarker activeHitMarker;
-    [HideInInspector]
+    //[HideInInspector]
     public HitBar curCollidingHitArea;
     [HideInInspector]
     public bool canHit;
@@ -57,16 +65,32 @@ public class AttackBar : MonoBehaviour
     private Vector3 _initialPos;
     private Vector3 _nextPos;
 
+    [Header("Variable Names")]
+    public string activeHitMarkerTag;
+    public string regHitMarkerTag;
+
+
+    [HideInInspector]
+    public Collider2D activeHitMarkerColl;
+
     void Awake()
     {
         InitialLaunch();
     }
 
+    public void SetActiveHitMarkerCollider(Collider2D coll)
+    {
+        activeHitMarkerColl = coll;
+    }
+
     public void LandHitMarker()
     {      
         // Check if the user performed the land hit marker input
-        if (_combatManager.CheckRelicUIHiderStatus())
+        if (CheckRelicUIHiderStatus())
+        {
+            //Debug.Log("Triggered");
             BeginHitMarkerStoppingSequence(); // Stop the hit marker
+        }
     }
 
     void InitialLaunch()
@@ -147,16 +171,19 @@ public class AttackBar : MonoBehaviour
         for (int i = 0; i < skillData.hitsRequired; i++)
         {
             GameObject go = Instantiate(hitMarkerGO, _initialPos, Quaternion.identity);
+            _hitBar = go.GetComponent<HitBar>();
+
             int val = i + 1;
             go.name = "Hit Marker " + val;
             HitMarker hitMarkerScript = go.GetComponent<HitMarker>();
             hitMarkers.Add(hitMarkerScript);
-
             go.transform.SetParent(hitMarker.transform);
+
             hitMarkerScript.initialPos = _checkPoints[0].GetComponent<RectTransform>().localPosition;
             hitMarkerScript.nextPos = _checkPoints[1].GetComponent<RectTransform>().localPosition;
             hitMarkerScript.speed = _speed;
             hitMarkerScript.attackBar = this;
+
 
             if (i == 0)
             {
@@ -165,6 +192,7 @@ public class AttackBar : MonoBehaviour
                 activeHitMarker.SetAsActiveHitMarker();
                 _hitMarkerVisual = go.transform.GetChild(0).gameObject;
                 hitMarkerScript.UpdateAlpha(hitMarkerAlpha1);
+                activeHitMarker.gameObject.tag = activeHitMarkerTag;
             }
             else if (i == 1)
                 hitMarkerScript.UpdateAlpha(hitMarkerAlpha2);
@@ -212,6 +240,8 @@ public class AttackBar : MonoBehaviour
                     activeHitMarker = hitMarkers[i];
                     activeHitMarker.SetAsActiveHitMarker();
                     activeHitMarker.UpdateAlpha(hitMarkerAlpha1);
+                    activeHitMarker.gameObject.tag = activeHitMarkerTag;
+
                     _hitMarkerVisual = activeHitMarker._hitMarkerImageGO;
                 }
                 else if (i == 1)
@@ -270,5 +300,29 @@ public class AttackBar : MonoBehaviour
             hitMarker.curHitMarkerVisibility = HitMarker.HitMarkerVisible.VISIBLE;
         else
             hitMarker.curHitMarkerVisibility = HitMarker.HitMarkerVisible.HIDDEN;
+    }
+
+    /// <summary>
+    /// Toggles the attack bar hider's display
+    /// </summary>
+    /// <param name="cond"></param>
+    public void UpdateRelicUIHider(float alpha)
+    {
+        _relicUIHider.alpha = alpha;
+    }
+
+    public bool CheckRelicUIHiderStatus()
+    {
+        // If the relic UI hider is off
+        if (_relicUIHider.alpha == _relicUIHiderOffVal)
+            return true;
+
+        if (_relicUIHider.alpha == _relicUIHiderOnVal)
+            return false;
+
+        if (_relicUIHider.alpha == _relicUIHiderSelectVal)
+            return false;
+        else
+            return false;
     }
 }

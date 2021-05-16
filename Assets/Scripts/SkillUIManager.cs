@@ -115,10 +115,15 @@ public class SkillUIManager : MonoBehaviour
 
         Text text = go.GetComponent<Text>();    // Initalization
         if (val != 0)
+        {
             text.text = Mathf.Abs(val).ToString();  // Display damage
-                                                    // If unit missed the skill
+            text.fontSize = _combatManager.activeAttackBar.skillUIFontSize;     // Set font size
+        }
         else
+        {
+            text.fontSize = _combatManager.activeAttackBar.skillUIMissFontSize;     // Set font size
             text.text = "Miss";   // Display miss text
+        }
 
         if (caster.hitCount == attackData.curTargetCount * attackData.hitsRequired)
         {
