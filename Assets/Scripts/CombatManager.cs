@@ -45,7 +45,7 @@ public class CombatManager : MonoBehaviour
     public SkillData relicActiveSkill;
     [HideInInspector]
     public SkillData enemyActiveSkill;
-    //[HideInInspector]
+    [HideInInspector]
     public List<Selector> targetSelections = new List<Selector>();
     [HideInInspector]
     public List<Selector> skillSelections = new List<Selector>();
@@ -171,7 +171,7 @@ public class CombatManager : MonoBehaviour
             activeEnemy.UpdateLevel(room.roomEnemies[i].level);
             activeEnemy.UpdateColour(room.roomEnemies[i].color);
             activeEnemy.UpdateMaxHealth(room.roomEnemies[i].maxHealth);
-            activeEnemy.UpdateCurHealth(room.roomEnemies[i].maxHealth, false);
+            activeEnemy.UpdateCurHealth(false, room.roomEnemies[i].maxHealth);
             activeEnemy.UpdatePower(room.roomEnemies[i].power);
             activeEnemy.UpdateSpeed(room.roomEnemies[i].speed);
             activeEnemy.UpdateAttackChance(room.roomEnemies[i].attackChance, true);
@@ -189,6 +189,7 @@ public class CombatManager : MonoBehaviour
                 room.roomEnemies[i].passiveSkill.targetsAllowed,
                 room.roomEnemies[i].passiveSkill.hitsRequired,
                 room.roomEnemies[i].passiveSkill.timeBetweenHitUI,
+                room.roomEnemies[i].passiveSkill.timeTillEffectInflict,
                 room.roomEnemies[i].passiveSkill.timeForNextHitMarker,
                 room.roomEnemies[i].passiveSkill.effect,
                 room.roomEnemies[i].passiveSkill.effectTarget,
@@ -223,6 +224,7 @@ public class CombatManager : MonoBehaviour
                 room.roomEnemies[i].basicSkill.targetsAllowed,
                 room.roomEnemies[i].basicSkill.hitsRequired,
                 room.roomEnemies[i].basicSkill.timeBetweenHitUI,
+                room.roomEnemies[i].basicSkill.timeTillEffectInflict,
                 room.roomEnemies[i].basicSkill.timeForNextHitMarker,
                 room.roomEnemies[i].basicSkill.effect,
                 room.roomEnemies[i].basicSkill.effectTarget,
@@ -257,6 +259,7 @@ public class CombatManager : MonoBehaviour
                 room.roomEnemies[i].primarySkill.targetsAllowed,
                 room.roomEnemies[i].primarySkill.hitsRequired,
                 room.roomEnemies[i].primarySkill.timeBetweenHitUI,
+                room.roomEnemies[i].primarySkill.timeTillEffectInflict,
                 room.roomEnemies[i].primarySkill.timeForNextHitMarker,
                 room.roomEnemies[i].primarySkill.effect,
                 room.roomEnemies[i].primarySkill.effectTarget,
@@ -291,6 +294,7 @@ public class CombatManager : MonoBehaviour
                 room.roomEnemies[i].secondarySkill.targetsAllowed,
                 room.roomEnemies[i].secondarySkill.hitsRequired,
                 room.roomEnemies[i].secondarySkill.timeBetweenHitUI,
+                room.roomEnemies[i].secondarySkill.timeTillEffectInflict,
                 room.roomEnemies[i].secondarySkill.timeForNextHitMarker,
                 room.roomEnemies[i].secondarySkill.effect,
                 room.roomEnemies[i].secondarySkill.effectTarget,
@@ -325,6 +329,7 @@ public class CombatManager : MonoBehaviour
                 room.roomEnemies[i].alternateSkill.targetsAllowed,
                 room.roomEnemies[i].alternateSkill.hitsRequired,
                 room.roomEnemies[i].alternateSkill.timeBetweenHitUI,
+                room.roomEnemies[i].alternateSkill.timeTillEffectInflict,
                 room.roomEnemies[i].alternateSkill.timeForNextHitMarker,
                 room.roomEnemies[i].alternateSkill.effect,
                 room.roomEnemies[i].alternateSkill.effectTarget,
@@ -359,6 +364,7 @@ public class CombatManager : MonoBehaviour
                 room.roomEnemies[i].ultimateSkill.targetsAllowed,
                 room.roomEnemies[i].ultimateSkill.hitsRequired,
                 room.roomEnemies[i].ultimateSkill.timeBetweenHitUI,
+                room.roomEnemies[i].ultimateSkill.timeTillEffectInflict,
                 room.roomEnemies[i].ultimateSkill.timeForNextHitMarker,
                 room.roomEnemies[i].ultimateSkill.effect,
                 room.roomEnemies[i].ultimateSkill.effectTarget,
@@ -426,7 +432,7 @@ public class CombatManager : MonoBehaviour
         activeRelic.UpdateName(relic.name);
         activeRelic.UpdateColour(relic.color);
         activeRelic.UpdateMaxHealth(relic.maxHealth);
-        activeRelic.UpdateCurHealth(relic.maxHealth, false);
+        activeRelic.UpdateCurHealth(false, relic.maxHealth);
         activeRelic.UpdatePower(relic.power);
         activeRelic.UpdateSpeed(relic.speed);
 
@@ -443,6 +449,7 @@ public class CombatManager : MonoBehaviour
             relic.passiveSkill.targetsAllowed,
             relic.passiveSkill.hitsRequired,
             relic.passiveSkill.timeBetweenHitUI,
+            relic.passiveSkill.timeTillEffectInflict,
             relic.passiveSkill.timeForNextHitMarker,
             relic.passiveSkill.effect,
             relic.passiveSkill.effectTarget,    
@@ -482,6 +489,7 @@ public class CombatManager : MonoBehaviour
             relic.basicSkill.targetsAllowed,
             relic.basicSkill.hitsRequired,
             relic.basicSkill.timeBetweenHitUI,
+            relic.basicSkill.timeTillEffectInflict,
             relic.basicSkill.timeForNextHitMarker,
             relic.basicSkill.effect,
             relic.basicSkill.effectTarget,
@@ -521,6 +529,7 @@ public class CombatManager : MonoBehaviour
             relic.primarySkill.targetsAllowed,
             relic.primarySkill.hitsRequired,
             relic.primarySkill.timeBetweenHitUI,
+            relic.primarySkill.timeTillEffectInflict,
             relic.primarySkill.timeForNextHitMarker,
             relic.primarySkill.effect,
             relic.primarySkill.effectTarget,
@@ -560,6 +569,7 @@ public class CombatManager : MonoBehaviour
             relic.secondarySkill.targetsAllowed,
             relic.secondarySkill.hitsRequired,
             relic.secondarySkill.timeBetweenHitUI,
+            relic.secondarySkill.timeTillEffectInflict,
             relic.secondarySkill.timeForNextHitMarker,
             relic.secondarySkill.effect,
             relic.secondarySkill.effectTarget,
@@ -599,6 +609,7 @@ public class CombatManager : MonoBehaviour
             relic.alternateSkill.targetsAllowed,
             relic.alternateSkill.hitsRequired,
             relic.alternateSkill.timeBetweenHitUI,
+            relic.alternateSkill.timeTillEffectInflict,
             relic.alternateSkill.timeForNextHitMarker,
             relic.alternateSkill.effect,
             relic.alternateSkill.effectTarget,
@@ -638,6 +649,7 @@ public class CombatManager : MonoBehaviour
             relic.ultimateSkill.targetsAllowed,
             relic.ultimateSkill.hitsRequired,
             relic.ultimateSkill.timeBetweenHitUI,
+            relic.ultimateSkill.timeTillEffectInflict,
             relic.ultimateSkill.timeForNextHitMarker,
             relic.ultimateSkill.effect,
             relic.ultimateSkill.effectTarget,

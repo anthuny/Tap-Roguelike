@@ -7,6 +7,7 @@ public class AttackData : MonoBehaviour
     public SkillData skillData;
     public Unit target;
     public float val;
+    public float effectVal;
     public bool inCombat;
     public Effect effect;
     public string skillName;
@@ -16,6 +17,7 @@ public class AttackData : MonoBehaviour
     public int curHitsCompleted;
     public int hitsRequired;
     public float timeBetweenHitUI;
+    public float timeTillEffectInflict;
     public Transform skillUIValueParent;
     public int curTargetCount;
     public int hitTarget;

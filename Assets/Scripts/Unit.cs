@@ -64,9 +64,13 @@ public class Unit : MonoBehaviour
     private AttackData prevAttackData;
     private float time = 0;
     private bool started;
-    //[HideInInspector]
+    [HideInInspector]
     public int hitWaveCount;
-    //[HideInInspector]
+    [HideInInspector]
+    public int hitWaveCountEffect;
+    [HideInInspector]
+    public int maxWaveCountEffects;
+    [HideInInspector]
     public int hitCount;
     bool storingAttack;
 
@@ -116,6 +120,8 @@ public class Unit : MonoBehaviour
             Debug.LogWarning("1 Extra hit was not valid");
             yield return null;
         }
+
+        maxWaveCountEffects = skillData.hitsRequired;
 
         switch (skillData.targetsAllowed)
         {
@@ -236,7 +242,7 @@ public class Unit : MonoBehaviour
         // If this attack was the last required hit
         if (skillData.curHitsCompleted == skillData.hitsRequired)
         {
-            StartCoroutine(SendSkillUI());
+            StartCoroutine(SendSkillUI(_combatManager.relicActiveSkill));
             skillData.curHitsCompleted = 0;
             StartCoroutine(_combatManager.activeAttackBar.DestroyAllHitMarkersCo());
         }
@@ -251,7 +257,7 @@ public class Unit : MonoBehaviour
         curAttackData.inCombat = inCombat;
         curAttackData.target = target;
 
-        // fs skill is not dealing more damage based on the amount of targets selected
+        // if skill is not dealing more damage based on the amount of targets selected
         if (!skillData.isTargetCountValAmp)
             curAttackData.val = _combatManager.CalculateDamageDealt(val, _combatManager.relicActiveSkillValueModifier);
         else
@@ -265,57 +271,92 @@ public class Unit : MonoBehaviour
         curAttackData.curHitsCompleted = skillData.curHitsCompleted;
         curAttackData.hitsRequired = skillData.hitsRequired;
         curAttackData.timeBetweenHitUI = skillData.timeBetweenHitUI;
+        curAttackData.timeTillEffectInflict = skillData.timeTillEffectInflict;
         curAttackData.skillUIValueParent = target.skillUIValueParent;
         curAttackData.curTargetCount = _combatManager.targetSelections.Count;
+        curAttackData.effectVal = skillData.effect.stackValue;
     }
 
-    IEnumerator SendSkillUI(Unit target = null, Unit caster = null)
+    IEnumerator SendSkillUI(SkillData skillData)
     {
         for (int i = 0; i < _combatManager.activeAttackData.Count; i++)
         {
+            // After looping through all targets
             if (i % curAttackData.curTargetCount == 0 && i != 0)
             {
                 hitWaveCount++;
                 yield return new WaitForSeconds(curAttackData.timeBetweenHitUI);
             }
 
-            // send values to target
-            _combatManager.activeAttackData[i].target.UpdateCurHealth(_combatManager.activeAttackData[i].val,
-                    _combatManager.activeAttackData[i].inCombat, _combatManager.activeAttackData[i].skillUIValueParent,
-                _combatManager.activeAttackData[i], _combatManager.activeAttackData[i].skillData, _combatManager.activeAttackData[i].curHitsCompleted, this);
+            // If this is not the last attack
+            if (i != _combatManager.activeAttackData.Count)
+            {
+                // send values to target
+                _combatManager.activeAttackData[i].target.UpdateCurHealth(_combatManager.activeAttackData[i].inCombat,
+                    _combatManager.activeAttackData[i].val, false, _combatManager.activeAttackData[i].skillUIValueParent,
+                    _combatManager.activeAttackData[i], this);
 
-            // Attempt Assign effect
-            _combatManager.activeAttackData[i].target.AssignEffect(_combatManager.activeAttackData[i].effect,
-                _combatManager.activeAttackData[i].effectPower, _combatManager.activeAttackData[i].effectDuration,
-                _combatManager.activeAttackData[i].skillData,
-                caster, target);
+                // Attempt Assign effect
+                _combatManager.activeAttackData[i].target.AssignEffect(_combatManager.activeAttackData[i].effect,
+                    _combatManager.activeAttackData[i].effectPower, _combatManager.activeAttackData[i].effectDuration,
+                    _combatManager.activeAttackData[i].skillData);
+            }
 
-            if (i == _combatManager.activeAttackData.Count - 1)
+            // If this is the last attack
+            if (i == _combatManager.activeAttackData.Count -1)
+            {
+                yield return new WaitForSeconds(curAttackData.timeTillEffectInflict);
+                // Loop through all stored attacks
+                for (int x = 0; x < _combatManager.activeAttackData.Count; x++)
+                {
+                    // After looping through all targets
+                    if ((x+1) % curAttackData.curTargetCount == 0)
+                    {
+                        hitWaveCountEffect++;
+                        yield return new WaitForSeconds(curAttackData.timeBetweenHitUI);
+                    }
+
+                    // send values to target
+                    _combatManager.activeAttackData[x].target.UpdateCurHealth(_combatManager.activeAttackData[x].inCombat,
+                        _combatManager.activeAttackData[x].val, true, _combatManager.activeAttackData[x].skillUIValueParent,
+                        _combatManager.activeAttackData[x], this);
+
+                    // Trigger effect
+                    TriggerEffect();    // does nothing atm
+                }
                 _combatManager.activeAttackData.Clear();
+            }
         }
 
+        hitCount = 0;
         hitWaveCount = 0;
 
         yield return new WaitForSeconds(_combatManager.postHitTime);
         _combatManager.activeAttackBar.MoveAttackBar(false);
     }
+
     /// <summary>
     /// Adjust max current health of unit
     /// </summary>
-    public void UpdateCurHealth(float val, bool inCombat = true, Transform activeSkillUIParent = null, AttackData attackData = null, SkillData skillData = null, int curHitsCompleted = 0, Unit caster = null)
+    public void UpdateCurHealth(bool inCombat, float val, bool isEffect = false, Transform activeSkillUIParent = null, AttackData attackData = null, Unit caster = null)
     {
-        int combatValue = RoundFloatToInt((val * _combatManager.relicActiveSkillValueModifier) + (recievedDamageAmp * (val * _combatManager.relicActiveSkillValueModifier)));
-        int basicVal = RoundFloatToInt(val);
+        float valDefault = RoundFloatToInt(val * _combatManager.relicActiveSkillValueModifier);
+        float valDefaultAbs = Mathf.Abs(valDefault);
+        float effectVal = RoundFloatToInt(recievedDamageAmp * valDefaultAbs);
 
         if (inCombat)
         {
-            curHealth += combatValue;
- 
-            _combatManager.skillUIManager.DisplaySkillValue(caster, attackData, attackData.skillUIValueParent,
-                RoundFloatToInt(attackData.val), attackData.skillData, attackData.curHitsCompleted);
+            curHealth += RoundFloatToInt(valDefault);
+            curHealth -= RoundFloatToInt(effectVal);
+
+            // Send effect UI
+            if (isEffect)
+                _combatManager.skillUIManager.DisplaySkillValue(caster, activeSkillUIParent, 0, effectVal, true);
+            else
+                _combatManager.skillUIManager.DisplaySkillValue(caster, activeSkillUIParent, valDefault, effectVal, false, attackData);
         }
         else
-            curHealth += RoundFloatToInt(basicVal);
+            curHealth += RoundFloatToInt(Mathf.Abs(val));
 
         UpdateCurHealthVisual(curHealth / maxHealth, true);
     }
@@ -325,7 +366,7 @@ public class Unit : MonoBehaviour
         healthImage.fillAmount = val;
     }
 
-    public void AssignEffect(Effect effect, int effectPower, int effectDuration, SkillData skillData, Unit caster = null, Unit target = null)
+    public void AssignEffect(Effect effect, int effectPower, int effectDuration, SkillData skillData)
     {
         float rand = Random.Range(0f, 1f);
         // If unit successfully rolled for the proc
@@ -338,6 +379,12 @@ public class Unit : MonoBehaviour
         // If unit failed the roll for the proc
         else
             _devManager.FlashText();
+    }
+
+    public void TriggerEffect()
+    {
+
+
     }
 
     public void UpdateEffectVisual(Effect effect, int effectPower, int effectDuration, SkillData skillData)

@@ -35,6 +35,8 @@ public class SkillUIManager : MonoBehaviour
     public float yDistBetweenUI;
     public float xDisplacementStr;
     public float SkillUIFadeOutSpeed;
+    [SerializeField] private Color skillUIColour;
+    [SerializeField] private Color effectSkillUIColour;
 
     [Header("Active Stored Attacks")]
     public AttackData activeAttackData;
@@ -100,38 +102,69 @@ public class SkillUIManager : MonoBehaviour
         activeAttackData = attackData;
     }
 
-    public void DisplaySkillValue(Unit caster, AttackData attackData, Transform skillUIValueParent, int val, SkillData skillData, int curHitsCompleted)
+    public void DisplaySkillValue(Unit caster, Transform skillUIValueParent, float val = 0, float effectVal = 0, bool effectInfict = false, AttackData attackData = null)
     {
         GameObject go = Instantiate(skillUIText, skillUIValueParent.position, Quaternion.identity);    // Initialize
+
         SkillValueUI skillValueUI = go.GetComponent<SkillValueUI>();
         go.GetComponent<SkillValueUI>().skillUIManager = this;  // Initialization
         go.transform.SetParent(skillUIValueParent);    // Set parent
+        if (effectInfict)
+        {
+            Debug.Log(go.transform.parent.parent.name);
+        }
 
-        float yVal = yDistBetweenUI * caster.hitWaveCount;
         Vector3 pos = go.transform.localPosition;
-        pos.y = go.transform.localPosition.y + yVal;
-        pos.x = Random.Range(-xDisplacementStr, xDisplacementStr);
-        go.transform.localPosition = pos;
 
-        skillValueUI.canvas.sortingOrder = caster.hitWaveCount;
+        pos.x = Random.Range(-xDisplacementStr, xDisplacementStr);
+
 
         Text text = go.GetComponent<Text>();    // Initalization
-        if (val != 0)
+
+        if (effectInfict)
         {
-            text.text = Mathf.Abs(val).ToString();  // Display damage
-            text.fontSize = _combatManager.activeAttackBar.skillUIFontSize;     // Set font size
+            if (effectVal != 0)
+            {
+                text.text = Mathf.Abs(effectVal).ToString();  // Display damage
+                text.fontSize = _combatManager.activeAttackBar.skillUIFontSize;     // Set font size
+                text.color = effectSkillUIColour;
+                float yValEffect = yDistBetweenUI * caster.hitWaveCountEffect;
+                pos.y = go.transform.localPosition.y + yValEffect;
+            }
         }
         else
         {
-            text.fontSize = _combatManager.activeAttackBar.skillUIMissFontSize;     // Set font size
-            text.text = "Miss";   // Display miss text
+            if (val != 0)
+            {
+                text.text = Mathf.Abs(val).ToString();  // Display damage
+                text.fontSize = _combatManager.activeAttackBar.skillUIFontSize;     // Set font size
+                text.color = skillUIColour;
+            }
+            else
+            {
+                text.fontSize = _combatManager.activeAttackBar.skillUIMissFontSize;     // Set font size
+                text.text = "Miss";   // Display miss text
+                text.color = skillUIColour;
+            }
+
+            float yVal = yDistBetweenUI * caster.hitWaveCount;
+            pos.y = go.transform.localPosition.y + yVal;
         }
 
-        if (caster.hitCount == attackData.curTargetCount * attackData.hitsRequired)
-        {
-            caster.hitWaveCount = 0;
-            caster.hitCount = 0;
-        }        
+        go.transform.localPosition = pos;   // Update position
+
+        // Set canvas sorting order to always appear infront of any other skill Text UI.
+        if (effectInfict)
+            skillValueUI.canvas.sortingOrder = caster.hitWaveCount + caster.hitWaveCountEffect;
+        else
+            skillValueUI.canvas.sortingOrder = caster.hitWaveCount;
+
+        // If adjusting health not in combat
+        if (!attackData)
+            return;
+
+        if (caster.hitWaveCountEffect == caster.maxWaveCountEffects)
+            caster.hitWaveCountEffect = 0;
     }
 
     public void SetSkillCooldown(SkillData skillData)

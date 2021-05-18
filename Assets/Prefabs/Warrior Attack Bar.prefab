@@ -687,7 +687,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e817a78fe41d2054eb56f5081ba045f6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  curHitMarkerState: 1
   _gamemode: {fileID: 0}
   _combatManager: {fileID: 0}
   hitMarker: {fileID: 2559584680975656008}
@@ -715,7 +714,8 @@ MonoBehaviour:
   - {fileID: 7238461734508647827}
   - {fileID: 1215747287947910610}
   - {fileID: 441571552}
-  _relicUIHider: {fileID: 0}
+  relicUIGR: {fileID: 0}
+  relicUIHider: {fileID: 0}
   _relicUIHiderOffVal: 0
   _relicUIHiderSelectVal: 0.45
   _relicUIHiderOnVal: 1
@@ -726,6 +726,7 @@ MonoBehaviour:
   backGO: {fileID: 0}
   skillActiveTrans: {fileID: 0}
   defaultTrans: {fileID: 0}
+  skillActive: 0
   activeHitMarkerCollider: {fileID: 0}
   hitMarkers: []
   activeHitMarker: {fileID: 0}
@@ -1354,7 +1355,7 @@ BoxCollider2D:
   m_IsTrigger: 1
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: -2.9656982, y: -25.548336}
+  m_Offset: {x: -2.9656982, y: -28.701286}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0, y: 0}
@@ -1365,7 +1366,7 @@ BoxCollider2D:
     adaptiveTiling: 0
   m_AutoTiling: 0
   serializedVersion: 2
-  m_Size: {x: 1399.8274, y: 261.49316}
+  m_Size: {x: 1399.8274, y: 192.07863}
   m_EdgeRadius: 0
 --- !u!114 &1752587180
 MonoBehaviour:

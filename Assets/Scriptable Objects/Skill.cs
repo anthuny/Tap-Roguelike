@@ -9,6 +9,7 @@ public class Skill : ScriptableObject
     public string targetsAllowed;
     public int hitsRequired;
     public float timeBetweenHitUI;
+    public float timeTillEffectInflict;
     public float timeForNextHitMarker;
     public Effect effect;
     public string effectTarget;

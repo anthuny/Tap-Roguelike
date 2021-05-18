@@ -17,6 +17,8 @@ MonoBehaviour:
   targetType: Single
   targetsAllowed: Enemies
   hitsRequired: 1
+  timeBetweenHitUI: 0
+  timeTillEffectInflict: 0.75
   timeForNextHitMarker: 0
   effect: {fileID: 11400000, guid: 563c4ab55f0ac124eaf71c67f558b663, type: 2}
   effectTarget: Targeted
@@ -27,6 +29,7 @@ MonoBehaviour:
   counterSkill: 0
   stackValue: 0
   targetAmountPowerInc: 0
+  isTargetCountValAmp: 0
   maxTargetSelections: 1
   name: Quick Slash
   description: Attack a single enemy Once.

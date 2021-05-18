@@ -949,6 +949,9 @@ MonoBehaviour:
   yDistBetweenUI: 100
   xDisplacementStr: 4
   SkillUIFadeOutSpeed: 2
+  effectSkillUIXOffSet: 200
+  skillUIColour: {r: 0.8, g: 0.11372549, b: 0, a: 1}
+  effectSkillUIColour: {r: 1, g: 0.70148605, b: 0, a: 1}
   activeAttackData: {fileID: 0}
 --- !u!4 &893500474
 Transform:
@@ -1564,6 +1567,7 @@ MonoBehaviour:
   skillData: {fileID: 0}
   target: {fileID: 0}
   val: 0
+  effectVal: 0
   inCombat: 0
   effect: {fileID: 0}
   skillName: 
@@ -1573,6 +1577,7 @@ MonoBehaviour:
   curHitsCompleted: 0
   hitsRequired: 0
   timeBetweenHitUI: 0
+  timeTillEffectInflict: 0
   skillUIValueParent: {fileID: 0}
   curTargetCount: 0
   hitTarget: 0
@@ -3451,14 +3456,6 @@ PrefabInstance:
       propertyPath: _relicManager
       value: 
       objectReference: {fileID: 751964340}
-    - target: {fileID: 1752587178, guid: 742cd60e0bb1e24498022f696bafffbc, type: 3}
-      propertyPath: m_Size.y
-      value: 192.07863
-      objectReference: {fileID: 0}
-    - target: {fileID: 1752587178, guid: 742cd60e0bb1e24498022f696bafffbc, type: 3}
-      propertyPath: m_Offset.y
-      value: -28.701286
-      objectReference: {fileID: 0}
     - target: {fileID: 1964054125, guid: 742cd60e0bb1e24498022f696bafffbc, type: 3}
       propertyPath: _gamemode
       value: 
@@ -3595,16 +3592,6 @@ PrefabInstance:
       objectReference: {fileID: 1439712485}
     - target: {fileID: 742406537784441409, guid: 742cd60e0bb1e24498022f696bafffbc,
         type: 3}
-      propertyPath: relicUI
-      value: 
-      objectReference: {fileID: 1607906082}
-    - target: {fileID: 742406537784441409, guid: 742cd60e0bb1e24498022f696bafffbc,
-        type: 3}
-      propertyPath: _relicUI
-      value: 
-      objectReference: {fileID: 0}
-    - target: {fileID: 742406537784441409, guid: 742cd60e0bb1e24498022f696bafffbc,
-        type: 3}
       propertyPath: _gamemode
       value: 
       objectReference: {fileID: 578189406}
@@ -3625,11 +3612,6 @@ PrefabInstance:
       objectReference: {fileID: 1990521034}
     - target: {fileID: 742406537784441409, guid: 742cd60e0bb1e24498022f696bafffbc,
         type: 3}
-      propertyPath: _relicUIHider
-      value: 
-      objectReference: {fileID: 1990521034}
-    - target: {fileID: 742406537784441409, guid: 742cd60e0bb1e24498022f696bafffbc,
-        type: 3}
       propertyPath: _combatManager
       value: 
       objectReference: {fileID: 1409981211}
@@ -3643,11 +3625,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: Beginner Attack Bar
       objectReference: {fileID: 0}
-    - target: {fileID: 884555098298772758, guid: 742cd60e0bb1e24498022f696bafffbc,
-        type: 3}
-      propertyPath: m_IsActive
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 1057610602177522878, guid: 742cd60e0bb1e24498022f696bafffbc,
         type: 3}
       propertyPath: _gamemode
@@ -3678,66 +3655,6 @@ PrefabInstance:
       propertyPath: _relicManager
       value: 
       objectReference: {fileID: 751964340}
-    - target: {fileID: 1433022355037111065, guid: 742cd60e0bb1e24498022f696bafffbc,
-        type: 3}
-      propertyPath: m_IsActive
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 1905277266562498264, guid: 742cd60e0bb1e24498022f696bafffbc,
-        type: 3}
-      propertyPath: m_AnchorMax.x
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 1905277266562498264, guid: 742cd60e0bb1e24498022f696bafffbc,
-        type: 3}
-      propertyPath: m_AnchorMax.y
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 1905277266562498264, guid: 742cd60e0bb1e24498022f696bafffbc,
-        type: 3}
-      propertyPath: m_AnchorMin.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1905277266562498264, guid: 742cd60e0bb1e24498022f696bafffbc,
-        type: 3}
-      propertyPath: m_AnchorMin.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1905277266562498264, guid: 742cd60e0bb1e24498022f696bafffbc,
-        type: 3}
-      propertyPath: m_SizeDelta.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1905277266562498264, guid: 742cd60e0bb1e24498022f696bafffbc,
-        type: 3}
-      propertyPath: m_SizeDelta.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1905277266562498264, guid: 742cd60e0bb1e24498022f696bafffbc,
-        type: 3}
-      propertyPath: m_AnchoredPosition.x
-      value: -368
-      objectReference: {fileID: 0}
-    - target: {fileID: 1905277266562498264, guid: 742cd60e0bb1e24498022f696bafffbc,
-        type: 3}
-      propertyPath: m_AnchoredPosition.y
-      value: -307
-      objectReference: {fileID: 0}
-    - target: {fileID: 4052670242665887394, guid: 742cd60e0bb1e24498022f696bafffbc,
-        type: 3}
-      propertyPath: m_RootOrder
-      value: 8
-      objectReference: {fileID: 0}
-    - target: {fileID: 4052670242665887394, guid: 742cd60e0bb1e24498022f696bafffbc,
-        type: 3}
-      propertyPath: m_AnchoredPosition.y
-      value: -1131
-      objectReference: {fileID: 0}
-    - target: {fileID: 5056631600374703274, guid: 742cd60e0bb1e24498022f696bafffbc,
-        type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 5405327135533758233, guid: 742cd60e0bb1e24498022f696bafffbc,
         type: 3}
       propertyPath: _gamemode
@@ -3753,30 +3670,5 @@ PrefabInstance:
       propertyPath: _relicManager
       value: 
       objectReference: {fileID: 751964340}
-    - target: {fileID: 5850653420434045790, guid: 742cd60e0bb1e24498022f696bafffbc,
-        type: 3}
-      propertyPath: m_Enabled
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 5850653420434045790, guid: 742cd60e0bb1e24498022f696bafffbc,
-        type: 3}
-      propertyPath: m_SortingOrder
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5850653420434045790, guid: 742cd60e0bb1e24498022f696bafffbc,
-        type: 3}
-      propertyPath: m_OverrideSorting
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8385671115330004930, guid: 742cd60e0bb1e24498022f696bafffbc,
-        type: 3}
-      propertyPath: m_RootOrder
-      value: 7
-      objectReference: {fileID: 0}
-    - target: {fileID: 8385671115330004930, guid: 742cd60e0bb1e24498022f696bafffbc,
-        type: 3}
-      propertyPath: m_AnchoredPosition.y
-      value: 587
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 742cd60e0bb1e24498022f696bafffbc, type: 3}

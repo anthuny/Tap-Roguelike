@@ -171,6 +171,8 @@ public class AttackBar : MonoBehaviour
             transform.position = defaultTrans.position;
             ToggleRelicSkillUIInput(true);
             UpdateUIAlpha(relicUICG, 1);
+
+            _combatManager.relicActiveSkill = null;     // When exiting a skill, remove it from being the relic active skill
         }
     }
 

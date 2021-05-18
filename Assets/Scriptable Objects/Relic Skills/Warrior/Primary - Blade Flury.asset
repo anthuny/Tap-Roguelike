@@ -18,6 +18,7 @@ MonoBehaviour:
   targetsAllowed: Enemies
   hitsRequired: 3
   timeBetweenHitUI: 0.15
+  timeTillEffectInflict: 0.75
   timeForNextHitMarker: 0.1
   effect: {fileID: 11400000, guid: 563c4ab55f0ac124eaf71c67f558b663, type: 2}
   effectTarget: Targeted
