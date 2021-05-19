@@ -12,9 +12,13 @@ public class AttackBar : MonoBehaviour
     [SerializeField] private GameObject hitMarker;
     [SerializeField] private Button _attackButton;
     [SerializeField] private int _hitMarkerStopMouseCode;
-    public float hitMarkerInvisTime;
     public int skillUIFontSize;
     public int skillUIMissFontSize;
+    public int skillUIPerfectFontSize;
+    public Color perfectSkillUIColour;
+    public Color greatSkillUIColour;
+    public Color goodSkillUIColour;
+    public Color missSkillUIColour;
 
     [Header("Statistics")]
     [SerializeField] private float _speed;

@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class SkillValueUI : MonoBehaviour
 {
@@ -13,6 +14,8 @@ public class SkillValueUI : MonoBehaviour
 
     private float alpha = 1;
     private bool destroy;
+
+    [SerializeField] private Outline outline;
 
     private void Awake()
     {
@@ -47,6 +50,8 @@ public class SkillValueUI : MonoBehaviour
     {
         if (!destroy)
             return;
+
+        outline.enabled = false;
 
         alpha -= skillUIManager.SkillUIFadeOutSpeed * Time.deltaTime;
         _canvasGroup.alpha = alpha;

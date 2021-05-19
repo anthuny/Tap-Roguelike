@@ -57,7 +57,7 @@ public class CombatManager : MonoBehaviour
 
     [HideInInspector]
     public int maxTargetSelections;
-    [HideInInspector]
+    //[HideInInspector]
     public int curTargetSelections;
     [HideInInspector]
     public int maxSkillSelections;
@@ -74,6 +74,7 @@ public class CombatManager : MonoBehaviour
     public Relic startingRelic;
     public GameObject skillUIValuesPar;
     public GameObject unitUI;
+    [SerializeField] private GameObject endTurnGO;
     [HideInInspector]
     public SkillUIManager skillUIManager;
     [HideInInspector]
@@ -84,6 +85,8 @@ public class CombatManager : MonoBehaviour
 
     private bool relicInitialized;
     private bool relicTurn;
+    [HideInInspector]
+    public Selector activeSkillSelector;
 
     [Space(3)]
 
@@ -95,11 +98,14 @@ public class CombatManager : MonoBehaviour
     public string[] targetsAllowed;
     public string[] inflictType;
 
+
+
     private void Awake()
     {
         _devManager = FindObjectOfType<DevManager>();
         skillUIManager = FindObjectOfType<SkillUIManager>();
         activeAttackBar = FindObjectOfType<AttackBar>();
+        endTurnGO.SetActive(false);
     }
 
     public void StartBattle()
@@ -108,6 +114,7 @@ public class CombatManager : MonoBehaviour
         SpawnRelic(startingRelic);
         SpawnEnemies(_activeRoom);
         DetermineTurnOrder();
+        endTurnGO.SetActive(true);
     }
 
     /// <summary>
@@ -202,6 +209,7 @@ public class CombatManager : MonoBehaviour
                 room.roomEnemies[i].passiveSkill.targetAmountPowerInc,
                 room.roomEnemies[i].passiveSkill.isTargetCountValAmp,
                 room.roomEnemies[i].passiveSkill.maxTargetSelections,
+                room.roomEnemies[i].passiveSkill.activatable,
                 room.roomEnemies[i].passiveSkill.name,
                 room.roomEnemies[i].passiveSkill.description,
                 room.roomEnemies[i].passiveSkill.turnCooldown,
@@ -237,6 +245,7 @@ public class CombatManager : MonoBehaviour
                 room.roomEnemies[i].basicSkill.targetAmountPowerInc,
                 room.roomEnemies[i].basicSkill.isTargetCountValAmp,
                 room.roomEnemies[i].basicSkill.maxTargetSelections,
+                room.roomEnemies[i].basicSkill.activatable,
                 room.roomEnemies[i].basicSkill.name,
                 room.roomEnemies[i].basicSkill.description,
                 room.roomEnemies[i].basicSkill.turnCooldown,
@@ -272,6 +281,7 @@ public class CombatManager : MonoBehaviour
                 room.roomEnemies[i].primarySkill.targetAmountPowerInc,
                 room.roomEnemies[i].primarySkill.isTargetCountValAmp,
                 room.roomEnemies[i].primarySkill.maxTargetSelections,
+                room.roomEnemies[i].primarySkill.activatable,
                 room.roomEnemies[i].primarySkill.name,
                 room.roomEnemies[i].primarySkill.description,
                 room.roomEnemies[i].primarySkill.turnCooldown,
@@ -307,6 +317,7 @@ public class CombatManager : MonoBehaviour
                 room.roomEnemies[i].secondarySkill.targetAmountPowerInc,
                 room.roomEnemies[i].secondarySkill.isTargetCountValAmp,
                 room.roomEnemies[i].secondarySkill.maxTargetSelections,
+                room.roomEnemies[i].secondarySkill.activatable,
                 room.roomEnemies[i].secondarySkill.name,
                 room.roomEnemies[i].secondarySkill.description,
                 room.roomEnemies[i].secondarySkill.turnCooldown,
@@ -342,6 +353,7 @@ public class CombatManager : MonoBehaviour
                 room.roomEnemies[i].alternateSkill.targetAmountPowerInc,
                 room.roomEnemies[i].alternateSkill.isTargetCountValAmp,
                 room.roomEnemies[i].alternateSkill.maxTargetSelections,
+                room.roomEnemies[i].alternateSkill.activatable,
                 room.roomEnemies[i].alternateSkill.name,
                 room.roomEnemies[i].alternateSkill.description,
                 room.roomEnemies[i].alternateSkill.turnCooldown,
@@ -377,6 +389,7 @@ public class CombatManager : MonoBehaviour
                 room.roomEnemies[i].ultimateSkill.targetAmountPowerInc,
                 room.roomEnemies[i].ultimateSkill.isTargetCountValAmp,
                 room.roomEnemies[i].ultimateSkill.maxTargetSelections,
+                room.roomEnemies[i].ultimateSkill.activatable,
                 room.roomEnemies[i].ultimateSkill.name,
                 room.roomEnemies[i].ultimateSkill.description,
                 room.roomEnemies[i].ultimateSkill.turnCooldown,
@@ -462,6 +475,7 @@ public class CombatManager : MonoBehaviour
             relic.passiveSkill.targetAmountPowerInc,
             relic.passiveSkill.isTargetCountValAmp,
             relic.passiveSkill.maxTargetSelections,
+            relic.passiveSkill.activatable,
             relic.passiveSkill.name,
             relic.passiveSkill.description,
             relic.passiveSkill.turnCooldown,
@@ -502,6 +516,7 @@ public class CombatManager : MonoBehaviour
             relic.basicSkill.targetAmountPowerInc,
             relic.basicSkill.isTargetCountValAmp,
             relic.basicSkill.maxTargetSelections,
+            relic.basicSkill.activatable,
             relic.basicSkill.name,
             relic.basicSkill.description,
             relic.basicSkill.turnCooldown,
@@ -542,6 +557,7 @@ public class CombatManager : MonoBehaviour
             relic.primarySkill.targetAmountPowerInc,
             relic.primarySkill.isTargetCountValAmp,
             relic.primarySkill.maxTargetSelections,
+            relic.primarySkill.activatable,
             relic.primarySkill.name,
             relic.primarySkill.description,
             relic.primarySkill.turnCooldown,
@@ -582,6 +598,7 @@ public class CombatManager : MonoBehaviour
             relic.secondarySkill.targetAmountPowerInc,
             relic.secondarySkill.isTargetCountValAmp,
             relic.secondarySkill.maxTargetSelections,
+            relic.secondarySkill.activatable,
             relic.secondarySkill.name,
             relic.secondarySkill.description,
             relic.secondarySkill.turnCooldown,
@@ -622,6 +639,7 @@ public class CombatManager : MonoBehaviour
             relic.alternateSkill.targetAmountPowerInc,
             relic.alternateSkill.isTargetCountValAmp,
             relic.alternateSkill.maxTargetSelections,
+            relic.alternateSkill.activatable,
             relic.alternateSkill.name,
             relic.alternateSkill.description,
             relic.alternateSkill.turnCooldown,
@@ -662,6 +680,7 @@ public class CombatManager : MonoBehaviour
             relic.ultimateSkill.targetAmountPowerInc,
             relic.ultimateSkill.isTargetCountValAmp,
             relic.ultimateSkill.maxTargetSelections,
+            relic.ultimateSkill.activatable,
             relic.ultimateSkill.name,
             relic.ultimateSkill.description,
             relic.ultimateSkill.turnCooldown,
@@ -743,7 +762,7 @@ public class CombatManager : MonoBehaviour
 
     public void EndTurn()
     {
-        //skillUIManager.UpdateSkillCooldown()
+        skillUIManager.DecrementSkillCooldown();
     }
 
     #region Selection Manager
@@ -818,11 +837,23 @@ public class CombatManager : MonoBehaviour
                 return;
             }
 
-            _enemiesPosition[selectedTargetIndex].transform.GetChild(0).GetComponent<Selector>().selectEnabled = cond; // Tell the oldest image script in stored selection list that the image is disabled
-            _enemiesPosition[selectedTargetIndex].transform.GetChild(0).GetComponent<Image>().enabled = cond; // Disable the oldest image in stored selection list
+            if (curTargetSelections < maxTargetSelections)
+            {
+                curTargetSelections++;
+                targetSelections.Add(selector);
+                _enemiesPosition[selectedTargetIndex].transform.GetChild(0).GetComponent<Selector>().selectEnabled = cond; // Tell the oldest image script in stored selection list that the image is disabled
+                _enemiesPosition[selectedTargetIndex].transform.GetChild(0).GetComponent<Image>().enabled = cond; // Disable the oldest image in stored selection list
+            }
 
-            targetSelections.Add(selector);
-            curTargetSelections++;
+            if (curTargetSelections == maxTargetSelections)
+            {
+                targetSelections[0].transform.GetComponent<Selector>().selectEnabled = false;
+                targetSelections[0].transform.GetComponent<Image>().enabled = false;
+                targetSelections.RemoveAt(0);
+                targetSelections.Add(selector);
+                _enemiesPosition[selectedTargetIndex].transform.GetChild(0).GetComponent<Selector>().selectEnabled = cond; // Tell the oldest image script in stored selection list that the image is disabled
+                _enemiesPosition[selectedTargetIndex].transform.GetChild(0).GetComponent<Image>().enabled = cond; // Disable the oldest image in stored selection list
+            }
         }
 
         _attackBar.UpdateUIAlpha(_attackBar.relicUIHider, _attackBar._relicUIHiderOffVal);
@@ -851,6 +882,8 @@ public class CombatManager : MonoBehaviour
         // Add current target selections
         if (maxSkillSelections > 0)
         {
+            activeSkillSelector = selector;     // Set active skill selector for cooldown visuals
+
             for (int i = 0; i < maxSkillSelections; i++)
             {
                 curSkillSelections++;
@@ -872,7 +905,6 @@ public class CombatManager : MonoBehaviour
     public void ManageSelectionCount(bool isSkill, Selector selectionInput, int curSkillSelections, int maxSkillSelections, 
         int curTargetSelections, int maxTargetSelections, SkillData skillData)
     {
-
         this.curSkillSelections = curSkillSelections;
         this.maxSkillSelections = maxSkillSelections;
         this.curTargetSelections = curTargetSelections;

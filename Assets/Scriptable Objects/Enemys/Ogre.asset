@@ -15,7 +15,7 @@ MonoBehaviour:
   name: Ogre
   level: 1
   color: {r: 0, g: 0.9245283, b: 0.09856821, a: 1}
-  maxHealth: 100
+  maxHealth: 350
   curHealth: 0
   power: 0
   speed: 25

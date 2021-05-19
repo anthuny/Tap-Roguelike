@@ -692,9 +692,13 @@ MonoBehaviour:
   hitMarker: {fileID: 2559584680975656008}
   _attackButton: {fileID: 5384006193597086159}
   _hitMarkerStopMouseCode: 0
-  hitMarkerInvisTime: 1
   skillUIFontSize: 150
   skillUIMissFontSize: 120
+  skillUIPerfectFontSize: 165
+  perfectSkillUIColour: {r: 0.8962264, g: 0, b: 0.08482807, a: 1}
+  greatSkillUIColour: {r: 1, g: 0.54629314, b: 0, a: 1}
+  goodSkillUIColour: {r: 1, g: 0.54509807, b: 0, a: 1}
+  missSkillUIColour: {r: 1, g: 0.54509807, b: 0, a: 1}
   _speed: 2
   timeTillBarTurnsInvis: 0.5
   _checkPoints:

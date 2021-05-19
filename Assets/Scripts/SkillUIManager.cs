@@ -33,13 +33,17 @@ public class SkillUIManager : MonoBehaviour
     public float textLifeLength;
     [Tooltip("The difference in Y value between each skill UI value has")]
     public float yDistBetweenUI;
+    public float yDistBetweenEffectUI;
     public float xDisplacementStr;
     public float SkillUIFadeOutSpeed;
-    [SerializeField] private Color skillUIColour;
-    [SerializeField] private Color effectSkillUIColour;
+
 
     [Header("Active Stored Attacks")]
     public AttackData activeAttackData;
+
+    private GameObject prevGo;
+    private Transform prevskillUIValueParent;
+    private Unit unit;
 
     private void Awake()
     {
@@ -48,7 +52,13 @@ public class SkillUIManager : MonoBehaviour
 
     public void AssignActiveSkill(Button button)
     {
-        _combatManager.relicActiveSkill = button.transform.parent.parent.GetComponent<Selector>().skillData;  // Assign the selected skill
+        SkillData skillData = button.transform.parent.parent.GetComponent<Selector>().skillData;
+
+        // If the skill is not activatable, don't continue
+        if (!skillData.activatable || skillData.onCooldown)
+            return;
+
+        _combatManager.relicActiveSkill = skillData;  // Assign the selected skill
 
         _combatManager.activeAttackBar.MoveAttackBar(true);
     }
@@ -105,14 +115,16 @@ public class SkillUIManager : MonoBehaviour
     public void DisplaySkillValue(Unit caster, Transform skillUIValueParent, float val = 0, float effectVal = 0, bool effectInfict = false, AttackData attackData = null)
     {
         GameObject go = Instantiate(skillUIText, skillUIValueParent.position, Quaternion.identity);    // Initialize
+        if (effectInfict && effectVal != 0)
+        {
+            unit = skillUIValueParent.parent.GetComponent<Unit>();  // Initialize
+            unit.effectHitCount++;
+        }
 
         SkillValueUI skillValueUI = go.GetComponent<SkillValueUI>();
         go.GetComponent<SkillValueUI>().skillUIManager = this;  // Initialization
         go.transform.SetParent(skillUIValueParent);    // Set parent
-        if (effectInfict)
-        {
-            Debug.Log(go.transform.parent.parent.name);
-        }
+        prevskillUIValueParent = skillUIValueParent;
 
         Vector3 pos = go.transform.localPosition;
 
@@ -126,10 +138,25 @@ public class SkillUIManager : MonoBehaviour
             if (effectVal != 0)
             {
                 text.text = Mathf.Abs(effectVal).ToString();  // Display damage
-                text.fontSize = _combatManager.activeAttackBar.skillUIFontSize;     // Set font size
-                text.color = effectSkillUIColour;
-                float yValEffect = yDistBetweenUI * caster.hitWaveCountEffect;
-                pos.y = go.transform.localPosition.y + yValEffect;
+
+                // Set font size
+                if (attackData.relicActiveSkillValueModifier == attackData.skillData.perfectValueMultiplier)
+                    text.fontSize = _combatManager.activeAttackBar.skillUIPerfectFontSize;
+                else
+                    text.fontSize = _combatManager.activeAttackBar.skillUIFontSize;
+
+                // Set text UI Colour
+                if (attackData.relicActiveSkillValueModifier == attackData.skillData.perfectValueMultiplier)
+                    text.color = _combatManager.activeAttackBar.perfectSkillUIColour;
+                else if (attackData.relicActiveSkillValueModifier == attackData.skillData.greatValueMultiplier)
+                    text.color = _combatManager.activeAttackBar.greatSkillUIColour;
+                else if (attackData.relicActiveSkillValueModifier == attackData.skillData.goodValueMultiplier)
+                    text.color = _combatManager.activeAttackBar.goodSkillUIColour;
+                else if (attackData.relicActiveSkillValueModifier == attackData.skillData.missValueMultiplier)
+                    text.color = _combatManager.activeAttackBar.missSkillUIColour;
+
+                float yValEffect = yDistBetweenEffectUI * (unit.effectHitCount - 1);
+                pos.y = yValEffect;
             }
         }
         else
@@ -137,16 +164,33 @@ public class SkillUIManager : MonoBehaviour
             if (val != 0)
             {
                 text.text = Mathf.Abs(val).ToString();  // Display damage
-                text.fontSize = _combatManager.activeAttackBar.skillUIFontSize;     // Set font size
-                text.color = skillUIColour;
+
+                // Set font size
+                if (attackData.relicActiveSkillValueModifier == attackData.skillData.perfectValueMultiplier)
+                    text.fontSize = _combatManager.activeAttackBar.skillUIPerfectFontSize;
+                else
+                    text.fontSize = _combatManager.activeAttackBar.skillUIFontSize;
+
+                // Set text UI Colour
+                if (attackData.relicActiveSkillValueModifier == attackData.skillData.perfectValueMultiplier)
+                    text.color = _combatManager.activeAttackBar.perfectSkillUIColour;
+                else if (attackData.relicActiveSkillValueModifier == attackData.skillData.greatValueMultiplier)
+                    text.color = _combatManager.activeAttackBar.greatSkillUIColour;
+                else if (attackData.relicActiveSkillValueModifier == attackData.skillData.goodValueMultiplier)
+                    text.color = _combatManager.activeAttackBar.goodSkillUIColour;
+                else if (attackData.relicActiveSkillValueModifier == attackData.skillData.missValueMultiplier)
+                    text.color = _combatManager.activeAttackBar.missSkillUIColour;
             }
             else
             {
-                text.fontSize = _combatManager.activeAttackBar.skillUIMissFontSize;     // Set font size
-                text.text = "Miss";   // Display miss text
-                text.color = skillUIColour;
+                if (!effectInfict)
+                {
+                    text.fontSize = _combatManager.activeAttackBar.skillUIMissFontSize;     // Set font size
+                    text.text = "Miss";   // Display miss text
+                    text.color = _combatManager.activeAttackBar.missSkillUIColour;
+                }
             }
-
+            
             float yVal = yDistBetweenUI * caster.hitWaveCount;
             pos.y = go.transform.localPosition.y + yVal;
         }
@@ -155,31 +199,58 @@ public class SkillUIManager : MonoBehaviour
 
         // Set canvas sorting order to always appear infront of any other skill Text UI.
         if (effectInfict)
-            skillValueUI.canvas.sortingOrder = caster.hitWaveCount + caster.hitWaveCountEffect;
+            skillValueUI.canvas.sortingOrder = 1 + caster.hitWaveCount + caster.hitWaveCountEffect;
         else
             skillValueUI.canvas.sortingOrder = caster.hitWaveCount;
-
-        // If adjusting health not in combat
-        if (!attackData)
-            return;
-
-        if (caster.hitWaveCountEffect == caster.maxWaveCountEffects)
-            caster.hitWaveCountEffect = 0;
     }
 
-    public void SetSkillCooldown(SkillData skillData)
+    public void SetSkillMaxCooldown(SkillData skillData)
     {
         skillData.curCooldown = skillData.turnCooldown;
+        skillData.onCooldown = true;
     }
 
-    public void UpdateSkillCooldown(SkillData skillData, Selector selector)
+    void SetSkillCooldown(SkillData skillData, Selector selector)
     {
-        selector.cooldownImage.fillAmount = skillData.curCooldown / skillData.turnCooldown;
+        if (skillData.curCooldown != 0)
+            skillData.curCooldown--;
 
+        if (skillData.curCooldown == 0)
+            skillData.onCooldown = false;
+
+        UpdateSkillCooldownVisuals(skillData, selector);
+    }
+
+    public void UpdateSkillCooldownVisuals(SkillData skillData, Selector selector)
+    {
         if (skillData.turnCooldown == 0)
+        {
+            selector.cooldownImage.fillAmount = 0;
             selector.cooldownText.text = "";
-        else
+            return;
+        }
+
+        if (skillData.curCooldown != 0)
+        {
+            float val = (float)skillData.curCooldown / (float)skillData.turnCooldown;
+            selector.cooldownImage.fillAmount = Mathf.Round(val * 100) / 100f;
             selector.cooldownText.text = skillData.curCooldown.ToString();
+        }
+        else
+        {
+            selector.cooldownImage.fillAmount = 0;
+            selector.cooldownText.text = "";
+        }
+    }
+
+    public void DecrementSkillCooldown()
+    {
+        SetSkillCooldown(_relicPassiveSkill, relicPassiveSelect);
+        SetSkillCooldown(_relicBasicSkill, relicBasicSelect);
+        SetSkillCooldown(_relicPrimarySkill, relicPrimarySelect);
+        SetSkillCooldown(_relicSecondarySkill, relicSecondarySelect);
+        SetSkillCooldown(_relicAlternateSkill, relicAlternateSelect);
+        SetSkillCooldown(_relicUltimateSkill, relicUltimateSelect);
     }
 
     private int RoundFloatToInt(float f)

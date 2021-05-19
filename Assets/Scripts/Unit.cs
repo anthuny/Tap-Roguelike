@@ -66,13 +66,15 @@ public class Unit : MonoBehaviour
     private bool started;
     [HideInInspector]
     public int hitWaveCount;
-    [HideInInspector]
+    //[HideInInspector]
     public int hitWaveCountEffect;
-    [HideInInspector]
+    //[HideInInspector]
     public int maxWaveCountEffects;
     [HideInInspector]
     public int hitCount;
     bool storingAttack;
+    [HideInInspector]
+    public int effectHitCount;
 
 
     private void Awake()
@@ -112,16 +114,21 @@ public class Unit : MonoBehaviour
 
         if (skillData.curHitsCompleted == skillData.hitsRequired)
         {
-            _skillUIManager.SetSkillCooldown(skillData);
-            //_skillUIManager.UpdateSkillCooldown(skillData, _combatManager.relicActiveSkill)
+            _skillUIManager.SetSkillMaxCooldown(skillData);
+            _skillUIManager.UpdateSkillCooldownVisuals(skillData, _combatManager.activeSkillSelector);
         }
+
         else if (skillData.curHitsCompleted >= skillData.hitsRequired)
         {
             Debug.LogWarning("1 Extra hit was not valid");
             yield return null;
         }
 
-        maxWaveCountEffects = skillData.hitsRequired;
+        if (skillData.hitsRequired == 1)
+            maxWaveCountEffects = 1;
+
+        if (skillData.hitsRequired > 1)
+            maxWaveCountEffects = skillData.hitsRequired-1;
 
         switch (skillData.targetsAllowed)
         {
@@ -275,6 +282,7 @@ public class Unit : MonoBehaviour
         curAttackData.skillUIValueParent = target.skillUIValueParent;
         curAttackData.curTargetCount = _combatManager.targetSelections.Count;
         curAttackData.effectVal = skillData.effect.stackValue;
+        curAttackData.relicActiveSkillValueModifier = _combatManager.relicActiveSkillValueModifier;
     }
 
     IEnumerator SendSkillUI(SkillData skillData)
@@ -309,17 +317,17 @@ public class Unit : MonoBehaviour
                 // Loop through all stored attacks
                 for (int x = 0; x < _combatManager.activeAttackData.Count; x++)
                 {
+
+                    _combatManager.activeAttackData[x].target.UpdateCurHealth(_combatManager.activeAttackData[x].inCombat,
+                    _combatManager.activeAttackData[x].val, true, _combatManager.activeAttackData[x].skillUIValueParent,
+                    _combatManager.activeAttackData[x], this);
+
                     // After looping through all targets
-                    if ((x+1) % curAttackData.curTargetCount == 0)
+                    if ((x+1) % (curAttackData.curTargetCount) == 0)
                     {
                         hitWaveCountEffect++;
                         yield return new WaitForSeconds(curAttackData.timeBetweenHitUI);
                     }
-
-                    // send values to target
-                    _combatManager.activeAttackData[x].target.UpdateCurHealth(_combatManager.activeAttackData[x].inCombat,
-                        _combatManager.activeAttackData[x].val, true, _combatManager.activeAttackData[x].skillUIValueParent,
-                        _combatManager.activeAttackData[x], this);
 
                     // Trigger effect
                     TriggerEffect();    // does nothing atm
@@ -330,6 +338,11 @@ public class Unit : MonoBehaviour
 
         hitCount = 0;
         hitWaveCount = 0;
+        hitWaveCountEffect = 0;
+        for (int i = 0; i < _combatManager.targetSelections.Count; i++)
+        {
+            _combatManager.targetSelections[i].GetUnitScript().effectHitCount = 0;
+        }
 
         yield return new WaitForSeconds(_combatManager.postHitTime);
         _combatManager.activeAttackBar.MoveAttackBar(false);
@@ -340,18 +353,26 @@ public class Unit : MonoBehaviour
     /// </summary>
     public void UpdateCurHealth(bool inCombat, float val, bool isEffect = false, Transform activeSkillUIParent = null, AttackData attackData = null, Unit caster = null)
     {
-        float valDefault = RoundFloatToInt(val * _combatManager.relicActiveSkillValueModifier);
+        float valDefault;
+
+        if (!attackData)
+            valDefault = RoundFloatToInt(val);
+        else
+            valDefault = RoundFloatToInt(val * attackData.relicActiveSkillValueModifier);
+
         float valDefaultAbs = Mathf.Abs(valDefault);
         float effectVal = RoundFloatToInt(recievedDamageAmp * valDefaultAbs);
 
         if (inCombat)
         {
-            curHealth += RoundFloatToInt(valDefault);
-            curHealth -= RoundFloatToInt(effectVal);
+            if (isEffect)
+                curHealth -= RoundFloatToInt(effectVal);
+            else
+                curHealth += RoundFloatToInt(valDefault);
 
             // Send effect UI
             if (isEffect)
-                _combatManager.skillUIManager.DisplaySkillValue(caster, activeSkillUIParent, 0, effectVal, true);
+                _combatManager.skillUIManager.DisplaySkillValue(caster, activeSkillUIParent, 0, effectVal, true, attackData);
             else
                 _combatManager.skillUIManager.DisplaySkillValue(caster, activeSkillUIParent, valDefault, effectVal, false, attackData);
         }

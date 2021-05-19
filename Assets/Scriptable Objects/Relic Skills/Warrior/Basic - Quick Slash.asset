@@ -14,12 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillType: Basic
   skillMode: Damage
-  targetType: Single
+  targetType: Multiple
   targetsAllowed: Enemies
-  hitsRequired: 1
-  timeBetweenHitUI: 0
-  timeTillEffectInflict: 0.75
-  timeForNextHitMarker: 0
+  hitsRequired: 2
+  timeBetweenHitUI: 0.15
+  timeTillEffectInflict: 0.9
+  timeForNextHitMarker: 0.1
   effect: {fileID: 11400000, guid: 563c4ab55f0ac124eaf71c67f558b663, type: 2}
   effectTarget: Targeted
   effectPower: 1
@@ -30,10 +30,11 @@ MonoBehaviour:
   stackValue: 0
   targetAmountPowerInc: 0
   isTargetCountValAmp: 0
-  maxTargetSelections: 1
+  maxTargetSelections: 2
+  activatable: 1
   name: Quick Slash
-  description: Attack a single enemy Once.
-  turnCooldown: 0
+  description: Attack up to two enemies twice.
+  turnCooldown: 1
   missValueMultiplier: 0
   goodValueMultiplier: 1
   greatValueMultiplier: 1.25

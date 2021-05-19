@@ -36,6 +36,9 @@ public class HitBar : MonoBehaviour
     /// </summary>
     public void CheckIfMarkerHit()
     {
+        if (_attackBar.hitMarkers.Count <= 0)
+            return;
+
         _attackBar.hitMarkers[0].SetActiveHitMarker();
 
         _attackBar.SetActiveHitMarkerCollider(_attackBar.hitMarkers[0].gameObject.GetComponent<Collider2D>());

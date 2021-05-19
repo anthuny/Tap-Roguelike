@@ -35,10 +35,14 @@ public class Selector : MonoBehaviour
     [SerializeField] private bool isSkill;
     public int enemyIndex;
 
+    [HideInInspector]
+    public Unit unit;
+
     private void Awake()
     {
         _combatManager = FindObjectOfType<CombatManager>();
         selectionImage = GetComponent<Image>();
+
     }
 
     private void Start()
@@ -53,6 +57,9 @@ public class Selector : MonoBehaviour
     {
         if (isSkill)
         {
+            if (skillData.onCooldown || !skillData.activatable)
+                return;
+
             _combatManager.ManageSelectionCount(true, this,
             _combatManager.curSkillSelections, skillData.maxSkillCount, _combatManager.curTargetSelections, skillData.maxTargetCount, skillData);
         }
@@ -74,5 +81,16 @@ public class Selector : MonoBehaviour
             skillIconColour, skillSelectionColour, skillBorderColour);
 
         skillSelectionIcon.enabled = false;
+    }
+
+    public Unit GetUnitScript()
+    {
+        if (!unit)
+        {
+            unit = transform.GetComponentInParent<Unit>();
+            return transform.GetComponentInParent<Unit>();
+        }
+        else
+            return unit;
     }
 }
