@@ -100,5 +100,7 @@ public class HitBar : MonoBehaviour
         {
             Debug.LogWarning("This hit bar isn't being collided with");
         }
+
+        _attackBar.UpdateRemainingHitsText(false, -1, 0);
     }
 }

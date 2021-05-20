@@ -76,59 +76,73 @@ public class Unit : MonoBehaviour
     [HideInInspector]
     public int effectHitCount;
 
-
     private void Awake()
     {
         _devManager = FindObjectOfType<DevManager>();
         _combatManager = FindObjectOfType<CombatManager>();
         _skillUIManager = FindObjectOfType<SkillUIManager>();
-    }
-
-    public void DetermineUnitMoveChoice(Unit unit, SkillData skillData)
-    {
-        if (unitType == UnitType.ENEMY)
-        {
-            // If i unit's attack chance is greater then their skill chance
-            //if (unit.attackChance > unit.skillChance)
-            //unit.UnitSkillFunctionality(skillData);   // Perform a basic attack
-
-            // If i enemy's skill chance is greater then their skill chance
-            //else
-            //unit.UnitSkillFunctionality(unit.primarySkill);  // Enemy casts a random skill
-        }
 
         if (unitType == UnitType.ALLY)
         {
-            StartCoroutine(UnitSkillFunctionality(skillData));
+
         }
+    }
+
+    public void DetermineUnitMoveChoice(Unit unit, SkillData skillData = null)
+    {
+        if (unitType == UnitType.ENEMY)
+        {
+            // Set targets for skill
+            //_combatManager.UpdateTargetSelection(false, ); 
+
+            // Anthony - TODO: Need to update relic game object to be a prefab that spawns,
+            // so that all units can have their own selector (Selecting unit) as a prefab. I want this because it is currently too difficult to
+            // get reference to the relic's Selector script. 
+
+            //Determine what move to use
+
+            // Aftwards, if the enemy skill targets the relic, set the target of the chosen skill to be the relics selector. 
+            // Otherwise, set the target to be whatever it needs to be. (Problem for then).
+
+            // Cast skill
+            StartCoroutine(UnitSkillFunctionality(false, basicSkill));
+        }
+
+        if (unitType == UnitType.ALLY)
+            StartCoroutine(UnitSkillFunctionality(true, skillData));
     }
 
     /// <summary>
     /// Caster performs a skill on a target
     /// </summary>
-    public IEnumerator UnitSkillFunctionality(SkillData skillData)
+    public IEnumerator UnitSkillFunctionality(bool relic, SkillData skillData)
     {
         AssignSelectionCount(skillData);
 
         skillData.curHitsCompleted++;   // Increase current hits completed by 1
 
-        if (skillData.curHitsCompleted == skillData.hitsRequired)
+        // Only if relic, set up for attack bar
+        if (relic)
         {
-            _skillUIManager.SetSkillMaxCooldown(skillData);
-            _skillUIManager.UpdateSkillCooldownVisuals(skillData, _combatManager.activeSkillSelector);
+            if (skillData.curHitsCompleted == skillData.hitsRequired)
+            {
+                _skillUIManager.SetSkillMaxCooldown(skillData);
+                _skillUIManager.UpdateSkillCooldownVisuals(skillData, _combatManager.activeSkillSelector);
+            }
+
+
+            else if (skillData.curHitsCompleted >= skillData.hitsRequired)
+            {
+                Debug.LogWarning("1 Extra hit was not valid");
+                yield return null;
+            }
+
+            if (skillData.hitsRequired == 1)
+                maxWaveCountEffects = 1;
+
+            if (skillData.hitsRequired > 1)
+                maxWaveCountEffects = skillData.hitsRequired-1;
         }
-
-        else if (skillData.curHitsCompleted >= skillData.hitsRequired)
-        {
-            Debug.LogWarning("1 Extra hit was not valid");
-            yield return null;
-        }
-
-        if (skillData.hitsRequired == 1)
-            maxWaveCountEffects = 1;
-
-        if (skillData.hitsRequired > 1)
-            maxWaveCountEffects = skillData.hitsRequired-1;
 
         switch (skillData.targetsAllowed)
         {

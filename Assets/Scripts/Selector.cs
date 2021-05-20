@@ -57,7 +57,7 @@ public class Selector : MonoBehaviour
     {
         if (isSkill)
         {
-            if (skillData.onCooldown || !skillData.activatable)
+            if (skillData.onCooldown || !skillData.activatable || !_combatManager.relicTurn)
                 return;
 
             _combatManager.ManageSelectionCount(true, this,

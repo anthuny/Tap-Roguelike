@@ -10,19 +10,19 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5dc5b9ce7e0102341bc5eaa649ff2a8d, type: 3}
-  m_Name: Ogre
+  m_Name: Fiend
   m_EditorClassIdentifier: 
-  name: Ogre
+  name: Fiend
   level: 1
   color: {r: 0, g: 0.9245283, b: 0.09856821, a: 1}
   maxHealth: 350
   curHealth: 0
-  power: 0
-  speed: 25
+  power: 10
+  speed: 10
   attackChance: 70
   skillChance: 30
   passiveSkill: {fileID: 11400000, guid: 7d81b433412e4a846bb4f1238a36debf, type: 2}
-  basicSkill: {fileID: 11400000, guid: 429a26857161fe7408701093ef16f419, type: 2}
+  basicSkill: {fileID: 11400000, guid: 9a7fd2f0e93563f48be0f06ee81f570e, type: 2}
   primarySkill: {fileID: 11400000, guid: e009baa9b5a5735459760b4702ff3995, type: 2}
   secondarySkill: {fileID: 11400000, guid: 1fdf04bcb45f4434b85e94d1e18d6a33, type: 2}
   alternateSkill: {fileID: 11400000, guid: bd0d4ad4322d3924a8b39b5f8c60611e, type: 2}

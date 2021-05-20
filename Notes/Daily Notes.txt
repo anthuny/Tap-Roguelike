@@ -10,9 +10,9 @@ Bugs:
 Wanted Features:
 
 //Skill CD functionality / visual
-Energy remaining UI
-Create Honor Submiss passive
+//Energy remaining UI
 enemy attacks
+Create Honor Submiss passive 
 Combat turn order
 
 16/05/2021 Sunday (9:48pm)
@@ -26,4 +26,30 @@ Players can optionally press the cancel button to exit the skill, if the player 
 
 
 19/05/2021 Wednesday (5:22pm)
+
+20/05/2021 Thursday (11:53pm)
+Designed base aesthetic theme of each area, created 4 unique Graveyard units, detailed Fiend unit design. 
+
+
+Tasks:
+~~Enemy Turns / Ogre design and implementation (half day 4-6h)
+Combat Turn Order (2-4h)
+Warrior class complete functionality implementation (half day 4-6h)
+Unit Deaths (1-2h)
+Room Complete / Fail (1-2h)
+Room Reward (4-6h)
+Levels (2-4h)
+Skill Energy Cost (1-2h)
+Items (2 full days 16h)
+Room/Enemy Design and difficulty scaling (Half day - Full day 6-10h)
+Map Design / Generation / Overall Functionality (3 full days 24h)
+
+Shaky:
+2nd relic choice functionality 
+Main Menu
+Relic Selection
+Warrior
+	Art Design
+	Other Animations (Hit, Death, heal recieved)
+	All Skill animations and VFX
 

@@ -36,6 +36,7 @@ public class AttackBar : MonoBehaviour
     public float _relicUIHiderOffVal;
     public float _relicUIHiderSelectVal;
     public float _relicUIHiderOnVal;
+    [SerializeField] private HitsRemainingText _hitsRemainingText;
 
     [Header("Hit Markers")]
     public float hitMarkerAlpha1;
@@ -98,10 +99,7 @@ public class AttackBar : MonoBehaviour
     {      
         // Check if the user performed the land hit marker input
         if (CheckRelicUIHiderStatus() && skillActive)
-        {
-            //Debug.Log("Triggered");
             BeginHitMarkerStoppingSequence(); // Stop the hit marker
-        }
     }
 
     void InitialLaunch()
@@ -193,6 +191,11 @@ public class AttackBar : MonoBehaviour
             MoveAttackBar(false);
     }
 
+    public void UpdateRemainingHitsText(bool cond, int val = 0, int isoVal = 0)
+    {
+        _hitsRemainingText.UpdateRemainingHitText(cond, val, isoVal);
+    }
+
     public void ToggleBackButton(bool cond, bool iso = false)
     {
         backGO.SetActive(cond);
@@ -207,10 +210,11 @@ public class AttackBar : MonoBehaviour
                 _combatManager.activeAttackData.Clear();
                 _combatManager.ClearTargetSelections();
                 _combatManager.ClearSkillSelections();
+                _hitsRemainingText.UpdateRemainingHitText(true, 0, 0);
             }
         }
     }
-
+        
     public void DestroyAllHitMarkers()
     {
         if (hitMarkers.Count == 0)
@@ -246,6 +250,8 @@ public class AttackBar : MonoBehaviour
             hitMarkerScript.nextPos = _checkPoints[1].GetComponent<RectTransform>().localPosition;
             hitMarkerScript.speed = _speed;
             hitMarkerScript.attackBar = this;
+
+            UpdateRemainingHitsText(false, 1, 0);
 
             if (i == 0)
             {

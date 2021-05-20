@@ -17,6 +17,7 @@ public class DevManager : MonoBehaviour
     [SerializeField] private bool _devTextOn;
     [SerializeField] private float _distAfterFirstText;
     [SerializeField] private float _distAfterSecondText;
+    public bool endTurnSkip;
     [Tooltip("Dev Text prefab")]
     [SerializeField] private GameObject _devText;
     [SerializeField] private Font _font;

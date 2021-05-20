@@ -52,6 +52,9 @@ public class SkillUIManager : MonoBehaviour
 
     public void AssignActiveSkill(Button button)
     {
+        if (!_combatManager.relicTurn)
+            return;
+
         SkillData skillData = button.transform.parent.parent.GetComponent<Selector>().skillData;
 
         // If the skill is not activatable, don't continue
@@ -245,6 +248,7 @@ public class SkillUIManager : MonoBehaviour
 
     public void DecrementSkillCooldown()
     {
+        // Decrease all relic's cooldown
         SetSkillCooldown(_relicPassiveSkill, relicPassiveSelect);
         SetSkillCooldown(_relicBasicSkill, relicBasicSelect);
         SetSkillCooldown(_relicPrimarySkill, relicPrimarySelect);

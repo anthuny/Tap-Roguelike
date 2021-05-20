@@ -1,0 +1,49 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bdb88ad8c39cf8843bc7940801a6441f, type: 3}
+  m_Name: Fiend - Basic
+  m_EditorClassIdentifier: 
+  skillType: Basic
+  skillMode: Damage
+  targetType: Single
+  targetsAllowed: Enemies
+  hitsRequired: 1
+  timeBetweenHitUI: 0.15
+  timeTillEffectInflict: 0.9
+  timeForNextHitMarker: 0.1
+  effect: {fileID: 0}
+  effectTarget: 
+  effectPower: 0
+  effectDuration: 0
+  effectHitEffect: 
+  effectDurationDecrease: 
+  counterSkill: 0
+  stackValue: 0
+  targetAmountPowerInc: 0
+  isTargetCountValAmp: 0
+  maxTargetCount: 1
+  activatable: 1
+  name: Medium Hit
+  description: Attack a single enemy once.
+  turnCooldown: 1
+  missValueMultiplier: 0
+  goodValueMultiplier: 1
+  greatValueMultiplier: 1
+  perfectValueMultiplier: 1
+  missProcMultiplier: 0
+  goodProcMultiplier: 0
+  greatProcMultiplier: 0
+  perfectProcMultiplier: 0
+  skillIconColour: {r: 0.90588236, g: 0.1568627, b: 0.3182267, a: 1}
+  skillBorderColour: {r: 0, g: 0, b: 0, a: 1}
+  skillSelectionColour: {r: 1, g: 0.97647065, b: 0, a: 1}
+  maxSkillCount: 1

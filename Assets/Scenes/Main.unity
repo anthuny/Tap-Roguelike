@@ -204,6 +204,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 47500474}
+  - component: {fileID: 47500481}
   - component: {fileID: 47500480}
   - component: {fileID: 47500479}
   - component: {fileID: 47500478}
@@ -262,7 +263,7 @@ MonoBehaviour:
             m_IntArgument: 0
             m_FloatArgument: 0
             m_StringArgument: 
-            m_BoolArgument: 0
+            m_BoolArgument: 1
           m_CallState: 2
 --- !u!61 &47500476
 BoxCollider2D:
@@ -394,6 +395,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 47500473}
   m_CullTransparentMesh: 0
+--- !u!114 &47500481
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 47500473}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7f9cbd0a35050a04499e42f0d59e7768, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &138539335
 GameObject:
   m_ObjectHideFlags: 0
@@ -1911,8 +1924,10 @@ MonoBehaviour:
   _attackBar: {fileID: 1177160604}
   _fightButton: {fileID: 966639871}
   _enemies: []
+  turnOrder: []
   _enemiesPosition: []
-  _allies: []
+  activeRelic: {fileID: 0}
+  activeEnemy: {fileID: 0}
   postEnemyAttackWait: 0.25
   postAllyAttackWait: 0.5
   breatheTime: 0.25
@@ -1923,8 +1938,6 @@ MonoBehaviour:
   enemyActiveSkill: {fileID: 0}
   targetSelections: []
   skillSelections: []
-  activeRelic: {fileID: 0}
-  activeEnemy: {fileID: 0}
   activeAttackData: []
   maxTargetSelections: 0
   curTargetSelections: 0
@@ -1941,7 +1954,9 @@ MonoBehaviour:
   activeAttackBar: {fileID: 0}
   relicActiveSkillValueModifier: 0
   relicActiveSkillProcModifier: 0
+  relicTurn: 0
   activeSkillSelector: {fileID: 0}
+  relicSelector: {fileID: 0}
   skillType:
   - Basic
   - Passive
@@ -2360,6 +2375,7 @@ MonoBehaviour:
   _devTextOn: 0
   _distAfterFirstText: 125
   _distAfterSecondText: 160
+  endTurnSkip: 0
   _devText: {fileID: 8324084206059333076, guid: 69866bc3c3b2bd54c9563ec0bd391223,
     type: 3}
   _font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
@@ -4100,6 +4116,41 @@ PrefabInstance:
       propertyPath: _relicManager
       value: 
       objectReference: {fileID: 751964340}
+    - target: {fileID: 3638558845249033765, guid: 742cd60e0bb1e24498022f696bafffbc,
+        type: 3}
+      propertyPath: m_Color.b
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3638558845249033765, guid: 742cd60e0bb1e24498022f696bafffbc,
+        type: 3}
+      propertyPath: m_Color.g
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3638558845249033765, guid: 742cd60e0bb1e24498022f696bafffbc,
+        type: 3}
+      propertyPath: m_Color.r
+      value: 0.98620903
+      objectReference: {fileID: 0}
+    - target: {fileID: 4141329936507644570, guid: 742cd60e0bb1e24498022f696bafffbc,
+        type: 3}
+      propertyPath: m_Color.a
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4141329936507644570, guid: 742cd60e0bb1e24498022f696bafffbc,
+        type: 3}
+      propertyPath: m_Color.b
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4141329936507644570, guid: 742cd60e0bb1e24498022f696bafffbc,
+        type: 3}
+      propertyPath: m_Color.g
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4141329936507644570, guid: 742cd60e0bb1e24498022f696bafffbc,
+        type: 3}
+      propertyPath: m_Color.r
+      value: 0.9882353
+      objectReference: {fileID: 0}
     - target: {fileID: 5405327135533758233, guid: 742cd60e0bb1e24498022f696bafffbc,
         type: 3}
       propertyPath: _gamemode

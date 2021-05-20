@@ -21,7 +21,7 @@ public class Skill : ScriptableObject
     public float stackValue;
     public float targetAmountPowerInc;
     public bool isTargetCountValAmp;
-    public int maxTargetSelections = 1;
+    public int maxTargetCount = 1;
     public bool activatable = true;
 
     [Tooltip("The name of the skill")]
