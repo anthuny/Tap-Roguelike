@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: DefaultRoom
   m_EditorClassIdentifier: 
   roomName: Testing Room
+  maxRoomSize: 6
   roomEnemies:
   - {fileID: 11400000, guid: a629422379f377846ad606029a32e885, type: 2}
   - {fileID: 11400000, guid: a629422379f377846ad606029a32e885, type: 2}

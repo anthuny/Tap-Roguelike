@@ -16,6 +16,7 @@ public class SkillData : MonoBehaviour
     public string targetType;
     public string targetsAllowed;
     public int hitsRequired;
+    public int manaRequired;
     public float timeBetweenHitUI;
     public float timeTillEffectInflict;
     public float timeForNextHitMarker;
@@ -70,7 +71,7 @@ public class SkillData : MonoBehaviour
     public int maxSkillCount = 1;
 
     public void InitializeSkill(Color skillIconColour, Color skillBorderColour, Color skillSelectionColour, string skillType = "Basic", string skillMode = "None",
-        string targetType = "None", string targetsAllowed = "0", int hitsRequired = 0, float timeBetweenHitUI = 0, float timeTillEffectInflict = 0, float timeForNextHitMarker = 0, Effect effect = null, string effectTarget = "None", int effectPower = 0,
+        string targetType = "None", string targetsAllowed = "0", int hitsRequired = 0, int energyRequired = 0, float timeBetweenHitUI = 0, float timeTillEffectInflict = 0, float timeForNextHitMarker = 0, Effect effect = null, string effectTarget = "None", int effectPower = 0,
         int effectDuration = 0, string effectHitEffect = "None", string effectDurationDecrease = "None", bool counterSkill = false, float stackValue = 0,
         float targetAmountPowerInc = 1, bool isTargetCountValAmp = false, int targetCount = 0, bool activatable = true, string name = "", string description = "", int turnCooldown = 0, float missDamageMultiplier = 0, float goodDamageMultiplier = 0,
         float greatDamageMultiplier = 0, float perfectDamageMultiplier = 0, float missProcMultiplier = 0, float goodProcMultiplier = 0, 
@@ -84,6 +85,7 @@ public class SkillData : MonoBehaviour
         this.targetType = targetType;
         this.targetsAllowed = targetsAllowed;
         this.hitsRequired = hitsRequired;
+        this.manaRequired = energyRequired;
         this.timeBetweenHitUI = timeBetweenHitUI;
         this.timeTillEffectInflict = timeTillEffectInflict;
         this.timeForNextHitMarker = timeForNextHitMarker;

@@ -17,6 +17,7 @@ MonoBehaviour:
   targetType: Single
   targetsAllowed: Enemies
   hitsRequired: 1
+  manaRequired: 2
   timeBetweenHitUI: 0.15
   timeTillEffectInflict: 0.9
   timeForNextHitMarker: 0.1

@@ -14,8 +14,18 @@ public class SkillValueUI : MonoBehaviour
 
     private float alpha = 1;
     private bool destroy;
+    [HideInInspector]
+    public bool stopMoving = false;
+
+    private Coroutine coroutine;
+    private bool stopping;
+
+    [HideInInspector]
+    public int index;
 
     [SerializeField] private Outline outline;
+    private float originalPosY;
+    private float stoppedPosY;
 
     private void Awake()
     {
@@ -23,33 +33,74 @@ public class SkillValueUI : MonoBehaviour
     }
     private void Start()
     {
-        Invoke("RemoveText", skillUIManager.textLifeLength);
-        StartCoroutine(BeginRemoving());
+        originalPosY = transform.localPosition.y;
+        EnableMoving();
     }
 
-    IEnumerator BeginRemoving()
+    void UpdateStoppedPos()
     {
-        yield return new WaitForSeconds(skillUIManager.textLifeLength);
+        if (!destroy)
+            stoppedPosY = transform.localPosition.y;
+    }
+
+    public void BeginRemoving()
+    {
+        destroy = true;
+    }
+    
+    public float CalculateDistanceTravelled()
+    {
+        return stoppedPosY - originalPosY;
+    }
+
+    IEnumerator StopMoving()
+    {
+        stopping = true;
+        yield return new WaitForSeconds(skillUIManager.textPanLength);
+        stopMoving = true;
+
+        stoppedPosY = transform.position.y;
+        stopping = false;
+    }
+
+    public void EnableMoving()
+    {
+        if (stopping)
+            StopCoroutine(coroutine);
+
+        stopMoving = false;
+        coroutine = StartCoroutine(StopMoving());
+    }
+
+    public void HideText()
+    {
         destroy = true;
     }
 
     void Update()
     {
-        RemoveText();
-
+        UpdateStoppedPos();
+        StartCoroutine(HideTextFunctionality());
         Move();
     }
 
     void Move()
     {
+        if (stopMoving)
+            return;
+
         float y = skillUIManager.panSpeedUI * Time.deltaTime;
         transform.position += new Vector3(0, y, 0);
     }
 
-    void RemoveText()
+    IEnumerator HideTextFunctionality()
     {
         if (!destroy)
-            return;
+            yield break;
+
+        stopMoving = false;
+
+        yield return new WaitForSeconds(skillUIManager.textBonusLength + (index * skillUIManager.elapsedTimeDestroyMultiplier));
 
         outline.enabled = false;
 
@@ -62,6 +113,7 @@ public class SkillValueUI : MonoBehaviour
 
     void DestroySkillUI()
     {
+        skillUIManager.RemoveText(this);
         Destroy(this.gameObject);
     }
 }

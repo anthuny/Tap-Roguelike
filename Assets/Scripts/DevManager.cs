@@ -65,8 +65,8 @@ public class DevManager : MonoBehaviour
         // Insert the new line of text at the start of the list
         devTexts.Insert(0, go);
 
-        int skillDamage = RoundFloatToInt(skillVal * _combatManager.relicActiveSkillValueModifier);
-        int recievedDamageAmp = RoundFloatToInt((target.recievedDamageAmp * (skillVal * _combatManager.relicActiveSkillValueModifier)));
+        int skillDamage = RoundFloatToInt(skillVal * _combatManager.activeSkillValueModifier);
+        int recievedDamageAmp = RoundFloatToInt((target.recievedDamageAmp * (skillVal * _combatManager.activeSkillValueModifier)));
 
         Text text = go.GetComponent<Text>();
         text.text = castorName + " used " + skillName + " at " + targetName + " for ( " +

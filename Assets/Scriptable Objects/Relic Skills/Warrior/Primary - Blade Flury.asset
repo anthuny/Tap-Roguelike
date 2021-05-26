@@ -17,20 +17,21 @@ MonoBehaviour:
   targetType: Multiple
   targetsAllowed: Enemies
   hitsRequired: 3
+  manaRequired: 4
   timeBetweenHitUI: 0.15
   timeTillEffectInflict: 0.9
   timeForNextHitMarker: 0.1
-  effect: {fileID: 11400000, guid: 563c4ab55f0ac124eaf71c67f558b663, type: 2}
-  effectTarget: Targeted
-  effectPower: 1
-  effectDuration: 1
+  effect: {fileID: 0}
+  effectTarget: 
+  effectPower: 0
+  effectDuration: 0
   effectHitEffect: 
-  effectDurationDecrease: Attacking
+  effectDurationDecrease: 
   counterSkill: 0
   stackValue: 0
   targetAmountPowerInc: 0.3
   isTargetCountValAmp: 1
-  maxTargetSelections: 6
+  maxTargetCount: 6
   activatable: 1
   name: Blade Flury
   description: Send a flurry of blade slashes at up to 6 enemies. Deal increased

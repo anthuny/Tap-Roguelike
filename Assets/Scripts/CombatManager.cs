@@ -5,24 +5,21 @@ using UnityEngine.UI;
 
 public class CombatManager : MonoBehaviour
 {
+    private DevManager _devManager;
+    private UIManager _UIManager;
+
     [Header("General")]
     [SerializeField] private Transform _enemySpawnPoint;
     [SerializeField] private Transform _relicSpawnPoint;
     [SerializeField] private Room _activeRoom;
     [SerializeField] private AttackBar _attackBar;
     [SerializeField] private Button _fightButton;
-    [HideInInspector]
-    public List<Unit> _enemies = new List<Unit>();
-    public List<Unit> turnOrder = new List<Unit>();
-    [HideInInspector]
-    public List<Unit> _enemiesPosition = new List<Unit>();      //Original position of enemies in active room
-    [HideInInspector]
-    public Unit activeRelic, activeEnemy;
+    [SerializeField] private Unit activeUnit;
+    public GameObject relicGO;
 
     [Space(3)]
-
     [Header("Combat Settings")]
-    [SerializeField] private float postEnemyAttackWait;
+    [SerializeField] private float enemyAttackPauseTime;
     [SerializeField] private float postAllyAttackWait;
 
     [Space(3)]
@@ -36,6 +33,8 @@ public class CombatManager : MonoBehaviour
     [Space(3)]
     [Header("Combat")]
     public float postHitTime;
+    public float enemyThinkTime;
+    public float ManaUpdateInterval;
 
     [Space(3)]
 
@@ -45,22 +44,24 @@ public class CombatManager : MonoBehaviour
     public SkillData relicActiveSkill;
     [HideInInspector]
     public SkillData enemyActiveSkill;
+    //[HideInInspector]
+    public SkillData activeSkill;
+    //[HideInInspector]
+    public List<Target> unitTargets = new List<Target>();
     [HideInInspector]
-    public List<Selector> targetSelections = new List<Selector>();
-    [HideInInspector]
-    public List<Selector> skillSelections = new List<Selector>();
+    public List<Target> skillTargets = new List<Target>();
 
     [Header("Active Stored Attacks")]
     public List<AttackData> activeAttackData = new List<AttackData>();
 
     [HideInInspector]
-    public int maxTargetSelections;
+    public int maxUnitTargets;
     //[HideInInspector]
-    public int curTargetSelections;
+    public int curUnitTargets;
     [HideInInspector]
-    public int maxSkillSelections;
+    public int maxSkillTargets;
     [HideInInspector]
-    public int curSkillSelections;
+    public int curSkillTargets;
     [HideInInspector]
     public int activeRoomMaxEnemiesCount;
     [HideInInspector]
@@ -72,23 +73,28 @@ public class CombatManager : MonoBehaviour
     public Relic startingRelic;
     public GameObject skillUIValuesPar;
     public GameObject unitUI;
-    [SerializeField] private GameObject endTurnGO;
     [HideInInspector]
     public SkillUIManager skillUIManager;
     [HideInInspector]
     public AttackBar activeAttackBar;
     [HideInInspector]
-    public float relicActiveSkillValueModifier, relicActiveSkillProcModifier;
-    private DevManager _devManager;
+    public float activeSkillValueModifier, relicActiveSkillProcModifier;
 
     private bool relicInitialized;
     //[HideInInspector]
     public bool relicTurn;
     [HideInInspector]
-    public Selector activeSkillSelector;
+    public Target activeSkillTarget;
     [HideInInspector]
-    public Selector relicSelector;
+    public Target relicSelector;
 
+    [HideInInspector]
+    public List<Unit> _enemiesPosition = new List<Unit>();      //Original position of enemies in active room
+    [HideInInspector]
+    public List<Unit> _enemies = new List<Unit>();
+    public List<Unit> turnOrder = new List<Unit>();
+    [HideInInspector]
+    public Unit activeRelic, activeEnemy;
     [Space(3)]
 
     [Header("Skill Keywords")]
@@ -104,8 +110,7 @@ public class CombatManager : MonoBehaviour
         _devManager = FindObjectOfType<DevManager>();
         skillUIManager = FindObjectOfType<SkillUIManager>();
         activeAttackBar = FindObjectOfType<AttackBar>();
-        
-        endTurnGO.SetActive(false);
+        _UIManager = FindObjectOfType<UIManager>();
     }
 
     public void StartBattle()
@@ -113,20 +118,38 @@ public class CombatManager : MonoBehaviour
         ToggleFightButton(false);
         SpawnRelic(startingRelic);
         SpawnEnemies(_activeRoom);
+        _UIManager.ToggleButton(_UIManager.endTurnGO, true);
         EndTurn();
-        endTurnGO.SetActive(true);
     }
 
-    void BeginEnemyTurn()
+    IEnumerator BeginUnitTurn(bool enemyTeam)
     {
-        // Begin the next unit's turn, Trigger determine move
-        GetNextTurnUnit().DetermineUnitMoveChoice(GetNextTurnUnit());
+        yield return new WaitForSeconds(enemyAttackPauseTime);
+
+        activeUnit.UpdateTurnEnergy(0);   // Reset active unit's turn mana
+
+        // Give next unit's mana for the start of their turn
+        StartCoroutine(GetNextTurnUnit().UpdateCurMana(GetNextTurnUnit().manaGainTurn));
+
+        GetNextTurnUnit().ToggleTurnImage(true);    // Enable next unit's turn image
+
+        if (enemyTeam)
+            // Begin the next unit's turn, Trigger determine move
+            GetNextTurnUnit().DetermineUnitMoveChoice(GetNextTurnUnit());
+    }
+
+    public void SetActiveSkill(SkillData skillData)
+    {
+        if (activeSkill != skillData)
+            activeSkill = skillData;
     }
 
     public void EndTurn()
     {
+        ToggleAllTurnImages(false);  // Disable turn image 
+        ClearUnitTargets();
         skillUIManager.DecrementSkillCooldown();    //Decrease all skill cooldowns
-        UpdateTurnOrders();     // Update turn orders
+        UpdateTurnOrder();     // Update turn orders
 
         // Set the active team for this turn
         if (GetNextTurnUnit().unitType == Unit.UnitType.ENEMY)
@@ -136,27 +159,37 @@ public class CombatManager : MonoBehaviour
 
         // If it's enemies turn, begin their turn
         if (!GetTeamTurn())
-            BeginEnemyTurn();
+            StartCoroutine(BeginUnitTurn(true));
+        // If it's relics turn, Do everyting except start the attack
+        else
+            StartCoroutine(BeginUnitTurn(false));
     }
-    void UpdateTurnOrders()
-    {
-        // Set the current unit's turn to be the last
-        if (turnOrder[0] != null)
-            turnOrder[0].speed = -1;
 
-        // Sort list with both enemies and relic
-        turnOrder.Sort(ApplyTurnOrder);
+    void ToggleAllTurnImages(bool enable)
+    {
+        for (int i = 0; i < turnOrder.Count; i++)
+        {
+            turnOrder[i].ToggleTurnImage(enable);
+        }
+    }
+
+    void UpdateTurnOrder()
+    {
+        for (int i = 0; i < turnOrder.Count; i++)
+        {
+            turnOrder[i].CalculateTurnEnergy();
+        }
+
+        turnOrder.Sort(ApplyTurnOrder);     // Sort turn order list of units
         turnOrder.Reverse();
 
-        // Sort enemies based on speed
-        _enemies.Sort(ApplyTurnOrder);
-        _enemies.Reverse();
-
-        // Update turn order visuals
-        // Todo: UpdateTurnOrderVisuals(); (Do it in a seperate script, TurnOrder. (then perhaps put all this turn order functionality
-        // in that script instead of in CombatManager.
+        SetActiveUnit(turnOrder[0]);    // Set active unit to first unit in stored list
     }
 
+    void SetActiveUnit(Unit unit)
+    {
+        activeUnit = unit;
+    }
     Unit GetNextTurnUnit()
     {
         return turnOrder[0];
@@ -189,68 +222,126 @@ public class CombatManager : MonoBehaviour
 
     private int ApplyTurnOrder(Unit a, Unit b)
     {
-        if (a.turnSpeed < b.turnSpeed)
+        if (a.turnEnergy < b.turnEnergy)
         {
             return -1;
         }
-        else if (a.turnSpeed > b.turnSpeed)
+        else if (a.turnEnergy > b.turnEnergy)
         {
             return 1;
         }
         return 0;
     }
 
-    #region Selection Manager
-
-    #region Edit Target Selections
-
-    public void ClearTargetSelections()
+    public void UpdateActiveSkillTarget(Target target)
     {
-        // Clear all current target selections
-        for (int i = 0; i < curTargetSelections; i++)
-        {
-            targetSelections[i].transform.GetComponent<Selector>().selectEnabled = false; // Tell the oldest image script in stored selection list that the image is disabled
-            targetSelections[i].transform.GetComponent<Image>().enabled = false; // Disable the oldest image in stored selection list
-        }
-
-        curTargetSelections = 0;
-        if (relicActiveSkill)
-            relicActiveSkill.curTargetCount = 0;
-        targetSelections.Clear();
-        _attackBar.UpdateUIAlpha(_attackBar.relicUIHider, _attackBar._relicUIHiderSelectVal);
+        activeSkillTarget = target;
     }
 
-    void AddTargetSelections(ref int maxTargetSelections, ref List<Unit> _enemiesPosition, ref List<Selector> targetSelections)
+    public void ClearUnitTargets()
     {
+        // Clear all current target selections
+        for (int i = 0; i < unitTargets.Count; i++)
+        {
+            unitTargets[i].selectEnabled = false; // Tell the oldest image script in stored selection list that the image is disabled
+            unitTargets[i].selectionImage.enabled = false; // Disable the oldest image in stored selection list
+        }
+
+        curUnitTargets = 0;
+        if (relicActiveSkill)
+            relicActiveSkill.curTargetCount = 0;
+        unitTargets.Clear();
+        //_attackBar.UpdateUIAlpha(_attackBar.relicUIHider, _attackBar._relicUIHiderSelectVal);
+    }
+
+    void AddUnitTargets(int maxTargetSelections, bool enemy)
+    {
+        if (maxTargetSelections == 0)
+        {
+            if (enemy)
+            {
+                unitTargets.Add(activeRelic.target);    // Add relic target to target selections
+                unitTargets[0].selectEnabled = true;    // update image enabled to true
+                unitTargets[0].selectionImage.enabled = true;    // Disable the oldest image in stored selection list
+                return;
+            }
+        }
         // Add current target selections
         if (maxTargetSelections > 0)
         {
-            for (int i = 0; i < maxTargetSelections; i++)
+            if (enemy)
             {
-                curTargetSelections++;
-                targetSelections.Add(_enemiesPosition[i].transform.GetChild(0).GetComponent<Selector>()); // Add target selection to stored list
-                _enemiesPosition[i].transform.GetChild(0).GetComponent<Selector>().selectEnabled = true; // Tell the oldest image script in stored selection list that the image is disabled
-                _enemiesPosition[i].transform.GetChild(0).GetComponent<Image>().enabled = true; // Disable the oldest image in stored selection list
+                curUnitTargets++;
 
-                relicActiveSkill.curTargetCount++;
+                unitTargets.Add(activeRelic.transform.GetChild(0).GetComponent<Target>());    // Add relic target to target selections
+                unitTargets[0].transform.GetChild(0).GetComponent<Target>().selectEnabled = true;    // update image enabled to true
+                unitTargets[0].transform.GetChild(0).GetComponent<Image>().enabled = true;    // Disable the oldest image in stored selection list
             }
+            else
+            {
+                for (int i = 0; i < maxTargetSelections; i++)
+                {
+                    curUnitTargets++;
+                    relicActiveSkill.curTargetCount++;
+                    unitTargets.Add(_enemiesPosition[i].target);
 
-            _attackBar.UpdateUIAlpha(_attackBar.relicUIHider, _attackBar._relicUIHiderOffVal);
+                    _enemiesPosition[i].target.selectEnabled = true;
+                    _enemiesPosition[i].target.selectionImage.enabled = true;
+                }
+            }
         }
     }
 
-    public void UpdateTargetSelection(Selector selector, int selectedTargetIndex, bool cond)
+    public void AddUnitTarget(Target targetUnit)
+    {
+        // If not currently at max unit targets
+        if (curUnitTargets < maxUnitTargets)
+        {
+            curUnitTargets++;
+            unitTargets.Add(targetUnit);
+            unitTargets[unitTargets.IndexOf(targetUnit)].selectEnabled = true;    // update image enabled to true
+            unitTargets[unitTargets.IndexOf(targetUnit)].selectionImage.enabled = true;    // Disable the oldest image in stored selection list
+        }
+        // If current unit targets is equal to max unit targets
+        else if (curUnitTargets == maxUnitTargets && curUnitTargets != 0)
+        {
+            unitTargets[0].selectEnabled = false;
+            unitTargets[0].selectionImage.enabled = false;
+            unitTargets.RemoveAt(0);
+
+            unitTargets.Add(targetUnit);
+            unitTargets[unitTargets.IndexOf(targetUnit)].selectEnabled = true;    // update image enabled to true
+            unitTargets[unitTargets.IndexOf(targetUnit)].selectionImage.enabled = true;    // Disable the oldest image in stored selection list
+        }
+        // Add normally
+        else if (curUnitTargets == maxUnitTargets && curUnitTargets == 0)
+        {
+            unitTargets.Add(targetUnit);
+            unitTargets[unitTargets.IndexOf(targetUnit)].selectEnabled = true;    // update image enabled to true
+            unitTargets[unitTargets.IndexOf(targetUnit)].selectionImage.enabled = true;    // Disable the oldest image in stored selection list
+        }
+    }
+
+    public void RemoveUnitTarget(Target targetUnit)
+    {
+        curUnitTargets--;
+        unitTargets[unitTargets.IndexOf(targetUnit)].selectEnabled = false;    // update image enabled to true
+        unitTargets[unitTargets.IndexOf(targetUnit)].selectionImage.enabled = false;    // Disable the oldest image in stored selection list
+        unitTargets.RemoveAt(unitTargets.IndexOf(targetUnit));
+    }
+
+    public void UpdateUnitTargets(Target selector, int selectedTargetIndex, bool cond, bool fromEnemy = false)
     {
         // False
         if (!cond)
         {
-            if (targetSelections.Count != 0)
+            if (unitTargets.Count != 0)
             {
-                if (targetSelections.Count != 1)
+                if (unitTargets.Count != 1)
                 {
-                    targetSelections.Remove(selector);
-                    curTargetSelections--;
-                    _enemiesPosition[selectedTargetIndex].transform.GetChild(0).GetComponent<Selector>().selectEnabled = cond; // Tell the oldest image script in stored selection list that the image is disabled
+                    unitTargets.Remove(selector);
+                    curUnitTargets--;
+                    _enemiesPosition[selectedTargetIndex].transform.GetChild(0).GetComponent<Target>().selectEnabled = cond; // Tell the oldest image script in stored selection list that the image is disabled
                     _enemiesPosition[selectedTargetIndex].transform.GetChild(0).GetComponent<Image>().enabled = cond; // Disable the oldest image in stored selection list
                 }
             }
@@ -259,102 +350,89 @@ public class CombatManager : MonoBehaviour
         else
         {
             // If player has 1 max selection and 1 already active, replace the current selection with the new one.
-            if (curTargetSelections == maxTargetSelections && curTargetSelections == 1)
+            if (curUnitTargets == maxUnitTargets && curUnitTargets == 1)
             {
-                targetSelections[0].transform.GetComponent<Selector>().selectEnabled = false;
-                targetSelections[0].transform.GetComponent<Image>().enabled = false;
-                _enemiesPosition[selectedTargetIndex].transform.GetChild(0).GetComponent<Selector>().selectEnabled = cond; // Tell the oldest image script in stored selection list that the image is disabled
+                unitTargets[0].transform.GetComponent<Target>().selectEnabled = false;
+                unitTargets[0].transform.GetComponent<Image>().enabled = false;
+                _enemiesPosition[selectedTargetIndex].transform.GetChild(0).GetComponent<Target>().selectEnabled = cond; // Tell the oldest image script in stored selection list that the image is disabled
                 _enemiesPosition[selectedTargetIndex].transform.GetChild(0).GetComponent<Image>().enabled = cond; // Disable the oldest image in stored selection list
-                targetSelections.RemoveAt(0);
-                targetSelections.Add(selector);
+                unitTargets.RemoveAt(0);
+                unitTargets.Add(selector);
 
                 _attackBar.UpdateUIAlpha(_attackBar.relicUIHider, _attackBar._relicUIHiderOffVal);
                 return;
             }
 
-            if (curTargetSelections < maxTargetSelections)
+            if (curUnitTargets < maxUnitTargets)
             {
-                curTargetSelections++;
-                targetSelections.Add(selector);
-                _enemiesPosition[selectedTargetIndex].transform.GetChild(0).GetComponent<Selector>().selectEnabled = cond; // Tell the oldest image script in stored selection list that the image is disabled
+                curUnitTargets++;
+                unitTargets.Add(selector);
+                _enemiesPosition[selectedTargetIndex].transform.GetChild(0).GetComponent<Target>().selectEnabled = cond; // Tell the oldest image script in stored selection list that the image is disabled
                 _enemiesPosition[selectedTargetIndex].transform.GetChild(0).GetComponent<Image>().enabled = cond; // Disable the oldest image in stored selection list
                 return;
             }
 
-            if (curTargetSelections == maxTargetSelections)
+            if (curUnitTargets == maxUnitTargets)
             {
-                targetSelections[0].transform.GetComponent<Selector>().selectEnabled = false;
-                targetSelections[0].transform.GetComponent<Image>().enabled = false;
-                targetSelections.RemoveAt(0);
-                targetSelections.Add(selector);
-                _enemiesPosition[selectedTargetIndex].transform.GetChild(0).GetComponent<Selector>().selectEnabled = cond; // Tell the oldest image script in stored selection list that the image is disabled
+                unitTargets[0].transform.GetComponent<Target>().selectEnabled = false;
+                unitTargets[0].transform.GetComponent<Image>().enabled = false;
+                unitTargets.RemoveAt(0);
+                unitTargets.Add(selector);
+                _enemiesPosition[selectedTargetIndex].transform.GetChild(0).GetComponent<Target>().selectEnabled = cond; // Tell the oldest image script in stored selection list that the image is disabled
                 _enemiesPosition[selectedTargetIndex].transform.GetChild(0).GetComponent<Image>().enabled = cond; // Disable the oldest image in stored selection list
             }
         }
         //_attackBar.UpdateUIAlpha(_attackBar.relicUIHider, _attackBar._relicUIHiderOffVal);
     }
 
-    #endregion
-
     #region Edit Skill Selections
-    public void ClearSkillSelections()
+    public void ClearSkillTargets()
     {
         // Clear all current target selections
-        for (int i = 0; i < curSkillSelections; i++)
+        for (int i = 0; i < curSkillTargets; i++)
         {
-            curSkillSelections--;
+            curSkillTargets--;
    
-            skillSelections[i].transform.GetComponent<Selector>().selectEnabled = false; // Tell the oldest image script in stored selection list that the image is disabled
-            skillSelections[i].transform.GetComponent<Image>().enabled = false; // Disable the oldest image in stored selection list
+            skillTargets[i].transform.GetComponent<Target>().selectEnabled = false; // Tell the oldest image script in stored selection list that the image is disabled
+            skillTargets[i].transform.GetComponent<Image>().enabled = false; // Disable the oldest image in stored selection list
         }
 
-        skillSelections.Clear();
+        skillTargets.Clear();
     }
 
-    void AddSkillSelections(ref int maxSkillSelections, ref int curSkillSelections, ref List<Selector> skillSelections, ref List<Selector> targetSelections, 
-        Selector selector, SkillData skillData)
+    public void AddSkillTarget(Target target, SkillData skillData, bool spawnHitMarker)
     {
-        // Add current target selections
-        if (maxSkillSelections > 0)
-        {
-            activeSkillSelector = selector;     // Set active skill selector for cooldown visuals
+        curSkillTargets++;
 
-            for (int i = 0; i < maxSkillSelections; i++)
-            {
-                curSkillSelections++;
+        skillTargets.Add(target);
+        target.transform.GetComponent<Target>().selectEnabled = true; // Tell the oldest image script in stored selection list that the image is disabled
+        target.transform.GetComponent<Image>().enabled = true; // Disable the oldest image in stored selection list
 
-                skillSelections.Add(selector);
-
-                skillSelections[i].transform.GetComponent<Selector>().selectEnabled = true; // Tell the oldest image script in stored selection list that the image is disabled
-                skillSelections[i].transform.GetComponent<Image>().enabled = true; // Disable the oldest image in stored selection list
-            }
-        }
-
-        StartCoroutine(_attackBar.SpawnHitMarker(skillData));
+        if (spawnHitMarker)
+            _attackBar.SpawnHitMarker(skillData);
     }
     #endregion
 
     /// <summary>
     /// Updates selection images
     /// </summary>
-    public void ManageSelectionCount(bool isSkill, Selector selectionInput, int curSkillSelections, int maxSkillSelections, 
-        int curTargetSelections, int maxTargetSelections, SkillData skillData)
+    public void ManageTargets(bool isSkill, bool enemy, Target selectionInput, 
+        int curTargetSelections, int maxTargetSelections = 0, SkillData skillData = null)
     {
-        this.curSkillSelections = curSkillSelections;
-        this.maxSkillSelections = maxSkillSelections;
-        this.curTargetSelections = curTargetSelections;
-        this.maxTargetSelections = maxTargetSelections;
+        //this.curSkillSelections = curSkillSelections;
+        //this.maxSkillSelections = maxSkillSelections;
+        this.curUnitTargets = curTargetSelections;
+        this.maxUnitTargets = maxTargetSelections;
 
         if (isSkill)
         {
-            ClearSkillSelections();
-            AddSkillSelections(ref this.maxSkillSelections, ref this.curSkillSelections, ref skillSelections, ref targetSelections, selectionInput, skillData);
+            ClearSkillTargets();
+            AddSkillTarget(selectionInput, skillData, true);
         }
 
-        ClearTargetSelections();
-        AddTargetSelections(ref maxTargetSelections, ref _enemiesPosition, ref targetSelections);
+        ClearUnitTargets();
+        AddUnitTargets(maxTargetSelections, enemy);
     }
-    #endregion
 
     void UpdateActiveRelic(Unit relic)
     {
@@ -393,21 +471,30 @@ public class CombatManager : MonoBehaviour
             go.transform.position = _enemySpawnPoint.GetChild(i).transform.position;
 
             #region Initialize Unit
-            activeEnemy = go.AddComponent<Unit>();
+            UpdateActiveEnemy(go.GetComponent<Unit>());
+
             activeEnemy.skillUIValueParent = go.transform.Find("Skill UI Values");
 
             activeEnemy.UpdateUnitType(Unit.UnitType.ENEMY);
             activeEnemy.AssignUI(); // Initialize Unit UI
             activeEnemy.UpdateName(room.roomEnemies[i].name);
             activeEnemy.UpdateLevel(room.roomEnemies[i].level);
-            activeEnemy.UpdateColour(room.roomEnemies[i].color);
+
+            activeEnemy.UpdatePower(room.roomEnemies[i].power);
             activeEnemy.UpdateMaxHealth(room.roomEnemies[i].maxHealth);
             activeEnemy.UpdateCurHealth(false, room.roomEnemies[i].maxHealth);
-            activeEnemy.UpdatePower(room.roomEnemies[i].power);
-            activeEnemy.UpdateSpeed(room.roomEnemies[i].speed);
+            activeEnemy.UpdateMaxMana(room.roomEnemies[i].maxMana);
+            StartCoroutine(activeEnemy.UpdateCurMana(room.roomEnemies[i].maxMana));
+            activeEnemy.UpdateEnergyTurnGrowth(room.roomEnemies[i].manaGainTurn);
+            activeEnemy.UpdatePowerGrowth(room.roomEnemies[i].powerGrowth);
+            activeEnemy.UpdateHealthGrowth(room.roomEnemies[i].healthGrowth);
+            activeEnemy.UpdateManaGrowth(room.roomEnemies[i].manaGrowth);
+            activeEnemy.UpdateMaxEnergyGrowth(room.roomEnemies[i].maxManaGrowth);
+            activeEnemy.UpdateColour(room.roomEnemies[i].color);
+            activeEnemy.UpdateEnergy(room.roomEnemies[i].energy);
             activeEnemy.UpdateAttackChance(room.roomEnemies[i].attackChance, true);
 
-
+            activeEnemy.target = go.GetComponentInChildren<Target>();
 
             InitializeUnitSkills(activeEnemy);
 
@@ -421,6 +508,7 @@ public class CombatManager : MonoBehaviour
                 room.roomEnemies[i].passiveSkill.targetType,
                 room.roomEnemies[i].passiveSkill.targetsAllowed,
                 room.roomEnemies[i].passiveSkill.hitsRequired,
+                room.roomEnemies[i].passiveSkill.manaRequired,
                 room.roomEnemies[i].passiveSkill.timeBetweenHitUI,
                 room.roomEnemies[i].passiveSkill.timeTillEffectInflict,
                 room.roomEnemies[i].passiveSkill.timeForNextHitMarker,
@@ -457,6 +545,7 @@ public class CombatManager : MonoBehaviour
                 room.roomEnemies[i].basicSkill.targetType,
                 room.roomEnemies[i].basicSkill.targetsAllowed,
                 room.roomEnemies[i].basicSkill.hitsRequired,
+                room.roomEnemies[i].basicSkill.manaRequired,
                 room.roomEnemies[i].basicSkill.timeBetweenHitUI,
                 room.roomEnemies[i].basicSkill.timeTillEffectInflict,
                 room.roomEnemies[i].basicSkill.timeForNextHitMarker,
@@ -493,6 +582,7 @@ public class CombatManager : MonoBehaviour
                 room.roomEnemies[i].primarySkill.targetType,
                 room.roomEnemies[i].primarySkill.targetsAllowed,
                 room.roomEnemies[i].primarySkill.hitsRequired,
+                room.roomEnemies[i].primarySkill.manaRequired,
                 room.roomEnemies[i].primarySkill.timeBetweenHitUI,
                 room.roomEnemies[i].primarySkill.timeTillEffectInflict,
                 room.roomEnemies[i].primarySkill.timeForNextHitMarker,
@@ -529,6 +619,7 @@ public class CombatManager : MonoBehaviour
                 room.roomEnemies[i].secondarySkill.targetType,
                 room.roomEnemies[i].secondarySkill.targetsAllowed,
                 room.roomEnemies[i].secondarySkill.hitsRequired,
+                room.roomEnemies[i].secondarySkill.manaRequired,
                 room.roomEnemies[i].secondarySkill.timeBetweenHitUI,
                 room.roomEnemies[i].secondarySkill.timeTillEffectInflict,
                 room.roomEnemies[i].secondarySkill.timeForNextHitMarker,
@@ -565,6 +656,7 @@ public class CombatManager : MonoBehaviour
                 room.roomEnemies[i].alternateSkill.targetType,
                 room.roomEnemies[i].alternateSkill.targetsAllowed,
                 room.roomEnemies[i].alternateSkill.hitsRequired,
+                room.roomEnemies[i].alternateSkill.manaRequired,
                 room.roomEnemies[i].alternateSkill.timeBetweenHitUI,
                 room.roomEnemies[i].alternateSkill.timeTillEffectInflict,
                 room.roomEnemies[i].alternateSkill.timeForNextHitMarker,
@@ -601,6 +693,7 @@ public class CombatManager : MonoBehaviour
                 room.roomEnemies[i].ultimateSkill.targetType,
                 room.roomEnemies[i].ultimateSkill.targetsAllowed,
                 room.roomEnemies[i].ultimateSkill.hitsRequired,
+                room.roomEnemies[i].ultimateSkill.manaRequired,
                 room.roomEnemies[i].ultimateSkill.timeBetweenHitUI,
                 room.roomEnemies[i].ultimateSkill.timeTillEffectInflict,
                 room.roomEnemies[i].ultimateSkill.timeForNextHitMarker,
@@ -635,9 +728,9 @@ public class CombatManager : MonoBehaviour
             _enemies.Add(activeEnemy);      // Add enemy to enemies
             _enemiesPosition.Add(activeEnemy);  // Add enemy position to enemy positions
             turnOrder.Add(activeEnemy);     // Add unit to turn order 
-            activeEnemy.transform.GetChild(0).GetComponent<Selector>().enemyIndex = _enemiesPosition.IndexOf(activeEnemy);
+            //activeEnemy.selector.enemyIndex = _enemiesPosition.IndexOf(activeEnemy);
             activeEnemy.targets.Add(activeRelic);
-            activeEnemy.CalculateSpeedFinal();
+            //activeEnemy.CalculateEnergy();
         }
     }
 
@@ -651,7 +744,7 @@ public class CombatManager : MonoBehaviour
 
         #region Relic Initialize
 
-        GameObject go = new GameObject();
+        GameObject go = Instantiate(relicGO);
         go.name = relic.name;
         go.transform.SetParent(_relicSpawnPoint.transform);
         go.transform.position = _relicSpawnPoint.transform.position;
@@ -659,7 +752,8 @@ public class CombatManager : MonoBehaviour
         Image image = go.AddComponent<Image>();
         image.color = relic.color;
 
-        UpdateActiveRelic(go.AddComponent<Unit>());
+        UpdateActiveRelic(go.GetComponent<Unit>());
+
         GameObject skillUIPar = Instantiate(skillUIValuesPar, activeRelic.transform.position, Quaternion.identity);
         activeRelic.skillUIValueParent = skillUIPar.transform;
 
@@ -673,8 +767,13 @@ public class CombatManager : MonoBehaviour
         activeRelic.UpdateColour(relic.color);
         activeRelic.UpdateMaxHealth(relic.maxHealth);
         activeRelic.UpdateCurHealth(false, relic.maxHealth);
+        activeRelic.UpdateMaxMana(relic.maxMana);
+        StartCoroutine(activeRelic.UpdateCurMana(relic.maxMana));
+        activeRelic.UpdateEnergyTurnGrowth(relic.manaGainTurn);
         activeRelic.UpdatePower(relic.power);
-        activeRelic.UpdateSpeed(relic.speed);
+        activeRelic.UpdateEnergy(relic.energy);
+
+        activeRelic.target = go.GetComponentInChildren<Target>();
 
         InitializeUnitSkills(activeRelic);
 
@@ -688,6 +787,7 @@ public class CombatManager : MonoBehaviour
             relic.passiveSkill.targetType,
             relic.passiveSkill.targetsAllowed,
             relic.passiveSkill.hitsRequired,
+            relic.passiveSkill.manaRequired,
             relic.passiveSkill.timeBetweenHitUI,
             relic.passiveSkill.timeTillEffectInflict,
             relic.passiveSkill.timeForNextHitMarker,
@@ -716,9 +816,9 @@ public class CombatManager : MonoBehaviour
             relic.passiveSkill.perfectProcMultiplier,
             relic.passiveSkill.maxSkillCount);
 
-        skillUIManager.relicPassiveSelect.skillIconColour = relic.passiveSkill.skillIconColour;
-        skillUIManager.relicPassiveSelect.skillBorderColour = relic.passiveSkill.skillBorderColour;
-        skillUIManager.relicPassiveSelect.skillSelectionColour = relic.passiveSkill.skillSelectionColour;
+        skillUIManager.relicSkillPassiveTarget.skillIconColour = relic.passiveSkill.skillIconColour;
+        skillUIManager.relicSkillPassiveTarget.skillBorderColour = relic.passiveSkill.skillBorderColour;
+        skillUIManager.relicSkillPassiveTarget.skillSelectionColour = relic.passiveSkill.skillSelectionColour;
 
         activeRelic.basicSkill.InitializeSkill(
             relic.basicSkill.skillIconColour,
@@ -729,6 +829,7 @@ public class CombatManager : MonoBehaviour
             relic.basicSkill.targetType,
             relic.basicSkill.targetsAllowed,
             relic.basicSkill.hitsRequired,
+            relic.basicSkill.manaRequired,
             relic.basicSkill.timeBetweenHitUI,
             relic.basicSkill.timeTillEffectInflict,
             relic.basicSkill.timeForNextHitMarker,
@@ -757,9 +858,9 @@ public class CombatManager : MonoBehaviour
             relic.basicSkill.perfectProcMultiplier,
             relic.basicSkill.maxSkillCount);
 
-        skillUIManager.relicBasicSelect.skillIconColour = relic.basicSkill.skillIconColour;
-        skillUIManager.relicBasicSelect.skillBorderColour = relic.basicSkill.skillBorderColour;
-        skillUIManager.relicBasicSelect.skillSelectionColour = relic.basicSkill.skillSelectionColour;
+        skillUIManager.relicSkillBasicTarget.skillIconColour = relic.basicSkill.skillIconColour;
+        skillUIManager.relicSkillBasicTarget.skillBorderColour = relic.basicSkill.skillBorderColour;
+        skillUIManager.relicSkillBasicTarget.skillSelectionColour = relic.basicSkill.skillSelectionColour;
 
         activeRelic.primarySkill.InitializeSkill(
             relic.primarySkill.skillIconColour,
@@ -770,6 +871,7 @@ public class CombatManager : MonoBehaviour
             relic.primarySkill.targetType,
             relic.primarySkill.targetsAllowed,
             relic.primarySkill.hitsRequired,
+            relic.primarySkill.manaRequired,
             relic.primarySkill.timeBetweenHitUI,
             relic.primarySkill.timeTillEffectInflict,
             relic.primarySkill.timeForNextHitMarker,
@@ -798,9 +900,9 @@ public class CombatManager : MonoBehaviour
             relic.primarySkill.perfectProcMultiplier,
             relic.primarySkill.maxSkillCount);
 
-        skillUIManager.relicPrimarySelect.skillIconColour = relic.primarySkill.skillIconColour;
-        skillUIManager.relicPrimarySelect.skillBorderColour = relic.primarySkill.skillBorderColour;
-        skillUIManager.relicPrimarySelect.skillSelectionColour = relic.primarySkill.skillSelectionColour;
+        skillUIManager.relicSkillPrimaryTarget.skillIconColour = relic.primarySkill.skillIconColour;
+        skillUIManager.relicSkillPrimaryTarget.skillBorderColour = relic.primarySkill.skillBorderColour;
+        skillUIManager.relicSkillPrimaryTarget.skillSelectionColour = relic.primarySkill.skillSelectionColour;
 
         activeRelic.secondarySkill.InitializeSkill(
             relic.secondarySkill.skillIconColour,
@@ -811,6 +913,7 @@ public class CombatManager : MonoBehaviour
             relic.secondarySkill.targetType,
             relic.secondarySkill.targetsAllowed,
             relic.secondarySkill.hitsRequired,
+            relic.secondarySkill.manaRequired,
             relic.secondarySkill.timeBetweenHitUI,
             relic.secondarySkill.timeTillEffectInflict,
             relic.secondarySkill.timeForNextHitMarker,
@@ -839,9 +942,9 @@ public class CombatManager : MonoBehaviour
             relic.secondarySkill.perfectProcMultiplier,
             relic.secondarySkill.maxSkillCount);
 
-        skillUIManager.relicSecondarySelect.skillIconColour = relic.secondarySkill.skillIconColour;
-        skillUIManager.relicSecondarySelect.skillBorderColour = relic.secondarySkill.skillBorderColour;
-        skillUIManager.relicSecondarySelect.skillSelectionColour = relic.secondarySkill.skillSelectionColour;
+        skillUIManager.relicSkillSecondaryTarget.skillIconColour = relic.secondarySkill.skillIconColour;
+        skillUIManager.relicSkillSecondaryTarget.skillBorderColour = relic.secondarySkill.skillBorderColour;
+        skillUIManager.relicSkillSecondaryTarget.skillSelectionColour = relic.secondarySkill.skillSelectionColour;
 
         activeRelic.alternateSkill.InitializeSkill(
             relic.alternateSkill.skillIconColour,
@@ -852,6 +955,7 @@ public class CombatManager : MonoBehaviour
             relic.alternateSkill.targetType,
             relic.alternateSkill.targetsAllowed,
             relic.alternateSkill.hitsRequired,
+            relic.alternateSkill.manaRequired,
             relic.alternateSkill.timeBetweenHitUI,
             relic.alternateSkill.timeTillEffectInflict,
             relic.alternateSkill.timeForNextHitMarker,
@@ -880,9 +984,9 @@ public class CombatManager : MonoBehaviour
             relic.alternateSkill.perfectProcMultiplier,
             relic.alternateSkill.maxSkillCount);
 
-        skillUIManager.relicAlternateSelect.skillIconColour = relic.alternateSkill.skillIconColour;
-        skillUIManager.relicAlternateSelect.skillBorderColour = relic.alternateSkill.skillBorderColour;
-        skillUIManager.relicAlternateSelect.skillSelectionColour = relic.alternateSkill.skillSelectionColour;
+        skillUIManager.relicSkillAlternateTarget.skillIconColour = relic.alternateSkill.skillIconColour;
+        skillUIManager.relicSkillAlternateTarget.skillBorderColour = relic.alternateSkill.skillBorderColour;
+        skillUIManager.relicSkillAlternateTarget.skillSelectionColour = relic.alternateSkill.skillSelectionColour;
 
         activeRelic.ultimateSkill.InitializeSkill(
             relic.ultimateSkill.skillIconColour,
@@ -893,6 +997,7 @@ public class CombatManager : MonoBehaviour
             relic.ultimateSkill.targetType,
             relic.ultimateSkill.targetsAllowed,
             relic.ultimateSkill.hitsRequired,
+            relic.ultimateSkill.manaRequired,
             relic.ultimateSkill.timeBetweenHitUI,
             relic.ultimateSkill.timeTillEffectInflict,
             relic.ultimateSkill.timeForNextHitMarker,
@@ -921,9 +1026,9 @@ public class CombatManager : MonoBehaviour
             relic.ultimateSkill.perfectProcMultiplier,
             relic.ultimateSkill.maxSkillCount);
 
-        skillUIManager.relicUltimateSelect.skillIconColour = relic.ultimateSkill.skillIconColour;
-        skillUIManager.relicUltimateSelect.skillBorderColour = relic.ultimateSkill.skillBorderColour;
-        skillUIManager.relicUltimateSelect.skillSelectionColour = relic.ultimateSkill.skillSelectionColour;
+        skillUIManager.relicSkillUltimateTarget.skillIconColour = relic.ultimateSkill.skillIconColour;
+        skillUIManager.relicSkillUltimateTarget.skillBorderColour = relic.ultimateSkill.skillBorderColour;
+        skillUIManager.relicSkillUltimateTarget.skillSelectionColour = relic.ultimateSkill.skillSelectionColour;
         #endregion
 
         #endregion
@@ -931,7 +1036,10 @@ public class CombatManager : MonoBehaviour
         skillUIManager.InitializeSkills(); // Sets relics skills
                                            // Add relic and enemies to stored list
         turnOrder.Add(activeRelic);
-        activeRelic.CalculateSpeedFinal();
+
+        //activeRelic.selector.enemyIndex = _enemiesPosition.Count + 1;
+
+        //activeRelic.CalculateEnergy();
     }
 }
 

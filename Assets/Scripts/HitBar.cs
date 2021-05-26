@@ -27,7 +27,7 @@ public class HitBar : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.CompareTag(_attackBar.activeHitMarkerTag))
+        if (collision.CompareTag(_attackBar.hitMarkerTag))
             _attackBar.curCollidingHitArea = this;
     }
 
@@ -36,71 +36,56 @@ public class HitBar : MonoBehaviour
     /// </summary>
     public void CheckIfMarkerHit()
     {
-        if (_attackBar.hitMarkers.Count <= 0)
-            return;
+        _attackBar.hitCount++;
 
-        _attackBar.hitMarkers[0].SetActiveHitMarker();
-
-        _attackBar.SetActiveHitMarkerCollider(_attackBar.hitMarkers[0].gameObject.GetComponent<Collider2D>());
-
-        Collider2D coll = _attackBar.activeHitMarkerColl;
+        Collider2D coll = _attackBar.activeHitMarkerCollider;
 
         // Check if the hit marker collider is touching any hit bar collider
         if (coll.IsTouching(hitAreaCollider))
         {
+            _attackBar.UpdateRemainingHitsText(true, -(_combatManager.relicActiveSkill.hitsRequired - _attackBar.hitCount));
+
+            _combatManager.activeAttackBar.DestroyActiveHitMarker(_combatManager.activeAttackBar.timeTillBarTurnsInvis);
+
+            if (_attackBar.hitCount != _combatManager.relicActiveSkill.hitsRequired)
+            {
+                _combatManager.activeAttackBar.SpawnHitMarker(_combatManager.relicActiveSkill);
+            }
+            else if (_attackBar.hitCount == _combatManager.relicActiveSkill.hitsRequired)
+                _attackBar.ResetHitCount();
+
+
             // Determine which type of hit bar this is
             switch (curBarType)
             {
                 case BarType.PERFECT:
-
-                    //StartCoroutine(_devManager.FlashText("Relic perfect hit")); // Debug
                     Debug.Log("Perfect Hit");
-
-                    _combatManager.relicActiveSkillValueModifier = _combatManager.relicActiveSkill.perfectValueMultiplier;
-                    _combatManager.relicActiveSkillProcModifier = _combatManager.relicActiveSkill.perfectProcMultiplier;
-
-                    _combatManager.activeRelic.DetermineUnitMoveChoice(_combatManager.activeRelic, _combatManager.relicActiveSkill);
+                    _combatManager.activeSkillValueModifier = _combatManager.relicActiveSkill.perfectValueMultiplier;
+                    _combatManager.relicActiveSkillProcModifier = _combatManager.relicActiveSkill.perfectProcMultiplier;                  
                     break;
 
                 case BarType.GREAT:
-
-                    //StartCoroutine(_devManager.FlashText("Relic great hit")); // Debug
                     Debug.Log("Great Hit");
-
-                    _combatManager.relicActiveSkillValueModifier = _combatManager.relicActiveSkill.greatValueMultiplier;
+                    _combatManager.activeSkillValueModifier = _combatManager.relicActiveSkill.greatValueMultiplier;
                     _combatManager.relicActiveSkillProcModifier = _combatManager.relicActiveSkill.greatProcMultiplier;
-
-                    _combatManager.activeRelic.DetermineUnitMoveChoice(_combatManager.activeRelic, _combatManager.relicActiveSkill);
                     break;
 
                 case BarType.GOOD:
-
-                    //StartCoroutine(_devManager.FlashText("Relic good hit")); // Debug
                     Debug.Log("Good Hit");
-
-                    _combatManager.relicActiveSkillValueModifier = _combatManager.relicActiveSkill.goodValueMultiplier;
+                    _combatManager.activeSkillValueModifier = _combatManager.relicActiveSkill.goodValueMultiplier;
                     _combatManager.relicActiveSkillProcModifier = _combatManager.relicActiveSkill.goodProcMultiplier;
-
-                    _combatManager.activeRelic.DetermineUnitMoveChoice(_combatManager.activeRelic, _combatManager.relicActiveSkill);
                     break;
 
                 case BarType.MISS:
-
-                    //StartCoroutine(_devManager.FlashText("Relic missed")); // Debug
                     Debug.Log("Miss Hit");
-
-                    _combatManager.relicActiveSkillValueModifier = _combatManager.relicActiveSkill.missValueMultiplier;
+                    _combatManager.activeSkillValueModifier = _combatManager.relicActiveSkill.missValueMultiplier;
                     _combatManager.relicActiveSkillProcModifier = _combatManager.relicActiveSkill.missProcMultiplier;
-
-                    _combatManager.activeRelic.DetermineUnitMoveChoice(_combatManager.activeRelic, _combatManager.relicActiveSkill);
                     break;
             }
+
+            StartCoroutine(_combatManager.activeRelic.UnitSkillFunctionality(true, _combatManager.relicActiveSkill));
         }
         else
-        {
             Debug.LogWarning("This hit bar isn't being collided with");
-        }
-
-        _attackBar.UpdateRemainingHitsText(false, -1, 0);
     }
 }

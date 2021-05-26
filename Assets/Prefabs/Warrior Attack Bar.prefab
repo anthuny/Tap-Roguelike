@@ -701,6 +701,7 @@ MonoBehaviour:
   missSkillUIColour: {r: 1, g: 0.54509807, b: 0, a: 1}
   _speed: 2
   timeTillBarTurnsInvis: 0.5
+  timeTillAttackBarReturns: 0.3
   _checkPoints:
   - {fileID: 8856057089479029008}
   - {fileID: 7416382086748910729}
@@ -724,25 +725,19 @@ MonoBehaviour:
   _relicUIHiderSelectVal: 0.45
   _relicUIHiderOnVal: 1
   _hitsRemainingText: {fileID: 1039264351}
-  hitMarkerAlpha1: 1
-  hitMarkerAlpha2: 0.1
-  hitMarkerAlpha3Plus: 0.03
-  timeTillHitMarkerDestroys: 0.65
   backGO: {fileID: 0}
   skillActiveTrans: {fileID: 0}
   defaultTrans: {fileID: 0}
   skillActive: 0
+  hitCount: 0
   activeHitMarkerCollider: {fileID: 0}
-  hitMarkers: []
   activeHitMarker: {fileID: 0}
   curCollidingHitArea: {fileID: 0}
   canHit: 0
   startingMoving: 0
   hitMarkerGO: {fileID: 3665535719716308601, guid: 87d16d5c98dfb0c4ab42f445e57e13c5,
     type: 3}
-  activeHitMarkerTag: ActiveHitMarker
-  regHitMarkerTag: HitMarker
-  activeHitMarkerColl: {fileID: 0}
+  hitMarkerTag: HitMarker
 --- !u!1 &1433022355037111065
 GameObject:
   m_ObjectHideFlags: 0
@@ -1562,6 +1557,16 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1410242586994168655, guid: d4430d63d902e51478cfa41a67515891,
         type: 3}
+      propertyPath: m_Color.b
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1410242586994168655, guid: d4430d63d902e51478cfa41a67515891,
+        type: 3}
+      propertyPath: m_Color.r
+      value: 0.98620903
+      objectReference: {fileID: 0}
+    - target: {fileID: 1410242586994168655, guid: d4430d63d902e51478cfa41a67515891,
+        type: 3}
       propertyPath: m_FontData.m_Font
       value: 
       objectReference: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
@@ -1679,6 +1684,16 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Text
       value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 1771045460039725040, guid: d4430d63d902e51478cfa41a67515891,
+        type: 3}
+      propertyPath: m_Color.b
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1771045460039725040, guid: d4430d63d902e51478cfa41a67515891,
+        type: 3}
+      propertyPath: m_Color.r
+      value: 0.9882353
       objectReference: {fileID: 0}
     - target: {fileID: 1771045460039725040, guid: d4430d63d902e51478cfa41a67515891,
         type: 3}

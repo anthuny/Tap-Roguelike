@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3696221233093420782}
   - component: {fileID: 5076876216048521495}
-  - component: {fileID: 7392036608442513954}
+  - component: {fileID: 8070643395061593355}
   - component: {fileID: 5596030739584786634}
   - component: {fileID: 1563483888512081162}
   - component: {fileID: 4419169917164325488}
@@ -51,7 +51,7 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6033569140648154706}
   m_CullTransparentMesh: 0
---- !u!114 &7392036608442513954
+--- !u!114 &8070643395061593355
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -66,6 +66,8 @@ MonoBehaviour:
   skillUIManager: {fileID: 0}
   canvas: {fileID: 0}
   _canvasGroup: {fileID: 3330744705846010598}
+  stopMoving: 0
+  index: 0
   outline: {fileID: 1563483888512081162}
 --- !u!114 &5596030739584786634
 MonoBehaviour:

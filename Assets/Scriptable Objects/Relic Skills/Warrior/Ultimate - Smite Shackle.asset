@@ -10,13 +10,16 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: bdb88ad8c39cf8843bc7940801a6441f, type: 3}
-  m_Name: Ultimate - Death Bind
+  m_Name: Ultimate - Smite Shackle
   m_EditorClassIdentifier: 
   skillType: Ultimate
   skillMode: None
   targetType: Multiple
   targetsAllowed: Enemies
   hitsRequired: 2
+  energyRequired: 5
+  timeBetweenHitUI: 0
+  timeTillEffectInflict: 0
   timeForNextHitMarker: 0
   effect: {fileID: 0}
   effectTarget: None
@@ -27,7 +30,9 @@ MonoBehaviour:
   counterSkill: 0
   stackValue: 0
   targetAmountPowerInc: 0
-  maxTargetSelections: 2
+  isTargetCountValAmp: 0
+  maxTargetCount: 1
+  activatable: 1
   name: Death Bind
   description: Bind two enemies together. Damage upon a binded target will deal 75%
     power to all other enemies in the bind.

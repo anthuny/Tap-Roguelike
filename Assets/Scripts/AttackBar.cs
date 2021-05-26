@@ -5,6 +5,8 @@ using UnityEngine.UI;
 
 public class AttackBar : MonoBehaviour 
 {
+    private UIManager _UIManager;
+
     // Inspector variables
     [Header("Main")]
     [SerializeField] private Gamemode _gamemode; 
@@ -22,7 +24,8 @@ public class AttackBar : MonoBehaviour
 
     [Header("Statistics")]
     [SerializeField] private float _speed;
-    [SerializeField] public float timeTillBarTurnsInvis;
+    public float timeTillBarTurnsInvis;
+    public float timeTillAttackBarReturns;
 
     [Header("Declerations")]
     public List<Transform> _checkPoints = new List<Transform>();
@@ -38,12 +41,6 @@ public class AttackBar : MonoBehaviour
     public float _relicUIHiderOnVal;
     [SerializeField] private HitsRemainingText _hitsRemainingText;
 
-    [Header("Hit Markers")]
-    public float hitMarkerAlpha1;
-    public float hitMarkerAlpha2;
-    public float hitMarkerAlpha3Plus;
-    [SerializeField] private float timeTillHitMarkerDestroys;
-
     [Space(3)]
     [SerializeField] GameObject backGO;
     [Space(3)]
@@ -53,13 +50,13 @@ public class AttackBar : MonoBehaviour
     [HideInInspector]
     public bool skillActive;
     private bool activatedBackButton;
+    [HideInInspector]
+    public int hitCount;
 
     private HitBar _hitBar;
     // Public
     [HideInInspector]
     public Collider2D activeHitMarkerCollider;
-    //[HideInInspector]
-    public List<HitMarker> hitMarkers = new List<HitMarker>();
     [HideInInspector]
     public HitMarker activeHitMarker;
     [HideInInspector]
@@ -77,31 +74,26 @@ public class AttackBar : MonoBehaviour
     private Vector3 _initialPos;
     private Vector3 _nextPos;
 
-    [Header("Variable Names")]
-    public string activeHitMarkerTag;
-    public string regHitMarkerTag;
-
-
-    [HideInInspector]
-    public Collider2D activeHitMarkerColl;
+    public string hitMarkerTag;
 
     void Awake()
     {
         InitialLaunch();
-    }
 
-    public void SetActiveHitMarkerCollider(Collider2D coll)
-    {
-        activeHitMarkerColl = coll;
+        _UIManager = FindObjectOfType<UIManager>();
     }
 
     public void LandHitMarker()
     {      
         // Check if the user performed the land hit marker input
-        if (CheckRelicUIHiderStatus() && skillActive)
+        if (skillActive)
             BeginHitMarkerStoppingSequence(); // Stop the hit marker
     }
 
+    public void ToggleSkillActive(bool active)
+    {
+        skillActive = active;
+    }
     void InitialLaunch()
     {
         _combatManager = FindObjectOfType<CombatManager>();
@@ -185,15 +177,20 @@ public class AttackBar : MonoBehaviour
         else
             activatedBackButton = false;
 
+        _combatManager.ClearSkillTargets();  // Clear skill targets
+
         if (activatedBackButton)
+        {
             MoveAttackBar(true);
+            _UIManager.ToggleButton(_UIManager.endTurnGO, true);    // Enabled end turn button
+        }
         else
             MoveAttackBar(false);
     }
 
-    public void UpdateRemainingHitsText(bool cond, int val = 0, int isoVal = 0)
+    public void UpdateRemainingHitsText(bool cond, int val = 0)
     {
-        _hitsRemainingText.UpdateRemainingHitText(cond, val, isoVal);
+        _hitsRemainingText.UpdateRemainingHitText(cond, val);
     }
 
     public void ToggleBackButton(bool cond, bool iso = false)
@@ -206,107 +203,55 @@ public class AttackBar : MonoBehaviour
 
             if (!cond)
             {
-                DestroyAllHitMarkers();
+                DestroyActiveHitMarker(0);
                 _combatManager.activeAttackData.Clear();
-                _combatManager.ClearTargetSelections();
-                _combatManager.ClearSkillSelections();
-                _hitsRemainingText.UpdateRemainingHitText(true, 0, 0);
+                _combatManager.ClearUnitTargets();
+                _combatManager.ClearSkillTargets();
+                _hitsRemainingText.UpdateRemainingHitText(true, 0);
             }
         }
     }
         
-    public void DestroyAllHitMarkers()
+    public void DestroyActiveHitMarker(float time)
     {
-        if (hitMarkers.Count == 0)
-            return;
-
-        for (int i = 0; i < hitMarkers.Count; i++)
-            hitMarkers[i].DestroyHitMarkerInstant();
-
-        hitMarkers.Clear();
-    }
-
-    public IEnumerator DestroyAllHitMarkersCo()
-    {
-        yield return new WaitForSeconds(0);
-        Invoke("DestroyAllHitMarkers", timeTillHitMarkerDestroys);
-    }
-    public IEnumerator SpawnHitMarker(SkillData skillData)
-    {
-        DestroyAllHitMarkers();
-
-        for (int i = 0; i < skillData.hitsRequired; i++)
+        if (activeHitMarker)
         {
-            GameObject go = Instantiate(hitMarkerGO, _initialPos, Quaternion.identity);
-            _hitBar = go.GetComponent<HitBar>();
-
-            int val = i + 1;
-            go.name = "Hit Marker " + val;
-            HitMarker hitMarkerScript = go.GetComponent<HitMarker>();
-            hitMarkers.Add(hitMarkerScript);
-            go.transform.SetParent(hitMarker.transform);
-
-            hitMarkerScript.initialPos = _checkPoints[0].GetComponent<RectTransform>().localPosition;
-            hitMarkerScript.nextPos = _checkPoints[1].GetComponent<RectTransform>().localPosition;
-            hitMarkerScript.speed = _speed;
-            hitMarkerScript.attackBar = this;
-
-            UpdateRemainingHitsText(false, 1, 0);
-
-            if (i == 0)
-            {
-                activeHitMarkerCollider = go.GetComponent<BoxCollider2D>();
-                activeHitMarker = hitMarkerScript;
-                activeHitMarker.SetAsActiveHitMarker();
-                _hitMarkerVisual = go.transform.GetChild(0).gameObject;
-                hitMarkerScript.UpdateAlpha(hitMarkerAlpha1);
-                activeHitMarker.gameObject.tag = activeHitMarkerTag;
-            }
-            else if (i == 1)
-                hitMarkerScript.UpdateAlpha(hitMarkerAlpha2);
-            else if (i >= 2)
-                hitMarkerScript.UpdateAlpha(hitMarkerAlpha3Plus);
-
-            yield return new WaitForSeconds(skillData.timeForNextHitMarker);
+            StartCoroutine(activeHitMarker.DestroyHitMarker(time));
+            activeHitMarkerCollider = null;
+            activeHitMarker = null;
         }
     }
 
-    void UpdateActiveHitMarker()
+    public void ResetHitCount()
     {
-        if (hitMarkers.Count >= 1)
-        {
-            for (int i = 0; i < hitMarkers.Count; i++)
-            {
-                if (i == 0)
-                {
-                    hitMarkers.RemoveAt(i);
-                    StartCoroutine(activeHitMarker.DestroyHitMarker(timeTillBarTurnsInvis));
-
-                    if (hitMarkers.Count == 0)
-                    {
-                        return;
-                    }
-                    activeHitMarkerCollider = hitMarkers[i].collider;
-                    activeHitMarker = hitMarkers[i];
-                    activeHitMarker.SetAsActiveHitMarker();
-                    activeHitMarker.UpdateAlpha(hitMarkerAlpha1);
-                    activeHitMarker.gameObject.tag = activeHitMarkerTag;
-
-                    _hitMarkerVisual = activeHitMarker._hitMarkerImageGO;
-                }
-                else if (i == 1)
-                {
-                    hitMarkers[i].UpdateAlpha(hitMarkerAlpha2);
-                    _hitMarkerVisual = hitMarkers[i]._hitMarkerImageGO;
-                }
-                else if (i >= 2)
-                {
-                    hitMarkers[i].UpdateAlpha(hitMarkerAlpha3Plus);
-                    _hitMarkerVisual = hitMarkers[i]._hitMarkerImageGO;
-                } 
-            }
-        }
+        if (hitCount != 0)
+            hitCount = 0;
     }
+
+    public void SpawnHitMarker(SkillData skillData)
+    {
+        GameObject go = Instantiate(hitMarkerGO, _initialPos, Quaternion.identity);
+        _hitBar = go.GetComponent<HitBar>();
+
+        go.name = "Hit Marker"; 
+        HitMarker hitMarkerScript = go.GetComponent<HitMarker>();
+        activeHitMarker = hitMarkerScript;
+        go.transform.SetParent(hitMarker.transform);
+
+        hitMarkerScript.initialPos = _checkPoints[0].GetComponent<RectTransform>().localPosition;
+        hitMarkerScript.nextPos = _checkPoints[1].GetComponent<RectTransform>().localPosition;
+        hitMarkerScript.speed = _speed;
+        hitMarkerScript.attackBar = this;
+
+        if (_combatManager.relicActiveSkill.curHitsCompleted == 0)
+            UpdateRemainingHitsText(true, -(_combatManager.relicActiveSkill.hitsRequired - hitCount));
+
+        activeHitMarkerCollider = go.GetComponent<BoxCollider2D>();
+        activeHitMarker = hitMarkerScript;
+        activeHitMarker.SetAsActiveHitMarker();
+        _hitMarkerVisual = go.transform.GetChild(0).gameObject;
+    }
+
     /// <summary>
     /// Stop hit marker, 
     /// check to see which hit bar the hit marker landed on, 
@@ -317,8 +262,6 @@ public class AttackBar : MonoBehaviour
     {
         // Check to see which hit bar the hit marker hit
         curCollidingHitArea.CheckIfMarkerHit();
-
-        UpdateActiveHitMarker();
     }
 
     public IEnumerator ToggleHitMarkerVisibility(HitMarker hitMarker, GameObject visual, bool toggle, float time = 0)
@@ -345,20 +288,5 @@ public class AttackBar : MonoBehaviour
     void ToggleRelicSkillUIInput(bool cond)
     {
         relicUIGR.enabled = cond;
-    }
-
-    public bool CheckRelicUIHiderStatus()
-    {
-        // If the relic UI hider is off
-        if (relicUIHider.alpha == _relicUIHiderOffVal)
-            return true;
-
-        if (relicUIHider.alpha == _relicUIHiderOnVal)
-            return false;
-
-        if (relicUIHider.alpha == _relicUIHiderSelectVal)
-            return false;
-        else
-            return false;
     }
 }

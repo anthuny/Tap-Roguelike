@@ -17,20 +17,21 @@ MonoBehaviour:
   targetType: Multiple
   targetsAllowed: Enemies
   hitsRequired: 2
+  manaRequired: 2
   timeBetweenHitUI: 0.15
   timeTillEffectInflict: 0.9
   timeForNextHitMarker: 0.1
-  effect: {fileID: 11400000, guid: 563c4ab55f0ac124eaf71c67f558b663, type: 2}
-  effectTarget: Targeted
-  effectPower: 1
-  effectDuration: 1
+  effect: {fileID: 0}
+  effectTarget: 
+  effectPower: 0
+  effectDuration: 0
   effectHitEffect: 
-  effectDurationDecrease: Attacking
+  effectDurationDecrease: 
   counterSkill: 0
   stackValue: 0
   targetAmountPowerInc: 0
   isTargetCountValAmp: 0
-  maxTargetSelections: 2
+  maxTargetCount: 2
   activatable: 1
   name: Quick Slash
   description: Attack up to two enemies twice.

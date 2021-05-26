@@ -134,8 +134,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
-  m_Maskable: 1
+  m_RaycastTarget: 0
+  m_Maskable: 0
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -289,7 +289,7 @@ GameObject:
   - component: {fileID: 1636597985837574005}
   - component: {fileID: 1636597985837574003}
   - component: {fileID: 1636597985837574002}
-  - component: {fileID: 1636597985837574000}
+  - component: {fileID: 1189112850}
   m_Layer: 0
   m_Name: Relic Skill - Basic Selection Image
   m_TagString: Untagged
@@ -342,7 +342,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
@@ -357,7 +357,7 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &1636597985837574000
+--- !u!114 &1189112850
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -366,10 +366,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 1636597985837574004}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 97fc8c0553f58d04482e2c6764096ad8, type: 3}
+  m_Script: {fileID: 11500000, guid: 62a652c9e231a2a49b164620c476b6e6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   _skillUIManager: {fileID: 0}
+  unit: {fileID: 0}
   _selectButton: {fileID: 1636597985693723150}
   selectEnabled: 0
   selectionImage: {fileID: 1636597985837574002}
@@ -384,9 +385,7 @@ MonoBehaviour:
   skillBorderColour: {r: 0, g: 0, b: 0, a: 0}
   skillSelectionColour: {r: 0, g: 0, b: 0, a: 0}
   isSkill: 1
-  startingSkill: 1
-  startingSkillActivated: 0
-  enemyCount: 0
+  enemyIndex: 0
 --- !u!1 &6947211765053224423
 GameObject:
   m_ObjectHideFlags: 0
@@ -446,8 +445,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 0.6603774, g: 0.6603774, b: 0.6603774, a: 0.72156864}
-  m_RaycastTarget: 1
-  m_Maskable: 1
+  m_RaycastTarget: 0
+  m_Maskable: 0
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -524,8 +523,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 0, g: 0, b: 0, a: 0.7882353}
-  m_RaycastTarget: 1
-  m_Maskable: 1
+  m_RaycastTarget: 0
+  m_Maskable: 0
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []

@@ -30,6 +30,11 @@ Players can optionally press the cancel button to exit the skill, if the player 
 20/05/2021 Thursday (11:53pm)
 Designed base aesthetic theme of each area, created 4 unique Graveyard units, detailed Fiend unit design. 
 
+-51 -358
+594 -500
+-52 350
+594 200
+
 
 Tasks:
 ~~Enemy Turns / Ogre design and implementation (half day 4-6h)

@@ -8,35 +8,63 @@ public class Unit : MonoBehaviour
     public enum UnitType { ALLY, ENEMY };
     public UnitType unitType;
 
+    [Header("Main")]
     public new string name;
     public int level = 1;
+
+    [Space(3)]
+
+    [Header("Main Stats")]
+    [Tooltip("The default power the unit has")]
+    public int power;
+    [Tooltip("The default maximum health the enemy spawns with")]
+    public float maxHealth;
+    public float curHealth;
+    public int curMana;
+    public int maxMana;
+    [Tooltip("Mana gained at the start of unit's turn")]
+    public int manaGainTurn;
+    public string inflictedType;
+    [Tooltip("The percentage rate of whether the enemy will attack before the player")]
+    public int energy;
+    public int turnEnergy;
+
+    [Space(3)]
+
+    [Header("Growth Stats")]
+    public int powerGrowth;
+    public int healthGrowth;
+    public int manaGrowth;
+    public int maxManaGrowth;
+
+    [Space(3)]
 
     [Header("Aesthetics")]
     public Color color;
 
-    [Header("Statistics")]
-    [Tooltip("The default maximum health the enemy spawns with")]
-    public float maxHealth;
-    public float curHealth;
-    [Tooltip("The default power the unit has")]
-    public int power;
-    [Tooltip("The percentage rate of whether the enemy will attack before the player")]
-    public int speed;
-    public int turnSpeed;
-    public string inflictedType;
+    [Space(3)]
 
     [Header("The liklihood of what the enemy will do on their turn")]
     public int attackChance;
     public int skillChance;
 
+    [Space(3)]
+
     [Header("UI")]
-    public Image healthImage;
-    public Text nameText;
+    private Image healthImage;
+    private Text nameText;
+    private Image energyImage;
+    private Image manaImage;
     public Transform effectParent;
     public List<Image> effectImages = new List<Image>();
     public Transform skillUIValueParent;
+    [SerializeField] private GameObject turnImage;
+
+    [Space(3)]
 
     private GameObject unitGO;
+
+    [Space(3)]
 
     [Header("Effects")]
     public List<Effect> effects = new List<Effect>();
@@ -44,6 +72,7 @@ public class Unit : MonoBehaviour
     public List<int> effectPowers = new List<int>();
     public float recievedDamageAmp;
 
+    [Space(3)]
 
     [Header("Skills")]
     public SkillData passiveSkill;
@@ -53,6 +82,10 @@ public class Unit : MonoBehaviour
     public SkillData alternateSkill;
     public SkillData ultimateSkill;
 
+    [Space(3)]
+
+    [HideInInspector]
+    public Target target;
     private DevManager _devManager;
     private Skill _activeSkill;
     [HideInInspector]
@@ -71,7 +104,9 @@ public class Unit : MonoBehaviour
     //[HideInInspector]
     public int maxWaveCountEffects;
     [HideInInspector]
-    public int hitCount;
+    public int attackCount;
+    [HideInInspector]
+    public int hitRecievedCount;
     bool storingAttack;
     [HideInInspector]
     public int effectHitCount;
@@ -81,45 +116,62 @@ public class Unit : MonoBehaviour
         _devManager = FindObjectOfType<DevManager>();
         _combatManager = FindObjectOfType<CombatManager>();
         _skillUIManager = FindObjectOfType<SkillUIManager>();
-
-        if (unitType == UnitType.ALLY)
-        {
-
-        }
     }
 
     public void DetermineUnitMoveChoice(Unit unit, SkillData skillData = null)
     {
         if (unitType == UnitType.ENEMY)
         {
-            // Set targets for skill
-            //_combatManager.UpdateTargetSelection(false, ); 
-
-            // Anthony - TODO: Need to update relic game object to be a prefab that spawns,
-            // so that all units can have their own selector (Selecting unit) as a prefab. I want this because it is currently too difficult to
-            // get reference to the relic's Selector script. 
-
-            //Determine what move to use
-
-            // Aftwards, if the enemy skill targets the relic, set the target of the chosen skill to be the relics selector. 
-            // Otherwise, set the target to be whatever it needs to be. (Problem for then).
-
-            // Cast skill
-            StartCoroutine(UnitSkillFunctionality(false, basicSkill));
+            // If enemy unit has enough mana for basic skill
+            if (curMana >= basicSkill.manaRequired)
+                StartCoroutine(UnitSkillFunctionality(false, basicSkill, _combatManager.enemyThinkTime));    //Use enemy's basic skill
+            // If enemy unit has no mana for any skill
+            else
+                _combatManager.EndTurn();   // End turn
         }
 
         if (unitType == UnitType.ALLY)
-            StartCoroutine(UnitSkillFunctionality(true, skillData));
+            if (curMana >= skillData.manaRequired)
+                StartCoroutine(UnitSkillFunctionality(true, skillData));
+    }
+
+    void SelectEnemySkillValueMultiplier()
+    {
+        // If unit is enemy, set act ive skill value modifier to be the good value
+        if (unitType == UnitType.ENEMY)
+            _combatManager.activeSkillValueModifier = _combatManager.activeSkill.goodValueMultiplier;
     }
 
     /// <summary>
     /// Caster performs a skill on a target
     /// </summary>
-    public IEnumerator UnitSkillFunctionality(bool relic, SkillData skillData)
+    public IEnumerator UnitSkillFunctionality(bool relic, SkillData skillData, float time = 0)
     {
+        yield return new WaitForSeconds(time);
+
+        // If enemy's skill, set the target to the relic 
+        if (unitType == UnitType.ENEMY)
+        {
+            // Set target 
+            _combatManager.activeRelic.target.ToggleSelectionImage();
+            _combatManager.unitTargets.Add(_combatManager.activeRelic.target);
+        }
+
+        yield return new WaitForSeconds(time);
+
+        _combatManager.SetActiveSkill(skillData);   // Set active skill
+
+        SelectEnemySkillValueMultiplier();  // Set enemy skill value multiplier
+
         AssignSelectionCount(skillData);
 
         skillData.curHitsCompleted++;   // Increase current hits completed by 1
+
+        // Update mana on first hit for skill mana cost
+        if (skillData.curHitsCompleted == 1)
+            StartCoroutine(UpdateCurMana(skillData.manaRequired, false));
+
+        yield return new WaitForSeconds(time);  // Time for skill animation 
 
         // Only if relic, set up for attack bar
         if (relic)
@@ -127,9 +179,8 @@ public class Unit : MonoBehaviour
             if (skillData.curHitsCompleted == skillData.hitsRequired)
             {
                 _skillUIManager.SetSkillMaxCooldown(skillData);
-                _skillUIManager.UpdateSkillCooldownVisuals(skillData, _combatManager.activeSkillSelector);
+                _skillUIManager.UpdateSkillCooldownVisuals(skillData);
             }
-
 
             else if (skillData.curHitsCompleted >= skillData.hitsRequired)
             {
@@ -152,9 +203,9 @@ public class Unit : MonoBehaviour
                 {
                     case "Single":
 
-                        Unit targetSingle = _combatManager.targetSelections[0].GetComponentInParent<Unit>();
+                        Unit targetSingle = _combatManager.unitTargets[0].GetComponentInParent<Unit>();
 
-                        hitCount++;
+                        attackCount++;
 
                         switch (skillData.skillMode)
                         {
@@ -174,35 +225,25 @@ public class Unit : MonoBehaviour
                                 StoreSkillCause(targetSingle, this, skillData, ((power / 100) * targetSingle.maxHealth), true);
                                 break;
                         }
-                            /*
-                            // If skill has an effect
-                            if (skillData.effect.name != "None")
-                            {
-                                // If Relic didn't miss
-                                if (_combatManager.relicActiveSkillProcModifier != 0)
-                                    StoreSkillCause(targetSingle, this, skillData, -power, true);
 
-                            }
-                            // If skill does not have an effect
-                            */
-                            
-                            _devManager.FlashText(this.name, targetSingle.name, skillData.name, power, targetSingle);   // Debug the attack
+                        StartCoroutine(SendSkillUI(_combatManager.relicActiveSkill));
+
+                        //_devManager.FlashText(this.name, targetSingle.name, skillData.name, power, targetSingle);   // Debug the attack
 
                         break;
 
 
                     case "Multiple":
 
-                        for (int i = 0; i < _combatManager.targetSelections.Count; i++)
+                        for (int i = 0; i < _combatManager.unitTargets.Count; i++)
                         {
-                            Unit targetMultiple = _combatManager.targetSelections[i].GetComponentInParent<Unit>();
-                            hitCount++;
+                            Unit targetMultiple = _combatManager.unitTargets[i].GetComponentInParent<Unit>();
+                            attackCount++;
 
                             switch (skillData.skillMode)
                             {
                                 case "Damage":
-                                    if (!storingAttack)
-                                        StoreSkillCause(targetMultiple, this, skillData, -power, true);
+                                    StoreSkillCause(targetMultiple, this, skillData, -power, true);
                                     break;
 
                                 case "PercentMaxHealthDamage":
@@ -217,18 +258,11 @@ public class Unit : MonoBehaviour
                                     StoreSkillCause(targetMultiple, this, skillData, ((power / 100) * targetMultiple.maxHealth), true);
                                     break;
                             }
-                            /*
-                            // If skill has an effect
-                            if (skillData.effect.name != "None")
-                            {
-                                // If Relic didn't miss
-                                if (_combatManager.relicActiveSkillProcModifier != 0)
-                                    StoreSkillCause(targetMultiple, this, skillData, -power, true);
 
-                            }
-                            */
+                            StartCoroutine(SendSkillUI(_combatManager.relicActiveSkill));
+
                             // If skill does not have an effect
-                            _devManager.FlashText(this.name, targetMultiple.name, skillData.name, power, targetMultiple);   // Debug the attack
+                            //_devManager.FlashText(this.name, targetMultiple.name, skillData.name, power, targetMultiple);   // Debug the attack
                         }
                             break;
 
@@ -256,16 +290,30 @@ public class Unit : MonoBehaviour
                 break;
         }
 
+        if (relic && skillData.curHitsCompleted == skillData.hitsRequired)
+            _combatManager.activeAttackBar.MoveAttackBar(false);
+
         // Disable the back button after the first hit of the skill
         if (skillData.curHitsCompleted == 1)
+        {
+            yield return new WaitForSeconds(_combatManager.activeAttackBar.timeTillAttackBarReturns);
             _combatManager.activeAttackBar.ToggleBackButton(false, true);
+        }
+
 
         // If this attack was the last required hit
         if (skillData.curHitsCompleted == skillData.hitsRequired)
         {
-            StartCoroutine(SendSkillUI(_combatManager.relicActiveSkill));
+            _combatManager.activeAttackBar.ToggleSkillActive(false);
+            _combatManager.ClearUnitTargets();
+            _skillUIManager.UpdateSkillStatus(SkillUIManager.SkillStatus.DISABLED);   // Update skill status to disabled
             skillData.curHitsCompleted = 0;
-            StartCoroutine(_combatManager.activeAttackBar.DestroyAllHitMarkersCo());
+            _skillUIManager.HideValueUI();
+            _skillUIManager.ResetTextOffset();
+
+            // If enemy skill, go back to thought process after last hit of a skill
+            if (unitType == UnitType.ENEMY)
+                DetermineUnitMoveChoice(this, skillData);
         }
     }
 
@@ -280,13 +328,14 @@ public class Unit : MonoBehaviour
 
         // if skill is not dealing more damage based on the amount of targets selected
         if (!skillData.isTargetCountValAmp)
-            curAttackData.val = _combatManager.CalculateDamageDealt(val, _combatManager.relicActiveSkillValueModifier);
+            curAttackData.val = _combatManager.CalculateDamageDealt(val, _combatManager.activeSkillValueModifier);
         else
-            curAttackData.val = _combatManager.CalculateDamageDealt(val, _combatManager.relicActiveSkillValueModifier, skillData.targetAmountPowerInc, _combatManager.targetSelections.Count);
+            curAttackData.val = _combatManager.CalculateDamageDealt(val, _combatManager.activeSkillValueModifier, skillData.targetAmountPowerInc, _combatManager.unitTargets.Count);
 
         curAttackData.effect = skillData.effect;
         curAttackData.skillName = skillData.name;
-        curAttackData.skillEffectName = skillData.effect.name;
+        //if (skillData.effect.name != "")
+            //curAttackData.skillEffectName = skillData.effect.name;
         curAttackData.effectPower = skillData.effectPower;
         curAttackData.effectDuration = skillData.effectDuration;
         curAttackData.curHitsCompleted = skillData.curHitsCompleted;
@@ -294,9 +343,9 @@ public class Unit : MonoBehaviour
         curAttackData.timeBetweenHitUI = skillData.timeBetweenHitUI;
         curAttackData.timeTillEffectInflict = skillData.timeTillEffectInflict;
         curAttackData.skillUIValueParent = target.skillUIValueParent;
-        curAttackData.curTargetCount = _combatManager.targetSelections.Count;
-        curAttackData.effectVal = skillData.effect.stackValue;
-        curAttackData.relicActiveSkillValueModifier = _combatManager.relicActiveSkillValueModifier;
+        curAttackData.curTargetCount = _combatManager.unitTargets.Count;
+        //curAttackData.effectVal = skillData.effect.stackValue;
+        curAttackData.relicActiveSkillValueModifier = _combatManager.activeSkillValueModifier;
     }
 
     IEnumerator SendSkillUI(SkillData skillData)
@@ -313,59 +362,82 @@ public class Unit : MonoBehaviour
             // If this is not the last attack
             if (i != _combatManager.activeAttackData.Count)
             {
+                _combatManager.activeAttackData[i].target.hitRecievedCount++;
+
                 // send values to target
                 _combatManager.activeAttackData[i].target.UpdateCurHealth(_combatManager.activeAttackData[i].inCombat,
                     _combatManager.activeAttackData[i].val, false, _combatManager.activeAttackData[i].skillUIValueParent,
-                    _combatManager.activeAttackData[i], this);
+                    _combatManager.activeAttackData[i], this, _combatManager.activeAttackData[i].target);
 
                 // Attempt Assign effect
+                /*
                 _combatManager.activeAttackData[i].target.AssignEffect(_combatManager.activeAttackData[i].effect,
                     _combatManager.activeAttackData[i].effectPower, _combatManager.activeAttackData[i].effectDuration,
                     _combatManager.activeAttackData[i].skillData);
-            }
-
-            // If this is the last attack
-            if (i == _combatManager.activeAttackData.Count -1)
-            {
-                yield return new WaitForSeconds(curAttackData.timeTillEffectInflict);
-                // Loop through all stored attacks
-                for (int x = 0; x < _combatManager.activeAttackData.Count; x++)
-                {
-
-                    _combatManager.activeAttackData[x].target.UpdateCurHealth(_combatManager.activeAttackData[x].inCombat,
-                    _combatManager.activeAttackData[x].val, true, _combatManager.activeAttackData[x].skillUIValueParent,
-                    _combatManager.activeAttackData[x], this);
-
-                    // After looping through all targets
-                    if ((x+1) % (curAttackData.curTargetCount) == 0)
-                    {
-                        hitWaveCountEffect++;
-                        yield return new WaitForSeconds(curAttackData.timeBetweenHitUI);
-                    }
-
-                    // Trigger effect
-                    TriggerEffect();    // does nothing atm
-                }
-                _combatManager.activeAttackData.Clear();
+                    */
             }
         }
 
-        hitCount = 0;
+        _combatManager.activeAttackData.Clear();
+        attackCount = 0;
         hitWaveCount = 0;
         hitWaveCountEffect = 0;
-        for (int i = 0; i < _combatManager.targetSelections.Count; i++)
-        {
-            _combatManager.targetSelections[i].GetUnitScript().effectHitCount = 0;
-        }
-
-        yield return new WaitForSeconds(_combatManager.postHitTime);
-        _combatManager.activeAttackBar.MoveAttackBar(false);
     }
 
+    #region Update Unit Type
+    public void UpdateUnitType(UnitType unitType)
+    {
+        this.unitType = unitType;
+    }
+    #endregion
+    #region Update Level
+    public void UpdateLevel(int level)
+    {
+        this.level = level;
+    }
+    #endregion
+    #region Update Name
+    public void UpdateName(string displayName)
+    {
+        this.name = displayName;
+        nameText.text = this.name;
+    }
+    #endregion
+    #region Update Power
+    public void UpdatePower(int val)
+    {
+        power += val;
+    }
+    #endregion
+    #region Update Mana
+    public void UpdateEnergy(int val)
+    {
+        energy += val;
+    }
+
+    public void UpdateTurnEnergy(int val)
+    {
+        turnEnergy = val;
+        UpdateEnergyVisual();
+    }
+
+    public void CalculateTurnEnergy()
+    {
+        turnEnergy += energy;
+        UpdateEnergyVisual();
+    }
+
+    void UpdateEnergyVisual()
+    {
+        energyImage.fillAmount = (float)turnEnergy / 100f;
+    }
+
+    #endregion
+    #region Update Health Stat
     /// <summary>
     /// Adjust max current health of unit
     /// </summary>
-    public void UpdateCurHealth(bool inCombat, float val, bool isEffect = false, Transform activeSkillUIParent = null, AttackData attackData = null, Unit caster = null)
+    public void UpdateCurHealth(bool inCombat, float val, bool isEffect = false, Transform activeSkillUIParent = null, AttackData attackData = null, Unit caster = null, Unit target = null)
     {
         float valDefault;
 
@@ -384,23 +456,108 @@ public class Unit : MonoBehaviour
             else
                 curHealth += RoundFloatToInt(valDefault);
 
-            // Send effect UI
-            if (isEffect)
-                _combatManager.skillUIManager.DisplaySkillValue(caster, activeSkillUIParent, 0, effectVal, true, attackData);
-            else
-                _combatManager.skillUIManager.DisplaySkillValue(caster, activeSkillUIParent, valDefault, effectVal, false, attackData);
+            _combatManager.skillUIManager.DisplaySkillValue(caster, target, activeSkillUIParent, valDefault, attackData);
         }
         else
             curHealth += RoundFloatToInt(Mathf.Abs(val));
 
-        UpdateCurHealthVisual(curHealth / maxHealth, true);
-    }
-     
-    public void UpdateCurHealthVisual(float val, bool inCombat = true)
-    {
-        healthImage.fillAmount = val;
+        UpdateCurHealthVisual();
     }
 
+    /// <summary>
+    /// Adjust max health of unit
+    /// </summary>
+    public void UpdateMaxHealth(float val)
+    {
+        maxHealth += val;
+        UpdateCurHealthVisual();
+    }
+
+    public void UpdateCurHealthVisual()
+    {
+        float val = curHealth / maxHealth;
+        healthImage.fillAmount = val;
+    }
+    #endregion
+    #region Update Energy Stats
+    public IEnumerator UpdateCurMana(int mana, bool positive = true)
+    {
+        // Increase current mana in intervals
+        if (positive)
+        {
+            for (int i = 0; i < mana; i++)
+            {
+                curMana++;
+                if (curMana > maxMana)
+                {
+                    curMana = maxMana;
+                    break;
+                }
+                UpdateManaVisual();
+
+                yield return new WaitForSeconds(_combatManager.ManaUpdateInterval);
+            }
+        }
+        else
+            for (int i = 0; i < mana; i++)
+            {
+                curMana--;
+                if (curMana < 0)
+                {
+                    curMana = 0;
+                    break;
+                }
+                UpdateManaVisual();
+
+                yield return new WaitForSeconds(_combatManager.ManaUpdateInterval);
+            }
+    }
+
+    public void UpdateMaxMana(int addedMaxMana)
+    {
+        maxMana += addedMaxMana;
+
+        UpdateManaVisual();
+    }
+
+    public void UpdateEnergyTurnGrowth(int energyGainTurn)
+    {
+        this.manaGainTurn += energyGainTurn;
+    }
+
+    void UpdateManaVisual()
+    {
+        manaImage.fillAmount = (float)curMana / (float)maxMana;
+    }
+    #endregion
+    #region Update Growth Stats
+    public void UpdatePowerGrowth(int powerGrowth)
+    {
+        this.powerGrowth = powerGrowth;
+    }
+
+    public void UpdateHealthGrowth(int healthGrowth)
+    {
+        this.healthGrowth = healthGrowth;
+    }
+
+    public void UpdateManaGrowth(int manaGrowth)
+    {
+        this.manaGrowth = manaGrowth;
+    }
+
+    public void UpdateMaxEnergyGrowth(int maxEnergyGrowth)
+    {
+        this.maxManaGrowth = maxEnergyGrowth;
+    }
+    #endregion
+    #region Update Colour
+    public void UpdateColour(Color color)
+    {
+        this.color = color;
+    }
+    #endregion
+    #region Assign Effect
     public void AssignEffect(Effect effect, int effectPower, int effectDuration, SkillData skillData)
     {
         float rand = Random.Range(0f, 1f);
@@ -461,14 +618,15 @@ public class Unit : MonoBehaviour
             }
         }
     }
+    #endregion
+
+    public void ToggleTurnImage(bool toggle)
+    {
+        turnImage.SetActive(toggle);
+    }
     void AssignSelectionCount(SkillData skill)
     {
-        _combatManager.maxTargetSelections = skill.maxTargetCount;
-    }
-
-    public void CalculateSpeedFinal()
-    {
-        turnSpeed = Random.Range(0, speed);
+        _combatManager.maxUnitTargets = skill.maxTargetCount;
     }
 
     public void AssignUI()
@@ -478,6 +636,8 @@ public class Unit : MonoBehaviour
         unitGO.transform.localPosition = new Vector2(-26, 82);
         healthImage = unitGO.transform.Find("Health/Current Health Image").GetComponent<Image>();
         nameText = unitGO.transform.Find("Name/Name Text").GetComponent<Text>();
+        energyImage = unitGO.transform.Find("Mana/Energy BG/Current Energy Image").GetComponent<Image>();
+        manaImage = unitGO.transform.Find("Mana/Current Mana Image").GetComponent<Image>();
 
         effectParent = unitGO.transform.Find("Effects").transform; // Assign effects parent
 
@@ -500,46 +660,6 @@ public class Unit : MonoBehaviour
         {
             effectParent.gameObject.SetActive(false);
         }
-    }
-
-    /// <summary>
-    /// Adjust max health of unit
-    /// </summary>
-    public void UpdateMaxHealth(float val)
-    {
-        maxHealth += val;
-    }
-
-
-    public void UpdateUnitType(UnitType unitType)
-    {
-        this.unitType = unitType;
-    }
-
-    public void UpdateName(string displayName)
-    {
-        this.name = displayName;
-        nameText.text = this.name;
-    }
-
-    public void UpdateLevel(int level)
-    {
-        this.level = level;
-    }
-
-    public void UpdateColour(Color color)
-    {
-        this.color = color;
-    }
-   
-    public void UpdatePower(int val)
-    {
-        power += val;
-    }
-
-    public void UpdateSpeed(int val)
-    {
-        speed += val;
     }
 
     /// <summary>

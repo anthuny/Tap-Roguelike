@@ -38,10 +38,6 @@ public class HitMarker : MonoBehaviour
         PingPong();
     }
 
-    public void SetActiveHitMarker()
-    {
-        attackBar.activeHitMarkerColl = hitMarkerCollider;
-    }
     void ToggleDisplay()
     {
         StartCoroutine(attackBar.ToggleHitMarkerVisibility(this, _hitMarkerImageGO, true, 0));
