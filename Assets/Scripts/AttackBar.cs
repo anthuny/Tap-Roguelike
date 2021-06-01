@@ -90,7 +90,7 @@ public class AttackBar : MonoBehaviour
             BeginHitMarkerStoppingSequence(); // Stop the hit marker
     }
 
-    public void ToggleSkillActive(bool active)
+    public void UpdateActiveSkill(bool active)
     {
         skillActive = active;
     }
@@ -98,8 +98,6 @@ public class AttackBar : MonoBehaviour
     {
         _combatManager = FindObjectOfType<CombatManager>();
         relicUICG = relicUIGR.gameObject.GetComponent<CanvasGroup>();
-
-        ToggleBackButton(false);
     }
 
     public void DisableBarVisuals()
@@ -172,20 +170,20 @@ public class AttackBar : MonoBehaviour
 
     public void BackButtonFunctionality()
     {
-        if (!activatedBackButton)
-            activatedBackButton = true;
-        else
-            activatedBackButton = false;
-
         _combatManager.ClearSkillTargets();  // Clear skill targets
 
-        if (activatedBackButton)
-        {
-            MoveAttackBar(true);
-            _UIManager.ToggleButton(_UIManager.endTurnGO, true);    // Enabled end turn button
-        }
-        else
-            MoveAttackBar(false);
+        MoveAttackBar(true);
+        _UIManager.ToggleImage(_UIManager.endTurnGO, true);    // Enabled end turn button
+
+        // Give mana back to relic for cancelling the skill
+        StartCoroutine(_combatManager.activeUnit.UpdateCurMana(_combatManager.activeSkill.manaRequired, true));
+
+        //MoveAttackBar(false);
+    }
+
+    public void ToggleImage(GameObject imageGO, bool enabled)
+    {
+        _UIManager.ToggleImage(imageGO, enabled);
     }
 
     public void UpdateRemainingHitsText(bool cond, int val = 0)
@@ -195,7 +193,7 @@ public class AttackBar : MonoBehaviour
 
     public void ToggleBackButton(bool cond, bool iso = false)
     {
-        backGO.SetActive(cond);
+        _UIManager.ToggleImage(_UIManager.cancelAttackGO, cond);
 
         if (!iso)
         {
@@ -207,7 +205,7 @@ public class AttackBar : MonoBehaviour
                 _combatManager.activeAttackData.Clear();
                 _combatManager.ClearUnitTargets();
                 _combatManager.ClearSkillTargets();
-                _hitsRemainingText.UpdateRemainingHitText(true, 0);
+                _UIManager.ToggleImage(_UIManager.hitsRemainingTextGO, cond);
             }
         }
     }

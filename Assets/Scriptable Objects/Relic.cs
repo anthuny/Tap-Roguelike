@@ -27,16 +27,18 @@ public class Relic : ScriptableObject
     [Header("Growth Stats")]
     public int powerGrowth;
     public int healthGrowth;
-    public int manaGrowth;
+    public int energyGrowth;
     public int maxManaGrowth;
 
     [Space(3)]
     
     [Header("Aesthetics")]
     public Color color;
-    
+
     [Space(3)]
-    
+
+    public GameObject weapon;
+
     [Header("Skills")]
     public Skill passiveSkill;
     public Skill basicSkill;

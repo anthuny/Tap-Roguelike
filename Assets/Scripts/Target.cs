@@ -7,7 +7,7 @@ public class Target : MonoBehaviour
 {
     private CombatManager _combatManager;
     public SkillUIManager _skillUIManager;
-    [SerializeField] private Unit unit;
+    public Unit unit;
     [SerializeField] private Button _selectButton;
     [HideInInspector]
     public bool selectEnabled;
@@ -65,8 +65,16 @@ public class Target : MonoBehaviour
             if (skillData.onCooldown || !skillData.activatable || !_combatManager.relicTurn)
                 return;
 
-            _combatManager.activeAttackBar.ToggleSkillActive(true);
+            // Don't continue if unit doesnt have enough mana for skill
+            if (!_combatManager.activeUnit.HasEnoughManaForSkill())
+                return;
+
+            _combatManager.activeAttackBar.UpdateActiveSkill(true);
             _skillUIManager.UpdateSkillStatus(SkillUIManager.SkillStatus.ACTIVE);   // Update skill status to active
+
+            // Enable relic attack bar and hits remaining UI 
+            _combatManager.activeAttackBar.ToggleImage(_combatManager.uIManager.attackBarGO, true);
+            _combatManager.activeAttackBar.ToggleImage(_combatManager.uIManager.hitsRemainingTextGO, true);
 
             _combatManager.ManageTargets(true, false, this,
             _combatManager.curUnitTargets, _combatManager.activeSkill.maxTargetCount, skillData);

@@ -5,9 +5,18 @@ using UnityEngine;
 public class UIManager : MonoBehaviour
 {
     public GameObject endTurnGO;
+    public GameObject startFightGO;
+    public GameObject cancelAttackGO;
+    public GameObject skillUIGO;
+    public GameObject hitsRemainingTextGO;
+    public GameObject attackBarGO;
+    public GameObject relicSkillGO;
+    public GameObject targetedEnemyInfoGO;
+    public GameObject enemySkillDetailsGO;
+    public GameObject enemyAllSkillsGO;
 
-    public  void ToggleButton(GameObject go, bool enabled)
+    public void ToggleImage(GameObject imageGO, bool enabled)
     {
-        go.SetActive(enabled);
+        imageGO.SetActive(enabled);
     }
 }

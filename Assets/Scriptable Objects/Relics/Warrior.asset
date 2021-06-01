@@ -14,18 +14,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   name: Warrior
   level: 1
-  power: 12
-  maxHealth: 250
+  power: 10
+  maxHealth: 125
   curHealth: 0
   curMana: 0
   maxMana: 3
   manaGainTurn: 2
-  energy: 10
+  energy: 20
   powerGrowth: 10
   healthGrowth: 25
-  manaGrowth: 2
+  energyGrowth: 2
   maxManaGrowth: 1
   color: {r: 1, g: 0.23113209, b: 0.23113209, a: 1}
+  weapon: {fileID: 884555098298772758, guid: 742cd60e0bb1e24498022f696bafffbc, type: 3}
   passiveSkill: {fileID: 11400000, guid: 125a2cb1f114bcb4a92e9b266f9b8ebf, type: 2}
   basicSkill: {fileID: 11400000, guid: 6a98a3236e49c7348897064f504fb59a, type: 2}
   primarySkill: {fileID: 11400000, guid: a035ffca27013dd47bfef4eb1ea73de1, type: 2}

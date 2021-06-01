@@ -15,16 +15,16 @@ MonoBehaviour:
   name: Fiend
   level: 1
   power: 10
-  maxHealth: 350
+  maxHealth: 125
   curHealth: 0
   curMana: 0
-  maxMana: 3
-  manaGainTurn: 2
-  energy: 5
+  maxMana: 2
+  manaGainTurn: 1
+  energy: 10
   powerGrowth: 10
   healthGrowth: 25
-  manaGrowth: 1
-  maxManaGrowth: 0
+  energyGrowth: 2
+  maxManaGrowth: 1
   attackChance: 70
   skillChance: 30
   color: {r: 0, g: 0.9245283, b: 0.09856821, a: 1}

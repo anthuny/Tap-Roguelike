@@ -12,12 +12,12 @@ public class SkillUIManager : MonoBehaviour
     public SkillStatus skillStatus;
 
     [Header("Skill Initialization")]
-    [SerializeField] private SkillData _relicPassiveSkill;
-    [SerializeField] private SkillData _relicBasicSkill;
-    [SerializeField] private SkillData _relicPrimarySkill;
-    [SerializeField] private SkillData _relicSecondarySkill;
-    [SerializeField] private SkillData _relicAlternateSkill;
-    [SerializeField] private SkillData _relicUltimateSkill;
+    [SerializeField] private SkillData _passiveSkill;
+    [SerializeField] private SkillData _basicSkill;
+    [SerializeField] private SkillData _primarySkill;
+    [SerializeField] private SkillData _secondarySkill;
+    [SerializeField] private SkillData _alternateSkill;
+    [SerializeField] private SkillData _ultimateSkill;
     [Space(5)]
     [Header("Skill UI")]
     [Space(2)]
@@ -45,7 +45,7 @@ public class SkillUIManager : MonoBehaviour
     [Tooltip("The higher the value, the longer each attack value displays for after the previous")]
     public float elapsedTimeDestroyMultiplier;
 
-    [HideInInspector]
+    //[HideInInspector]
     public List<SkillValueUI> storedSkillValueUI = new List<SkillValueUI>();
 
     [Header("Active Stored Attacks")]
@@ -60,7 +60,7 @@ public class SkillUIManager : MonoBehaviour
     {
         _combatManager = FindObjectOfType<CombatManager>();
         _UIManager = FindObjectOfType<UIManager>();
-        _UIManager.ToggleButton(_UIManager.endTurnGO, false);
+        _UIManager.ToggleImage(_UIManager.endTurnGO, false);
     }
 
     public void UpdateSkillStatus(SkillStatus skillStatus)
@@ -68,26 +68,37 @@ public class SkillUIManager : MonoBehaviour
         this.skillStatus = skillStatus;
 
         if (skillStatus == SkillStatus.ACTIVE)
-            _UIManager.ToggleButton(_UIManager.endTurnGO, false);
+            _UIManager.ToggleImage(_UIManager.endTurnGO, false);
         else
-             _UIManager.ToggleButton(_UIManager.endTurnGO, true);
+            _UIManager.ToggleImage(_UIManager.endTurnGO, true);
     }
 
+    // When Relic selects a skill to attack with
     public void AssignActiveSkill(Button button)
     {
+        // If it's not relic's turn, exit
         if (!_combatManager.relicTurn)
             return;
 
         SkillData skillData = button.transform.parent.parent.GetComponent<Target>().skillData;
-
-        // If the skill is not activatable, don't continue
-        if (!skillData.activatable || skillData.onCooldown)
-            return;
-
         AssignFirstSkill(skillData);
-        _combatManager.activeSkill = skillData;
 
-        _combatManager.activeAttackBar.MoveAttackBar(true);
+        // If unit has enough for the active skill, cast it
+        if (_combatManager.activeUnit.HasEnoughManaForSkill())
+        {
+            // If the skill is not activatable, don't continue
+            if (!skillData.activatable || skillData.onCooldown)
+                return;
+
+            // Update mana on first hit for skill mana cost
+            StartCoroutine(_combatManager.activeUnit.UpdateCurMana(_combatManager.activeSkill.manaRequired, false));
+            _combatManager.activeAttackBar.MoveAttackBar(true);
+        }
+        // If the unit doesnt have enough mana for active skill, dont cast skill
+        else
+        {
+
+        }     
     }
 
     public void AssignFirstSkill(SkillData skillData)
@@ -103,21 +114,23 @@ public class SkillUIManager : MonoBehaviour
         skillBorderIcon.color = skillBorderColour;
     }
 
-    public void InitializeSkills()
+    public void InitializeSkills(Unit unit)
     {
-        AssignSkills();
+        AssignSkills(unit);
+        AssignRelicSkillTargets();
         UpdateSkillAesthetics();
     }
-
-    void AssignSkills()
+    public void AssignSkills(Unit unit)
     {
-        _relicPassiveSkill = _combatManager.activeRelic.passiveSkill;
-        _relicBasicSkill = _combatManager.activeRelic.basicSkill;
-        _relicPrimarySkill = _combatManager.activeRelic.primarySkill;
-        _relicSecondarySkill = _combatManager.activeRelic.secondarySkill;
-        _relicAlternateSkill = _combatManager.activeRelic.alternateSkill;
-        _relicUltimateSkill = _combatManager.activeRelic.ultimateSkill;
-
+        _passiveSkill = unit.passiveSkill;
+        _basicSkill = unit.basicSkill;
+        _primarySkill = unit.primarySkill;
+        _secondarySkill = unit.secondarySkill;
+        _alternateSkill = unit.alternateSkill;
+        _ultimateSkill = unit.ultimateSkill;
+    }
+    void AssignRelicSkillTargets()
+    {
         relicSkillPassiveTarget.skillData = _combatManager.activeRelic.passiveSkill;
         relicSkillBasicTarget.skillData = _combatManager.activeRelic.basicSkill;
         relicSkillPrimaryTarget.skillData = _combatManager.activeRelic.primarySkill;
@@ -125,6 +138,7 @@ public class SkillUIManager : MonoBehaviour
         relicSkillAlternateTarget.skillData = _combatManager.activeRelic.alternateSkill;
         relicSkillUltimateTarget.skillData = _combatManager.activeRelic.ultimateSkill;
     }
+
     void UpdateSkillAesthetics()
     {
         relicSkillPassiveTarget.AssignSkillUIAesthetics();
@@ -161,6 +175,7 @@ public class SkillUIManager : MonoBehaviour
     {
         GameObject go = Instantiate(skillUIText, skillUIValueParent.position, Quaternion.identity);    // Initialize
         SkillValueUI skillValueUI = go.GetComponent<SkillValueUI>();    // Initialize
+        target.storedskillValueUI.Add(skillValueUI);    // add skill value ui to unit for on destroy
         go.GetComponent<SkillValueUI>().skillUIManager = this;    // Initialize
         Text text = go.GetComponent<Text>();    // Initalization
         go.transform.SetParent(skillUIValueParent);    // Set parent
@@ -232,7 +247,7 @@ public class SkillUIManager : MonoBehaviour
         skillData.onCooldown = true;
     }
 
-    void SetSkillCooldown(SkillData skillData)
+    public void UpdateSkillCooldown(SkillData skillData)
     {
         if (skillData.curCooldown != 0)
             skillData.curCooldown--;
@@ -240,63 +255,71 @@ public class SkillUIManager : MonoBehaviour
         if (skillData.curCooldown == 0)
             skillData.onCooldown = false;
 
-        UpdateSkillCooldownVisuals(skillData);
+        //UpdateSkillCooldownVisuals(skillData);
     }
 
-    public void UpdateSkillCooldownVisuals(SkillData skillData)
+    public void UpdateSkillCooldownVisuals(SkillData skillData, Unit.UnitType unitType)
     {
-        switch (skillData.skillType)
+        if (unitType == Unit.UnitType.ENEMY)
         {
-            case "Passive":
-                target = relicSkillPassiveTarget;
-                break;
-            case "Basic":
-                target = relicSkillBasicTarget;
-                break;
-            case "Primary":
-                target = relicSkillPrimaryTarget;
-                break;
-            case "Secondary":
-                target = relicSkillSecondaryTarget;
-                break;
-            case "Alternate":
-                target = relicSkillAlternateTarget;
-                break;
-            case "Ultimate":
-                target = relicSkillUltimateTarget;
-                break;
-        }
 
-        // Loop through each relic skill to see which target to use
-        if (skillData.turnCooldown == 0)
-        {
-            target.cooldownImage.fillAmount = 0;
-            target.cooldownText.text = "";
-            return;
         }
+        else if (unitType == Unit.UnitType.ALLY)
+        {
+            switch (skillData.skillType)
+            {
+                case "Passive":
+                    target = relicSkillPassiveTarget;
+                    break;
+                case "Basic":
+                    target = relicSkillBasicTarget;
+                    break;
+                case "Primary":
+                    target = relicSkillPrimaryTarget;
+                    break;
+                case "Secondary":
+                    target = relicSkillSecondaryTarget;
+                    break;
+                case "Alternate":
+                    target = relicSkillAlternateTarget;
+                    break;
+                case "Ultimate":
+                    target = relicSkillUltimateTarget;
+                    break;
+            }
 
-        if (skillData.curCooldown != 0)
-        {
-            float val = (float)skillData.curCooldown / (float)skillData.turnCooldown;
-            target.cooldownImage.fillAmount = Mathf.Round(val * 100) / 100f;
-            target.cooldownText.text = skillData.curCooldown.ToString();
+            // Loop through each relic skill to see which target to use
+            if (skillData.turnCooldown == 0)
+            {
+                target.cooldownImage.fillAmount = 0;
+                target.cooldownText.text = "";
+                return;
+            }
+
+            if (skillData.curCooldown != 0)
+            {
+                float val = (float)skillData.curCooldown / (float)skillData.turnCooldown;
+                target.cooldownImage.fillAmount = Mathf.Round(val * 100) / 100f;
+                target.cooldownText.text = skillData.curCooldown.ToString();
+            }
+            else
+            {
+                target.cooldownImage.fillAmount = 0;
+                target.cooldownText.text = "";
+            }
         }
-        else
-        {
-            target.cooldownImage.fillAmount = 0;
-            target.cooldownText.text = "";
-        }
+ 
     }
 
     public void DecrementSkillCooldown()
     {
         // Decrease all relic's cooldown
-        SetSkillCooldown(_relicPassiveSkill);
-        SetSkillCooldown(_relicBasicSkill);
-        SetSkillCooldown(_relicPrimarySkill);
-        SetSkillCooldown(_relicSecondarySkill);
-        SetSkillCooldown(_relicAlternateSkill);
-        SetSkillCooldown(_relicUltimateSkill);
+        UpdateSkillCooldown(_passiveSkill);
+        UpdateSkillCooldown(_basicSkill);
+        UpdateSkillCooldown(_primarySkill);
+        UpdateSkillCooldown(_secondarySkill);
+        UpdateSkillCooldown(_alternateSkill);
+        UpdateSkillCooldown(_ultimateSkill);
     }
 
     private int RoundFloatToInt(float f)

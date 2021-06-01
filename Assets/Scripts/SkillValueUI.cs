@@ -111,8 +111,12 @@ public class SkillValueUI : MonoBehaviour
             DestroySkillUI();
     }
 
-    void DestroySkillUI()
+    public void DestroySkillUI()
     {
+        if (stopping)
+        {
+            stopping = false;
+        }
         skillUIManager.RemoveText(this);
         Destroy(this.gameObject);
     }

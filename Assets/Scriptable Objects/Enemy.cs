@@ -30,7 +30,7 @@ public class Enemy : ScriptableObject
     [Header("Growth Stats")]
     public int powerGrowth;
     public int healthGrowth;
-    public int manaGrowth;
+    public int energyGrowth;
     public int maxManaGrowth;
 
     [Space(3)]

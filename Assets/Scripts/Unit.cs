@@ -8,6 +8,9 @@ public class Unit : MonoBehaviour
     public enum UnitType { ALLY, ENEMY };
     public UnitType unitType;
 
+    public enum UnitState { ALIVE, DEAD };
+    public UnitState unitState;
+
     [Header("Main")]
     public new string name;
     public int level = 1;
@@ -62,7 +65,7 @@ public class Unit : MonoBehaviour
 
     [Space(3)]
 
-    private GameObject unitGO;
+    [SerializeField] private GameObject unitGO;
 
     [Space(3)]
 
@@ -87,7 +90,7 @@ public class Unit : MonoBehaviour
     [HideInInspector]
     public Target target;
     private DevManager _devManager;
-    private Skill _activeSkill;
+    public SkillData activeSkill;
     [HideInInspector]
     public List<Unit> targets = new List<Unit>();
     private CombatManager _combatManager;
@@ -111,6 +114,9 @@ public class Unit : MonoBehaviour
     [HideInInspector]
     public int effectHitCount;
 
+    [HideInInspector]
+    public List<SkillValueUI> storedskillValueUI = new List<SkillValueUI>();
+
     private void Awake()
     {
         _devManager = FindObjectOfType<DevManager>();
@@ -118,21 +124,19 @@ public class Unit : MonoBehaviour
         _skillUIManager = FindObjectOfType<SkillUIManager>();
     }
 
-    public void DetermineUnitMoveChoice(Unit unit, SkillData skillData = null)
+    public IEnumerator DetermineUnitMoveChoice(Unit unit, SkillData skillData = null)
     {
         if (unitType == UnitType.ENEMY)
         {
+            yield return new WaitForSeconds(_combatManager.enemySkillAnimationTime);
+
             // If enemy unit has enough mana for basic skill
             if (curMana >= basicSkill.manaRequired)
                 StartCoroutine(UnitSkillFunctionality(false, basicSkill, _combatManager.enemyThinkTime));    //Use enemy's basic skill
             // If enemy unit has no mana for any skill
             else
-                _combatManager.EndTurn();   // End turn
+                _combatManager.EndTurn();    // If combat did not end, end turn 
         }
-
-        if (unitType == UnitType.ALLY)
-            if (curMana >= skillData.manaRequired)
-                StartCoroutine(UnitSkillFunctionality(true, skillData));
     }
 
     void SelectEnemySkillValueMultiplier()
@@ -155,6 +159,11 @@ public class Unit : MonoBehaviour
             // Set target 
             _combatManager.activeRelic.target.ToggleSelectionImage();
             _combatManager.unitTargets.Add(_combatManager.activeRelic.target);
+
+            // Update mana on first hit for skill mana cost
+            if (skillData.curHitsCompleted == 0)
+                StartCoroutine(_combatManager.activeUnit.UpdateCurMana(skillData.manaRequired, false));
+                //_combatManager.activeAttackBar.MoveAttackBar(true);
         }
 
         yield return new WaitForSeconds(time);
@@ -167,10 +176,6 @@ public class Unit : MonoBehaviour
 
         skillData.curHitsCompleted++;   // Increase current hits completed by 1
 
-        // Update mana on first hit for skill mana cost
-        if (skillData.curHitsCompleted == 1)
-            StartCoroutine(UpdateCurMana(skillData.manaRequired, false));
-
         yield return new WaitForSeconds(time);  // Time for skill animation 
 
         // Only if relic, set up for attack bar
@@ -179,7 +184,7 @@ public class Unit : MonoBehaviour
             if (skillData.curHitsCompleted == skillData.hitsRequired)
             {
                 _skillUIManager.SetSkillMaxCooldown(skillData);
-                _skillUIManager.UpdateSkillCooldownVisuals(skillData);
+                _skillUIManager.UpdateSkillCooldown(skillData);
             }
 
             else if (skillData.curHitsCompleted >= skillData.hitsRequired)
@@ -269,7 +274,6 @@ public class Unit : MonoBehaviour
                     case "None":
                         break;
                 }
-
                 break;
 
             case "Allies":
@@ -283,7 +287,6 @@ public class Unit : MonoBehaviour
                     case "None":
                         break;
                 }
-
                 break;
 
             case "None":
@@ -294,17 +297,16 @@ public class Unit : MonoBehaviour
             _combatManager.activeAttackBar.MoveAttackBar(false);
 
         // Disable the back button after the first hit of the skill
-        if (skillData.curHitsCompleted == 1)
+        if (skillData.curHitsCompleted == 1 && unitType == UnitType.ALLY)
         {
             yield return new WaitForSeconds(_combatManager.activeAttackBar.timeTillAttackBarReturns);
             _combatManager.activeAttackBar.ToggleBackButton(false, true);
         }
 
-
         // If this attack was the last required hit
         if (skillData.curHitsCompleted == skillData.hitsRequired)
         {
-            _combatManager.activeAttackBar.ToggleSkillActive(false);
+            _combatManager.activeAttackBar.UpdateActiveSkill(false);
             _combatManager.ClearUnitTargets();
             _skillUIManager.UpdateSkillStatus(SkillUIManager.SkillStatus.DISABLED);   // Update skill status to disabled
             skillData.curHitsCompleted = 0;
@@ -313,7 +315,7 @@ public class Unit : MonoBehaviour
 
             // If enemy skill, go back to thought process after last hit of a skill
             if (unitType == UnitType.ENEMY)
-                DetermineUnitMoveChoice(this, skillData);
+                StartCoroutine(DetermineUnitMoveChoice(this, skillData));
         }
     }
 
@@ -384,6 +386,12 @@ public class Unit : MonoBehaviour
         hitWaveCountEffect = 0;
     }
 
+    public void UpdateUnitState(UnitState unitState)
+    {
+        this.unitState = unitState;
+
+    }
+
     #region Update Unit Type
     public void UpdateUnitType(UnitType unitType)
     {
@@ -432,6 +440,14 @@ public class Unit : MonoBehaviour
         energyImage.fillAmount = (float)turnEnergy / 100f;
     }
 
+    public bool HasEnoughManaForSkill()
+    {
+        if (curMana >= _combatManager.activeSkill.manaRequired)
+            return true;
+        else
+            return false;
+    }
+
     #endregion
     #region Update Health Stat
     /// <summary>
@@ -451,11 +467,22 @@ public class Unit : MonoBehaviour
 
         if (inCombat)
         {
-            if (isEffect)
-                curHealth -= RoundFloatToInt(effectVal);
-            else
-                curHealth += RoundFloatToInt(valDefault);
+            curHealth += RoundFloatToInt(valDefault);
 
+            // If health change is result of last hit of skill, check if unit died
+            if (attackData.curHitsCompleted == attackData.hitsRequired)
+            {
+                // If unit's health is 0 or lower, destroy unit
+                if (curHealth <= 0)
+                {
+                    curHealth = 0;
+
+                    UpdateUnitState(UnitState.DEAD);
+
+                    if (unitType == UnitType.ENEMY)
+                        StartCoroutine(DestroyUnit(false));
+                }
+            }
             _combatManager.skillUIManager.DisplaySkillValue(caster, target, activeSkillUIParent, valDefault, attackData);
         }
         else
@@ -475,9 +502,50 @@ public class Unit : MonoBehaviour
 
     public void UpdateCurHealthVisual()
     {
-        float val = curHealth / maxHealth;
+        float val = (curHealth / maxHealth);
         healthImage.fillAmount = val;
     }
+    public IEnumerator DestroyUnit(bool combatEnd)
+    {
+        if (unitType == UnitType.ENEMY)
+        {
+            if (combatEnd)
+                yield return new WaitForSeconds(0);
+            else
+                yield return new WaitForSeconds(_combatManager.enemyDeathTime);
+        }
+
+        else if (unitType == UnitType.ALLY)
+            yield return new WaitForSeconds(0);
+
+        // Remove from unit selection if in one
+        if (target.selectEnabled)
+            target.ToggleSelectionImage();
+
+        DestroyAllSkillValueUI();   // Destroy persisting skill value UI
+
+        // Remove from stored variables
+        _combatManager.RemoveEnemy(this);    // remove from enemies  
+        _combatManager.RemoveUnitTurnOrder(this);    // remove from turn order
+        _combatManager.RemoveEnemyPosition(this);     // remove from enemiesposition
+
+        // If dead unit is an enemy, and it's the last one, end turn
+        if (unitType == UnitType.ENEMY)
+            if (_combatManager.enemyCount() == 0)
+                _combatManager.EndTurn();
+
+        Destroy(this.gameObject);
+    }
+
+    void DestroyAllSkillValueUI()
+    {
+        for (int i = 0; i < storedskillValueUI.Count; i++)
+        {
+            if (_skillUIManager.storedSkillValueUI.Contains(storedskillValueUI[i]))
+                storedskillValueUI[i].DestroySkillUI();
+        }
+    }
+
     #endregion
     #region Update Energy Stats
     public IEnumerator UpdateCurMana(int mana, bool positive = true)
@@ -631,12 +699,10 @@ public class Unit : MonoBehaviour
 
     public void AssignUI()
     {
-        unitGO = Instantiate(_combatManager.unitUI, transform.position, Quaternion.identity);
         unitGO.transform.SetParent(transform);
-        unitGO.transform.localPosition = new Vector2(-26, 82);
         healthImage = unitGO.transform.Find("Health/Current Health Image").GetComponent<Image>();
         nameText = unitGO.transform.Find("Name/Name Text").GetComponent<Text>();
-        energyImage = unitGO.transform.Find("Mana/Energy BG/Current Energy Image").GetComponent<Image>();
+        energyImage = unitGO.transform.Find("Energy/Current Energy Image").GetComponent<Image>();
         manaImage = unitGO.transform.Find("Mana/Current Mana Image").GetComponent<Image>();
 
         effectParent = unitGO.transform.Find("Effects").transform; // Assign effects parent
