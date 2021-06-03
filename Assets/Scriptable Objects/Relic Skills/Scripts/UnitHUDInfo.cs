@@ -5,6 +5,9 @@ using UnityEngine.UI;
 
 public class UnitHUDInfo : MonoBehaviour
 {
+    private CombatManager _combatManager;
+    private UIManager _uiManager;
+
     [Header("Main")]
     [SerializeField] private Text unitNameText;
     [SerializeField] private Image unitPortrait;
@@ -13,43 +16,55 @@ public class UnitHUDInfo : MonoBehaviour
     [SerializeField] private Text unitManaText;
     [SerializeField] private Text unitEnergyText;
 
+    [Space(1)]
+
+    [Header("Panels")]
+    [SerializeField] private Image allSkillPanel;
+    [SerializeField] private Image activeSkillPanel;
+
     [Space(3)]
 
     [Header("Skills")]
     [SerializeField] private Image passiveSkillImage;
-    [SerializeField] private Text passiveSkillManaCost;
     [SerializeField] private Image passiveCDImage;
+    [SerializeField] private Image passiveDisabledImage;
     [SerializeField] private Text passiveCDText;
+    [SerializeField] private Button passiveButton;
 
     [Space(1)]
     [SerializeField] private Image basicSkillImage;
-    [SerializeField] private Text basicSkillManaCost;
     [SerializeField] private Image basicCDImage;
+    [SerializeField] private Image basicDisabledImage;
     [SerializeField] private Text basicCDText;
+    [SerializeField] private Button basicButton;
 
     [Space(1)]
     [SerializeField] private Image primarySkillImage;
-    [SerializeField] private Text primarySkillManaCost;
     [SerializeField] private Image primaryCDImage;
+    [SerializeField] private Image primaryDisabledImage;
     [SerializeField] private Text primaryCDText;
+    [SerializeField] private Button primaryButton;
 
     [Space(1)]
     [SerializeField] private Image secondarySkillImage;
-    [SerializeField] private Text secondarySkillManaCost;
     [SerializeField] private Image secondaryCDImage;
+    [SerializeField] private Image secondaryDisabledImage;
     [SerializeField] private Text secondaryCDText;
+    [SerializeField] private Button secondaryButton;
 
     [Space(1)]
     [SerializeField] private Image alternateSkillImage;
-    [SerializeField] private Text alternateSkillManaCost;
     [SerializeField] private Image alternateCDImage;
+    [SerializeField] private Image alternateDisabledImage;
     [SerializeField] private Text alternateCDText;
+    [SerializeField] private Button alternateButton;
 
     [Space(1)]
     [SerializeField] private Image ultimateSkillImage;
-    [SerializeField] private Text ultimateSkillManaCost;
     [SerializeField] private Image ultimateCDImage;
+    [SerializeField] private Image ultimateDisabledImage;
     [SerializeField] private Text ultimateCDText;
+    [SerializeField] private Button ultimateButton;
 
     [Space(3)]
 
@@ -66,15 +81,36 @@ public class UnitHUDInfo : MonoBehaviour
     [Space(1)]
 
     private Unit unit;
+
+    private void Awake()
+    {
+        _uiManager = FindObjectOfType<UIManager>();
+        _combatManager = FindObjectOfType<CombatManager>();
+    }
+
+    private void Start()
+    {
+        passiveButton.onClick.AddListener(SetActiveSkill); // Add skill button listener
+        basicButton.onClick.AddListener(SetActiveSkill); // Add skill button listener
+        primaryButton.onClick.AddListener(SetActiveSkill); // Add skill button listener
+        secondaryButton.onClick.AddListener(SetActiveSkill); // Add skill button listener
+        alternateButton.onClick.AddListener(SetActiveSkill); // Add skill button listener
+        ultimateButton.onClick.AddListener(SetActiveSkill); // Add skill button listener
+    }
     public void SetValues(Unit unit)
     {
         this.unit = unit;
 
         SetUnit();
         SetSkills();
-        SetActiveSkill();
+        ToggleUnitHUDUI(true, _combatManager.swapTeamUnitMovespeed);
     }
 
+    public IEnumerator ToggleUnitHUDUI(bool enable, float time)
+    {
+        yield return new WaitForSeconds(time);
+        StartCoroutine(_uiManager.ToggleImage(_uiManager.enemySkillUIGO, enable));
+    }
     void SetUnit()
     {
         SetUnitName(unit.name);
@@ -87,19 +123,12 @@ public class UnitHUDInfo : MonoBehaviour
 
     void SetSkills()
     {
-        //SetSkillImage(unit.passiveSkill.)
-        //SetSkillImage(unit.passiveSkill.)
-        //SetSkillImage(unit.passiveSkill.)
-        //SetSkillImage(unit.passiveSkill.)
-        //SetSkillImage(unit.passiveSkill.)
-        //SetSkillImage(unit.passiveSkill.)
-
-        SetSkillManaCost(passiveSkillManaCost, unit.passiveSkill.manaRequired);
-        SetSkillManaCost(basicSkillManaCost, unit.basicSkill.manaRequired);
-        SetSkillManaCost(primarySkillManaCost, unit.primarySkill.manaRequired);
-        SetSkillManaCost(secondarySkillManaCost, unit.secondarySkill.manaRequired);
-        SetSkillManaCost(alternateSkillManaCost, unit.alternateSkill.manaRequired);
-        SetSkillManaCost(ultimateSkillManaCost, unit.ultimateSkill.manaRequired);
+        ToggleSkillInvalidImage(passiveDisabledImage, unit.passiveSkill.manaRequired);
+        ToggleSkillInvalidImage(basicDisabledImage, unit.basicSkill.manaRequired);
+        ToggleSkillInvalidImage(primaryDisabledImage, unit.primarySkill.manaRequired);
+        ToggleSkillInvalidImage(secondaryDisabledImage, unit.secondarySkill.manaRequired);
+        ToggleSkillInvalidImage(alternateDisabledImage, unit.alternateSkill.manaRequired);
+        ToggleSkillInvalidImage(ultimateDisabledImage, unit.ultimateSkill.manaRequired);
 
         SetCDImage(passiveCDImage, unit.passiveSkill.curCooldown, unit.passiveSkill.turnCooldown);
         SetCDImage(basicCDImage, unit.basicSkill.curCooldown, unit.basicSkill.turnCooldown);
@@ -116,17 +145,20 @@ public class UnitHUDInfo : MonoBehaviour
         SetCDText(ultimateCDText, unit.ultimateSkill.curCooldown);
     }
 
-    void SetActiveSkill()
+    public void SetActiveSkill()
     {
         if (unit.activeSkill != null)
         {
-            //SetActiveSkillImage();
             SetActiveSkillNameText(unit.activeSkill.name);
             SetActiveSkillDescText(unit.activeSkill.description);
             SetActiveSkillManaCostText(unit.activeSkill.manaRequired);
             SetActiveSkilCDText(unit.activeSkill.turnCooldown);
             SetActiveSkillValue(unit.activeSkill.goodValueMultiplier);
             SetActiveSkillRemainingCDText(unit.activeSkill.curCooldown);
+
+            TogglePanel(activeSkillPanel, true);
+            TogglePanel(allSkillPanel, false);
+            //SetActiveSkillImage();
         }
     }
 
@@ -164,16 +196,35 @@ public class UnitHUDInfo : MonoBehaviour
     #endregion
 
     #region Skill Properties
- 
-
     void SetSkillImage(Image image)
     {
         passiveSkillImage.sprite = image.sprite;
     }
 
+    void TogglePanel(Image image, bool enable)
+    {
+        image.enabled = enable;
+    }
+
+    void ToggleSkillInvalidImage(Image image, float requiredMana)
+    {
+        if (unit.curMana <= requiredMana)
+            image.enabled = false;
+        else
+            image.enabled = true;
+    }
+
+    public void ToggleSkillSelection(Image image, bool enable)
+    {
+        image.enabled = enable;
+    }
+
     void SetSkillManaCost(Text text, int manaCost)
     {
-        text.text = manaCost.ToString();
+        if (manaCost != 0)
+            text.text = manaCost.ToString();
+        else
+            text.text = "";
     }
 
     void SetCDImage(Image image, float curCD, float maxCD)
@@ -184,9 +235,9 @@ public class UnitHUDInfo : MonoBehaviour
     void SetCDText(Text text, int cooldown)
     {
         if (cooldown == 0)
-            passiveCDText.text = "";
+            text.text = "";
         else
-            passiveCDText.text = cooldown.ToString();
+            text.text = cooldown.ToString();
     }
     #endregion
 

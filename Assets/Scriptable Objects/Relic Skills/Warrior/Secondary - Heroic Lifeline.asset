@@ -17,7 +17,7 @@ MonoBehaviour:
   targetType: None
   targetsAllowed: None
   hitsRequired: 0
-  energyRequired: 3
+  manaRequired: 0
   timeBetweenHitUI: 0
   timeTillEffectInflict: 0
   timeForNextHitMarker: 0
@@ -37,7 +37,7 @@ MonoBehaviour:
   description: 'Heal a small amount, but inflict yourself with Curse. Increase the
     heal amount for each stack of mark on all room enemies. Over Heal will increase
     your health passed the maximum health. '
-  turnCooldown: 4
+  turnCooldown: 0
   missValueMultiplier: 0
   goodValueMultiplier: 1
   greatValueMultiplier: 1.3

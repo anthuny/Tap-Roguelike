@@ -5,13 +5,13 @@ using UnityEngine.UI;
 
 public class AttackBar : MonoBehaviour 
 {
-    private UIManager _UIManager;
+    public UIManager _UIManager;
 
     // Inspector variables
     [Header("Main")]
     [SerializeField] private Gamemode _gamemode; 
-    [SerializeField] private CombatManager _combatManager;
-    [SerializeField] private GameObject hitMarker;
+    public CombatManager _combatManager;
+    public GameObject hitMarkerPar;
     [SerializeField] private Button _attackButton;
     [SerializeField] private int _hitMarkerStopMouseCode;
     public int skillUIFontSize;
@@ -33,8 +33,8 @@ public class AttackBar : MonoBehaviour
     [SerializeField] private List<Transform> _hitAreas = new List<Transform>();
 
     [Header("Relic UI")]
-    public GraphicRaycaster relicUIGR;
-    private CanvasGroup relicUICG;
+    public GameObject skillsUIGO;
+    private CanvasGroup skillsUICGGO;
     public CanvasGroup relicUIHider;
     public float _relicUIHiderOffVal;
     public float _relicUIHiderSelectVal;
@@ -47,7 +47,7 @@ public class AttackBar : MonoBehaviour
     [Header("Attack Bar Skill Movement")]
     public Transform skillActiveTrans;
     public Transform defaultTrans;
-    [HideInInspector]
+    //[HideInInspector]
     public bool skillActive;
     private bool activatedBackButton;
     [HideInInspector]
@@ -57,7 +57,7 @@ public class AttackBar : MonoBehaviour
     // Public
     [HideInInspector]
     public Collider2D activeHitMarkerCollider;
-    [HideInInspector]
+    //[HideInInspector]
     public HitMarker activeHitMarker;
     [HideInInspector]
     public HitBar curCollidingHitArea;
@@ -65,7 +65,6 @@ public class AttackBar : MonoBehaviour
     public bool canHit;
     [HideInInspector]
     public bool startingMoving;
-    [HideInInspector]
     public GameObject hitMarkerGO;
     // Private
     private RectTransform _hitMarkerRT;
@@ -81,8 +80,24 @@ public class AttackBar : MonoBehaviour
         InitialLaunch();
 
         _UIManager = FindObjectOfType<UIManager>();
+
+        HideRelicAtackUI();
     }
 
+    public void HideRelicAtackUI()
+    {
+        StartCoroutine(_UIManager.ToggleImage(_UIManager.cancelAttackGO, false));   // Disable cancel attack button
+        StartCoroutine(_UIManager.ToggleImage(_UIManager.hitsRemainingTextGO, false));  // Hide hits remaining text
+        StartCoroutine(_UIManager.ToggleImage(_UIManager.skillsUIGO, false));   // Hide relic skills UI
+        StartCoroutine(_UIManager.ToggleImage(_UIManager.endTurnGO, false));    // Enable end turn button
+        StartCoroutine(_UIManager.ToggleImage(_UIManager.attackBarGO, false));    // Enable end turn button
+        StartCoroutine(_UIManager.ToggleImage(_UIManager.relicActiveSkillDetailsGO, false));    // Enable relic Active Skill Details image
+    }
+
+    public void Refresh()
+    {
+        HideRelicAtackUI();
+    }
     public void LandHitMarker()
     {      
         // Check if the user performed the land hit marker input
@@ -94,23 +109,11 @@ public class AttackBar : MonoBehaviour
     {
         skillActive = active;
     }
+
     void InitialLaunch()
     {
         _combatManager = FindObjectOfType<CombatManager>();
-        relicUICG = relicUIGR.gameObject.GetComponent<CanvasGroup>();
-    }
-
-    public void DisableBarVisuals()
-    {
-        for (int i = 0; i < _checkPoints.Count; i++)
-        {
-            _checkPoints[i].GetChild(0).gameObject.SetActive(false);
-        }
-
-        for (int x = 0; x < _spawnPoints.Count; x++)
-        {
-            _spawnPoints[x].GetChild(0).gameObject.SetActive(false);
-        }
+        skillsUICGGO = skillsUIGO.gameObject.GetComponent<CanvasGroup>();
     }
 
     /// <summary>
@@ -147,43 +150,49 @@ public class AttackBar : MonoBehaviour
         return Vector3.zero;
     }
 
-    public void MoveAttackBar(bool activating)
+    public void UpdateSkillActive(bool enable)
     {
-        ToggleBackButton(activating);
+        skillActive = enable;
+    }
 
-        if (activating)
+    public void ToggleRelicAttackUI(bool enable)
+    {
+        UpdateSkillActive(enable);
+
+        _UIManager = FindObjectOfType<UIManager>();
+        if (!enable)
         {
-            transform.position = skillActiveTrans.position;
-            ToggleRelicSkillUIInput(false);
-            UpdateUIAlpha(relicUICG, 0);
-        }
+            StartCoroutine(_UIManager.ToggleImage(_UIManager.cancelAttackGO, false));   // Disable cancel attack button
+            StartCoroutine(_UIManager.ToggleImage(_UIManager.hitsRemainingTextGO, false));  // Hide hits remaining text
+            StartCoroutine(_UIManager.ToggleImage(_UIManager.skillsUIGO, true));   // Show relic skills UI
+            StartCoroutine(_UIManager.ToggleImage(_UIManager.endTurnGO, true));    // Show end turn button
 
+            if (_combatManager)
+                _combatManager.relicActiveSkill = null;     // When exiting a skill, remove it from being the relic active skill
+        }
         else
         {
-            transform.position = defaultTrans.position;
-            ToggleRelicSkillUIInput(true);
-            UpdateUIAlpha(relicUICG, 1);
-
-            _combatManager.relicActiveSkill = null;     // When exiting a skill, remove it from being the relic active skill
+            StartCoroutine(_UIManager.ToggleImage(_UIManager.cancelAttackGO, true));   // Show cancel attack button
+            StartCoroutine(_UIManager.ToggleImage(_UIManager.attackBarGO, true));  // Show attack bar.
+            StartCoroutine(_UIManager.ToggleImage(_UIManager.hitsRemainingTextGO, true));  // Show hits remaining text
+            StartCoroutine(_UIManager.ToggleImage(_UIManager.skillsUIGO, false));   // Hide relic skills UI
+            StartCoroutine(_UIManager.ToggleImage(_UIManager.endTurnGO, false));
         }
     }
-
-    public void BackButtonFunctionality()
+    public void BackButtonFunctionality(bool wasButton)
     {
+        _combatManager = FindObjectOfType<CombatManager>();
         _combatManager.ClearSkillTargets();  // Clear skill targets
 
-        MoveAttackBar(true);
-        _UIManager.ToggleImage(_UIManager.endTurnGO, true);    // Enabled end turn button
+        ToggleRelicAttackUI(false);
 
-        // Give mana back to relic for cancelling the skill
-        StartCoroutine(_combatManager.activeUnit.UpdateCurMana(_combatManager.activeSkill.manaRequired, true));
+        //Destroy hit markers
+        if (activeHitMarker)
+            DestroyActiveHitMarker(0);
 
-        //MoveAttackBar(false);
-    }
-
-    public void ToggleImage(GameObject imageGO, bool enabled)
-    {
-        _UIManager.ToggleImage(imageGO, enabled);
+        if (wasButton)
+            // Give mana back to relic for cancelling the skill
+            StartCoroutine(_combatManager.activeUnit.UpdateCurMana(_combatManager.activeSkill.manaRequired, true));
     }
 
     public void UpdateRemainingHitsText(bool cond, int val = 0)
@@ -191,25 +200,6 @@ public class AttackBar : MonoBehaviour
         _hitsRemainingText.UpdateRemainingHitText(cond, val);
     }
 
-    public void ToggleBackButton(bool cond, bool iso = false)
-    {
-        _UIManager.ToggleImage(_UIManager.cancelAttackGO, cond);
-
-        if (!iso)
-        {
-            skillActive = cond;
-
-            if (!cond)
-            {
-                DestroyActiveHitMarker(0);
-                _combatManager.activeAttackData.Clear();
-                _combatManager.ClearUnitTargets();
-                _combatManager.ClearSkillTargets();
-                _UIManager.ToggleImage(_UIManager.hitsRemainingTextGO, cond);
-            }
-        }
-    }
-        
     public void DestroyActiveHitMarker(float time)
     {
         if (activeHitMarker)
@@ -226,27 +216,23 @@ public class AttackBar : MonoBehaviour
             hitCount = 0;
     }
 
+    void SetActiveHitMarker(GameObject go)
+    {
+        activeHitMarker = go.GetComponent<HitMarker>();
+    }
     public void SpawnHitMarker(SkillData skillData)
     {
         GameObject go = Instantiate(hitMarkerGO, _initialPos, Quaternion.identity);
+        SetActiveHitMarker(go);
+        activeHitMarker.SetPositions(_checkPoints[0].GetComponent<RectTransform>().localPosition, _checkPoints[1].GetComponent<RectTransform>().localPosition);
+        activeHitMarker.SetSpeed(_speed);
+
         _hitBar = go.GetComponent<HitBar>();
-
-        go.name = "Hit Marker"; 
-        HitMarker hitMarkerScript = go.GetComponent<HitMarker>();
-        activeHitMarker = hitMarkerScript;
-        go.transform.SetParent(hitMarker.transform);
-
-        hitMarkerScript.initialPos = _checkPoints[0].GetComponent<RectTransform>().localPosition;
-        hitMarkerScript.nextPos = _checkPoints[1].GetComponent<RectTransform>().localPosition;
-        hitMarkerScript.speed = _speed;
-        hitMarkerScript.attackBar = this;
 
         if (_combatManager.relicActiveSkill.curHitsCompleted == 0)
             UpdateRemainingHitsText(true, -(_combatManager.relicActiveSkill.hitsRequired - hitCount));
 
         activeHitMarkerCollider = go.GetComponent<BoxCollider2D>();
-        activeHitMarker = hitMarkerScript;
-        activeHitMarker.SetAsActiveHitMarker();
         _hitMarkerVisual = go.transform.GetChild(0).gameObject;
     }
 
@@ -281,10 +267,5 @@ public class AttackBar : MonoBehaviour
     public void UpdateUIAlpha(CanvasGroup canvasGroup, float alpha)
     {
         canvasGroup.alpha = alpha;
-    }
-
-    void ToggleRelicSkillUIInput(bool cond)
-    {
-        relicUIGR.enabled = cond;
     }
 }

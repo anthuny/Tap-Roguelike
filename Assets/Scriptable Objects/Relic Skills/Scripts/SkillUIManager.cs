@@ -7,6 +7,7 @@ public class SkillUIManager : MonoBehaviour
 {
     private CombatManager _combatManager;
     private UIManager _UIManager;
+    private UnitHUDInfo _unitHUDInfo;
 
     public enum SkillStatus { DISABLED, ACTIVE}
     public SkillStatus skillStatus;
@@ -28,6 +29,12 @@ public class SkillUIManager : MonoBehaviour
     public Target relicSkillSecondaryTarget;
     public Target relicSkillAlternateTarget;
     public Target relicSkillUltimateTarget;
+    public Target enemySkillPassiveTarget;
+    public Target enemySkillBasicTarget;
+    public Target enemySkillPrimaryTarget;
+    public Target enemySkillSecondaryTarget;
+    public Target enemySkillAlternateTarget;
+    public Target enemySkillUltimateTarget;
     [Space(2)]
     [Tooltip("Text GameObject to instantiate")]
     [SerializeField] private GameObject skillUIText;
@@ -60,17 +67,8 @@ public class SkillUIManager : MonoBehaviour
     {
         _combatManager = FindObjectOfType<CombatManager>();
         _UIManager = FindObjectOfType<UIManager>();
-        _UIManager.ToggleImage(_UIManager.endTurnGO, false);
-    }
-
-    public void UpdateSkillStatus(SkillStatus skillStatus)
-    {
-        this.skillStatus = skillStatus;
-
-        if (skillStatus == SkillStatus.ACTIVE)
-            _UIManager.ToggleImage(_UIManager.endTurnGO, false);
-        else
-            _UIManager.ToggleImage(_UIManager.endTurnGO, true);
+        _unitHUDInfo = FindObjectOfType<UnitHUDInfo>();
+        StartCoroutine(_UIManager.ToggleImage(_UIManager.endTurnGO, false));
     }
 
     // When Relic selects a skill to attack with
@@ -92,7 +90,7 @@ public class SkillUIManager : MonoBehaviour
 
             // Update mana on first hit for skill mana cost
             StartCoroutine(_combatManager.activeUnit.UpdateCurMana(_combatManager.activeSkill.manaRequired, false));
-            _combatManager.activeAttackBar.MoveAttackBar(true);
+            _combatManager.activeAttackBar.ToggleRelicAttackUI(true);       
         }
         // If the unit doesnt have enough mana for active skill, dont cast skill
         else
@@ -250,7 +248,10 @@ public class SkillUIManager : MonoBehaviour
     public void UpdateSkillCooldown(SkillData skillData)
     {
         if (skillData.curCooldown != 0)
+        {
+            skillData.onCooldown = true;
             skillData.curCooldown--;
+        }
 
         if (skillData.curCooldown == 0)
             skillData.onCooldown = false;
@@ -262,7 +263,27 @@ public class SkillUIManager : MonoBehaviour
     {
         if (unitType == Unit.UnitType.ENEMY)
         {
-
+            switch (skillData.skillType)
+            {
+                case "Passive":
+                    target = enemySkillPassiveTarget;
+                    break;
+                case "Basic":
+                    target = enemySkillBasicTarget;
+                    break;
+                case "Primary":
+                    target = enemySkillPrimaryTarget;
+                    break;
+                case "Secondary":
+                    target = enemySkillSecondaryTarget;
+                    break;
+                case "Alternate":
+                    target = enemySkillAlternateTarget;
+                    break;
+                case "Ultimate":
+                    target = enemySkillUltimateTarget;
+                    break;
+            }
         }
         else if (unitType == Unit.UnitType.ALLY)
         {
@@ -287,28 +308,27 @@ public class SkillUIManager : MonoBehaviour
                     target = relicSkillUltimateTarget;
                     break;
             }
-
-            // Loop through each relic skill to see which target to use
-            if (skillData.turnCooldown == 0)
-            {
-                target.cooldownImage.fillAmount = 0;
-                target.cooldownText.text = "";
-                return;
-            }
-
-            if (skillData.curCooldown != 0)
-            {
-                float val = (float)skillData.curCooldown / (float)skillData.turnCooldown;
-                target.cooldownImage.fillAmount = Mathf.Round(val * 100) / 100f;
-                target.cooldownText.text = skillData.curCooldown.ToString();
-            }
-            else
-            {
-                target.cooldownImage.fillAmount = 0;
-                target.cooldownText.text = "";
-            }
         }
- 
+
+        // Loop through each relic skill to see which target to use
+        if (skillData.turnCooldown == 0)
+        {
+            target.cooldownImage.fillAmount = 0;
+            target.cooldownText.text = "";
+            return;
+        }
+
+        if (skillData.curCooldown != 0)
+        {
+            float val = (float)skillData.curCooldown / (float)skillData.turnCooldown;
+            target.cooldownImage.fillAmount = Mathf.Round(val * 100) / 100f;
+            target.cooldownText.text = skillData.curCooldown.ToString();
+        }
+        else
+        {
+            target.cooldownImage.fillAmount = 0;
+            target.cooldownText.text = "";
+        }
     }
 
     public void DecrementSkillCooldown()

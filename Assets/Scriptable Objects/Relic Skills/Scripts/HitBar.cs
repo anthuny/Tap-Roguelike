@@ -43,25 +43,13 @@ public class HitBar : MonoBehaviour
         // Check if the hit marker collider is touching any hit bar collider
         if (coll.IsTouching(hitAreaCollider))
         {
-            _attackBar.UpdateRemainingHitsText(true, -(_combatManager.relicActiveSkill.hitsRequired - _attackBar.hitCount));
-
-            _combatManager.activeAttackBar.DestroyActiveHitMarker(_combatManager.activeAttackBar.timeTillBarTurnsInvis);
-
-            if (_attackBar.hitCount != _combatManager.relicActiveSkill.hitsRequired)
-            {
-                _combatManager.activeAttackBar.SpawnHitMarker(_combatManager.relicActiveSkill);
-            }
-            else if (_attackBar.hitCount == _combatManager.relicActiveSkill.hitsRequired)
-                _attackBar.ResetHitCount();
-
-
             // Determine which type of hit bar this is
             switch (curBarType)
             {
                 case BarType.PERFECT:
                     Debug.Log("Perfect Hit");
                     _combatManager.activeSkillValueModifier = _combatManager.relicActiveSkill.perfectValueMultiplier;
-                    _combatManager.relicActiveSkillProcModifier = _combatManager.relicActiveSkill.perfectProcMultiplier;                  
+                    _combatManager.relicActiveSkillProcModifier = _combatManager.relicActiveSkill.perfectProcMultiplier;
                     break;
 
                 case BarType.GREAT:
@@ -84,6 +72,20 @@ public class HitBar : MonoBehaviour
             }
 
             StartCoroutine(_combatManager.activeRelic.UnitSkillFunctionality(true, _combatManager.relicActiveSkill));
+
+            _attackBar.UpdateRemainingHitsText(true, -(_combatManager.relicActiveSkill.hitsRequired - _attackBar.hitCount));
+
+            _attackBar.DestroyActiveHitMarker(_combatManager.activeAttackBar.timeTillBarTurnsInvis);
+
+            if (_attackBar.hitCount != _combatManager.relicActiveSkill.hitsRequired)
+            {
+                _attackBar.SpawnHitMarker(_combatManager.relicActiveSkill);
+            }
+            else if (_attackBar.hitCount == _combatManager.relicActiveSkill.hitsRequired)
+                _attackBar.ResetHitCount();
+
+
+
         }
         else
             Debug.LogWarning("This hit bar isn't being collided with");

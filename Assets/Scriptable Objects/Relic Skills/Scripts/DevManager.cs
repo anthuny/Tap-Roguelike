@@ -27,20 +27,6 @@ public class DevManager : MonoBehaviour
     private GameObject activeGO;
     private Text activeText;
 
-
-    private void Awake()
-    {
-        InitialLaunch();
-    }
-
-    public void InitialLaunch()
-    {
-        if (!_devVisualsOn)
-        {
-            _attackBar.DisableBarVisuals();
-        }
-    }
-
     public void FlashText(string castorName = "", string targetName = "", string skillName = "", float skillVal = 0, Unit target = null, int inflictUpTime = 0, string inflictName = "Nothing")
     {
         // If dev mode is not on, do not continue

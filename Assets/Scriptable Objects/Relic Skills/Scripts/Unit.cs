@@ -130,6 +130,8 @@ public class Unit : MonoBehaviour
         {
             yield return new WaitForSeconds(_combatManager.enemySkillAnimationTime);
 
+            StartCoroutine(_combatManager.uIManager.ToggleImage(_combatManager.uIManager.endTurnGO, false));
+
             // If enemy unit has enough mana for basic skill
             if (curMana >= basicSkill.manaRequired)
                 StartCoroutine(UnitSkillFunctionality(false, basicSkill, _combatManager.enemyThinkTime));    //Use enemy's basic skill
@@ -294,21 +296,17 @@ public class Unit : MonoBehaviour
         }
 
         if (relic && skillData.curHitsCompleted == skillData.hitsRequired)
-            _combatManager.activeAttackBar.MoveAttackBar(false);
+            _combatManager.activeAttackBar.BackButtonFunctionality(false);
 
         // Disable the back button after the first hit of the skill
         if (skillData.curHitsCompleted == 1 && unitType == UnitType.ALLY)
-        {
-            yield return new WaitForSeconds(_combatManager.activeAttackBar.timeTillAttackBarReturns);
-            _combatManager.activeAttackBar.ToggleBackButton(false, true);
-        }
+            StartCoroutine(_combatManager.uIManager.ToggleImage(_combatManager.uIManager.cancelAttackGO, false));
 
         // If this attack was the last required hit
         if (skillData.curHitsCompleted == skillData.hitsRequired)
         {
             _combatManager.activeAttackBar.UpdateActiveSkill(false);
             _combatManager.ClearUnitTargets();
-            _skillUIManager.UpdateSkillStatus(SkillUIManager.SkillStatus.DISABLED);   // Update skill status to disabled
             skillData.curHitsCompleted = 0;
             _skillUIManager.HideValueUI();
             _skillUIManager.ResetTextOffset();

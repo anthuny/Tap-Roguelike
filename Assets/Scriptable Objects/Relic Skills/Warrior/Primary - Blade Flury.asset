@@ -36,7 +36,7 @@ MonoBehaviour:
   name: Blade Flury
   description: Send a flurry of blade slashes at up to 6 enemies. Deal increased
     damage to higher amounts of targets.
-  turnCooldown: 3
+  turnCooldown: 0
   missValueMultiplier: 0
   goodValueMultiplier: 1
   greatValueMultiplier: 1.2

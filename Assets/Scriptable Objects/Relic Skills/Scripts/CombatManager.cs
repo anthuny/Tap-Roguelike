@@ -7,19 +7,29 @@ public class CombatManager : MonoBehaviour
 {
     public enum CombatState { NONE, RELICWIN, ENENYWIN}
     public CombatState combatState;
+    private enum PrevUnitType { ALLY, ENEMY }
+    private PrevUnitType prevUnitType;
 
     private DevManager _devManager;
     private UnitHUDInfo _unitHudInfo;
     [HideInInspector]
     public UIManager uIManager;
+    private AnimatorController _animatorController;
 
     [Header("General")]
+    [SerializeField] private Transform _unitPositions;
     [SerializeField] private Transform _enemySpawnPoint;
     [SerializeField] private Transform _relicSpawnPoint;
     [SerializeField] private Room _activeRoom;
     [SerializeField] private AttackBar _attackBar;
     [SerializeField] private Button _fightButton;
-    //[HideInInspector]
+    [SerializeField] private Transform enemyTurnUnitPosition;
+    [SerializeField] private Transform relicTurnUnitPosition;
+    public float swapTeamUnitMovespeed;
+    [SerializeField] private Animator unitPositionsMovement;
+    [SerializeField] private string animationVarName;
+    private bool movedForRelicTurn;
+    [HideInInspector]
     public Unit activeUnit;
     public GameObject relicGO;
 
@@ -50,7 +60,7 @@ public class CombatManager : MonoBehaviour
 
     [Header("Effects Settings")]
     public int maxEffectsActive;
-    [HideInInspector]
+    //[HideInInspector]
     public SkillData relicActiveSkill;
     [HideInInspector]
     public SkillData enemyActiveSkill;
@@ -105,7 +115,6 @@ public class CombatManager : MonoBehaviour
     public List<Unit> turnOrder = new List<Unit>();
     [HideInInspector]
     public Unit activeRelic, activeEnemy;
-    [Space(3)]
 
     [Header("Skill Keywords")]
     public string[] skillType;
@@ -119,20 +128,19 @@ public class CombatManager : MonoBehaviour
     {
         _devManager = FindObjectOfType<DevManager>();
         skillUIManager = FindObjectOfType<SkillUIManager>();
-        activeAttackBar = FindObjectOfType<AttackBar>();
+        //SetActiveAttackBar(FindObjectOfType<AttackBar>());
         uIManager = FindObjectOfType<UIManager>();
         _unitHudInfo = FindObjectOfType<UnitHUDInfo>();
-        uIManager.ToggleImage(uIManager.targetedEnemyInfoGO, false);
+        StartCoroutine(uIManager.ToggleImage(uIManager.targetedEnemyInfoGO, false));
+        _animatorController = FindObjectOfType<AnimatorController>();
     }
-
-
 
     public void StartBattle()
     {
         ToggleFightButton(false);
         SpawnRelic(startingRelic);
         SpawnEnemies(_activeRoom);
-        uIManager.ToggleImage(uIManager.endTurnGO, true);
+        StartCoroutine(uIManager.ToggleImage(uIManager.endTurnGO, true));
         EndTurn();
     }
 
@@ -191,7 +199,9 @@ public class CombatManager : MonoBehaviour
         else if (combatState == CombatState.ENENYWIN)
             RemoveAllEnemies();
 
-        uIManager.ToggleImage(uIManager.startFightGO, true);     // Enable start fight button
+        StartCoroutine(uIManager.ToggleImage(uIManager.startFightGO, true));     // Enable start fight button
+
+        _attackBar.Refresh();   // Refresh attack bar 
     }
 
     void UpdateCombatState(CombatState combatState)
@@ -202,28 +212,34 @@ public class CombatManager : MonoBehaviour
     {
         activeAttackBar = attackBar;
     }
-
-    IEnumerator BeginUnitTurn(bool enemyTeam)
+    public IEnumerator BeginUnitTurn(bool enemyTeam)
     {
         // Disable relic attack bar + skills UI if its not relic turn
         if (enemyTeam)
         {
-            uIManager.ToggleImage(uIManager.attackBarGO, false);
-            uIManager.ToggleImage(uIManager.relicSkillGO, false);
+            StartCoroutine(uIManager.ToggleImage(uIManager.attackBarGO, false));
+            StartCoroutine(uIManager.ToggleImage(uIManager.relicSkillGO, false));
+            StartCoroutine(uIManager.ToggleImage(uIManager.endTurnGO, false));
+
+            // Display enemy HUD info
+            _unitHudInfo.SetValues(GetNextTurnUnit());
+
+            StartCoroutine(_unitHudInfo.ToggleUnitHUDUI(true, 0.3f));
         }
 
         // Enable relic attack bar + skills UI on relic turn
         else
         {
-            uIManager.ToggleImage(uIManager.attackBarGO, true);
-            uIManager.ToggleImage(uIManager.relicSkillGO, true);
-
+            StartCoroutine(uIManager.ToggleImage(uIManager.attackBarGO, true, 0.3f));
+            StartCoroutine(uIManager.ToggleImage(uIManager.relicSkillGO, true, 0.3f));
+            StartCoroutine(uIManager.ToggleImage(uIManager.endTurnGO, true, 0.3f));
             SetMaxUnitTargets(1);
-        }
 
-        if (enemyTeam)
-            // Time to wait before unit is targeted as the active unit
-            yield return new WaitForSeconds(enemyUnitStartWait);
+            //Move units to enemy turn position if they're not already
+            //_unitPositions.position = relicTurnUnitPosition.position;
+
+            StartCoroutine(_unitHudInfo.ToggleUnitHUDUI(false, 0));
+        }
 
         // Update CDs
         //skillUIManager.AssignSkills(GetNextTurnUnit());     // assign skills for cd update
@@ -231,9 +247,11 @@ public class CombatManager : MonoBehaviour
 
         activeUnit.UpdateTurnEnergy(0);   // Reset active unit's turn mana
         GetNextTurnUnit().ToggleTurnImage(true);    // Enable next unit's turn image
-        if (enemyTeam)
-            // Time to pick unit skill to use
-            yield return new WaitForSeconds(enemyChooseSkillTime);
+
+        if (enemyTeam)    
+        {
+            yield return new WaitForSeconds(enemyUnitStartWait);    // Time to wait before unit is targeted as the active unit
+        }
 
         // Give next unit's mana for the start of their turn           
         StartCoroutine(GetNextTurnUnit().UpdateCurMana(GetNextTurnUnit().manaGainTurn));
@@ -241,6 +259,7 @@ public class CombatManager : MonoBehaviour
         // Begin the next unit's turn, Trigger determine move
         StartCoroutine(GetNextTurnUnit().DetermineUnitMoveChoice(GetNextTurnUnit()));
     }
+
     public void SetActiveSkill(SkillData skillData)
     {
         if (activeSkill != skillData)
@@ -250,19 +269,43 @@ public class CombatManager : MonoBehaviour
         }
     }
 
+    void MoveUnits(bool movedForRelicTurn)
+    {
+        if (movedForRelicTurn)
+            _animatorController.PlayAnimation(unitPositionsMovement, animationVarName, true);
+        else
+            _animatorController.PlayAnimation(unitPositionsMovement, animationVarName, false);
+    }
     public void EndTurn()
     {
+        UpdateTurnOrder();     // Update turn orders
         ToggleAllTurnImages(false);  // Disable turn image 
         ClearUnitTargets();
-        UpdateTurnOrder();     // Update turn orders
+
+        _unitHudInfo.ToggleUnitHUDUI(false, swapTeamUnitMovespeed);    // Display enemy HUD info
+
+        /*
+        // If this unit an enemy, and the the next unit is an ally, move units
+        if (GetNextTurnUnit().unitType == Unit.UnitType.ENEMY && prevUnitType == PrevUnitType.ALLY)
+            MoveUnits(false);
+        // If this unit an ally, and the the next unit is an enemy, move units
+        else if (GetNextTurnUnit().unitType == Unit.UnitType.ALLY && prevUnitType == PrevUnitType.ENEMY)
+            MoveUnits(true);
+        */
 
         // Set the active team for this turn
         if (GetNextTurnUnit().unitType == Unit.UnitType.ENEMY)
+        {
+            prevUnitType = PrevUnitType.ENEMY;
             SetTeamTurn(false);
+        }
         else
+        {
+            prevUnitType = PrevUnitType.ALLY;
             SetTeamTurn(true);
+        }
 
-        // End combat if if combat should be over
+        // End combat if combat should be over
         if (DetermineIfCombatEnded())
         {
             EndCombat(combatState);
@@ -332,7 +375,6 @@ public class CombatManager : MonoBehaviour
         unit.secondarySkill = unit.gameObject.AddComponent<SkillData>();
         unit.alternateSkill = unit.gameObject.AddComponent<SkillData>();
         unit.ultimateSkill = unit.gameObject.AddComponent<SkillData>();
-
     }
 
     private int ApplyTurnOrder(Unit a, Unit b)
@@ -435,9 +477,6 @@ public class CombatManager : MonoBehaviour
             unitTargets[unitTargets.IndexOf(targetUnit)].selectEnabled = true;    // update image enabled to true
             unitTargets[unitTargets.IndexOf(targetUnit)].selectionImage.enabled = true;    // Disable the oldest image in stored selection list
         }
-
-        // Display enemy HUD info
-        _unitHudInfo.SetValues(targetUnit.unit);
     }
 
     public void RemoveUnitTarget(Target targetUnit)
@@ -477,7 +516,7 @@ public class CombatManager : MonoBehaviour
                 unitTargets.RemoveAt(0);
                 unitTargets.Add(selector);
 
-                _attackBar.UpdateUIAlpha(_attackBar.relicUIHider, _attackBar._relicUIHiderOffVal);
+                //_attackBar.UpdateUIAlpha(_attackBar.relicUIHider, _attackBar._relicUIHiderOffVal);
                 return;
             }
 
@@ -935,7 +974,7 @@ public class CombatManager : MonoBehaviour
         activeRelic.UpdateEnergyTurnGrowth(relic.manaGainTurn);
         activeRelic.UpdatePower(relic.power);
         activeRelic.UpdateEnergy(relic.energy);
-        SetActiveAttackBar(relic.weapon.GetComponent<AttackBar>());     // Set active weapon
+        SetActiveAttackBar(FindObjectOfType<AttackBar>());     // Set active weapon
 
         activeRelic.target = go.GetComponentInChildren<Target>();
 

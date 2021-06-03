@@ -17,7 +17,7 @@ MonoBehaviour:
   targetType: Multiple
   targetsAllowed: Enemies
   hitsRequired: 2
-  energyRequired: 5
+  manaRequired: 0
   timeBetweenHitUI: 0
   timeTillEffectInflict: 0
   timeForNextHitMarker: 0
@@ -36,7 +36,7 @@ MonoBehaviour:
   name: Death Bind
   description: Bind two enemies together. Damage upon a binded target will deal 75%
     power to all other enemies in the bind.
-  turnCooldown: 5
+  turnCooldown: 0
   missValueMultiplier: 0
   goodValueMultiplier: 0.35
   greatValueMultiplier: 0.45

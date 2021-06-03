@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5712438443891004308}
-  - component: {fileID: 2750499516939080922}
+  - component: {fileID: 8824601124624239589}
   - component: {fileID: 9087027337481960882}
   - component: {fileID: 6350916223931550262}
   - component: {fileID: 6350916223931550257}
@@ -41,7 +41,7 @@ RectTransform:
   m_AnchoredPosition: {x: 296.1, y: -1161}
   m_SizeDelta: {x: 1, y: 1}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &2750499516939080922
+--- !u!114 &8824601124624239589
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -55,9 +55,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   curHitMarkerVisibility: 0
   attackBar: {fileID: 0}
-  step: 0
+  step: 1
   speed: 0
-  initialPos: {x: 296.1, y: -1161, z: 0}
+  initialPos: {x: 0, y: 0, z: 0}
   oldInitialPos: {x: 0, y: 0, z: 0}
   nextPos: {x: 0, y: 0, z: 0}
   stopped: 0
@@ -65,6 +65,7 @@ MonoBehaviour:
   _hitMarkerImageGO: {fileID: 6350916224295162644}
   _canvasgroup: {fileID: 7886739413033338619}
   _hitMarkerRT: {fileID: 5712438443891004308}
+  hitMarkerPar: {fileID: 0}
 --- !u!222 &9087027337481960882
 CanvasRenderer:
   m_ObjectHideFlags: 0

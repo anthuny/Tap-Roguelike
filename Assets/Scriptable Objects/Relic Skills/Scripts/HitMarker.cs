@@ -9,7 +9,7 @@ public class HitMarker : MonoBehaviour
     [HideInInspector]
     public HitMarkerVisible curHitMarkerVisibility;
 
-    [HideInInspector]
+    //[HideInInspector]
     public AttackBar attackBar;
     [HideInInspector]
     public float step = 1, speed;
@@ -24,14 +24,41 @@ public class HitMarker : MonoBehaviour
     [SerializeField] private CanvasGroup _canvasgroup;
     [SerializeField] private RectTransform _hitMarkerRT;
     private BoxCollider2D hitMarkerCollider;
+    public GameObject hitMarkerPar;
 
     private void Start()
     {
         _hitMarkerRT = gameObject.GetComponent<RectTransform>();
-        _hitMarkerImageGO.SetActive(false);
+        _hitMarkerImageGO = transform.GetChild(0).gameObject;
+        _hitMarkerImageGO.gameObject.SetActive(false);
+        attackBar = FindObjectOfType<AttackBar>();
+        SetParent(attackBar.hitMarkerPar);
+        SetAsActiveHitMarker();
         hitMarkerCollider = GetComponent<BoxCollider2D>();
+
+        SetName(this.name);
     }
 
+    void SetParent(GameObject go)
+    {
+        hitMarkerPar = go;
+        transform.SetParent(go.transform);
+    }
+
+    void SetName(string name)
+    {
+        gameObject.name = name;
+    }
+    public void SetPositions(Vector3 initPos, Vector3 nextPos)
+    {
+        initialPos = initPos;
+        this.nextPos = nextPos;
+    }
+
+    public void SetSpeed(float speed)
+    {
+        this.speed = speed;
+    }
     // Update is called once per frame
     void FixedUpdate()
     {
@@ -40,7 +67,7 @@ public class HitMarker : MonoBehaviour
 
     void ToggleDisplay()
     {
-        StartCoroutine(attackBar.ToggleHitMarkerVisibility(this, _hitMarkerImageGO, true, 0));
+        StartCoroutine(attackBar.ToggleHitMarkerVisibility(this, _hitMarkerImageGO, true, .1f));
     }
 
     void PingPong()

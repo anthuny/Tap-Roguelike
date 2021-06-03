@@ -7,6 +7,7 @@ public class Target : MonoBehaviour
 {
     private CombatManager _combatManager;
     public SkillUIManager _skillUIManager;
+    private UIManager _uIManager;
     public Unit unit;
     [SerializeField] private Button _selectButton;
     [HideInInspector]
@@ -40,6 +41,7 @@ public class Target : MonoBehaviour
     {
         _combatManager = FindObjectOfType<CombatManager>();
         selectionImage = GetComponent<Image>();
+        _uIManager = FindObjectOfType<UIManager>();
     }
 
     private void Start()
@@ -69,18 +71,13 @@ public class Target : MonoBehaviour
             if (!_combatManager.activeUnit.HasEnoughManaForSkill())
                 return;
 
-            _combatManager.activeAttackBar.UpdateActiveSkill(true);
-            _skillUIManager.UpdateSkillStatus(SkillUIManager.SkillStatus.ACTIVE);   // Update skill status to active
+            _combatManager.activeAttackBar.UpdateActiveSkill(true);     // Sets skill active as true
 
-            // Enable relic attack bar and hits remaining UI 
-            _combatManager.activeAttackBar.ToggleImage(_combatManager.uIManager.attackBarGO, true);
-            _combatManager.activeAttackBar.ToggleImage(_combatManager.uIManager.hitsRemainingTextGO, true);
-
+            // Manage unit targets
             _combatManager.ManageTargets(true, false, this,
             _combatManager.curUnitTargets, _combatManager.activeSkill.maxTargetCount, skillData);
 
-            //_combatManager.ManageSelectionCount(true, this,
-            //_combatManager.curTargetSelections, skillData.maxTargetCount, skillData);
+            _combatManager.activeAttackBar.UpdateSkillActive(true);
         }
         else
         {
