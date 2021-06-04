@@ -50,7 +50,7 @@ public class CombatManager : MonoBehaviour
 
     [Header("Combat")]
     public float postHitTime;
-    public float enemyThinkTime;
+    public float enemySelectSkillPostTime;
     public float enemyChooseSkillTime;
     public float enemySkillAnimationTime;
     public float ManaUpdateInterval;
@@ -128,10 +128,8 @@ public class CombatManager : MonoBehaviour
     {
         _devManager = FindObjectOfType<DevManager>();
         skillUIManager = FindObjectOfType<SkillUIManager>();
-        //SetActiveAttackBar(FindObjectOfType<AttackBar>());
         uIManager = FindObjectOfType<UIManager>();
-        _unitHudInfo = FindObjectOfType<UnitHUDInfo>();
-        StartCoroutine(uIManager.ToggleImage(uIManager.targetedEnemyInfoGO, false));
+        _unitHudInfo = FindObjectOfType<UnitHUDInfo>();      
         _animatorController = FindObjectOfType<AnimatorController>();
     }
 
@@ -140,6 +138,7 @@ public class CombatManager : MonoBehaviour
         ToggleFightButton(false);
         SpawnRelic(startingRelic);
         SpawnEnemies(_activeRoom);
+        _unitHudInfo.AssignUnitSkillsToSkillIcon();
         StartCoroutine(uIManager.ToggleImage(uIManager.endTurnGO, true));
         EndTurn();
     }
@@ -218,27 +217,23 @@ public class CombatManager : MonoBehaviour
         if (enemyTeam)
         {
             StartCoroutine(uIManager.ToggleImage(uIManager.attackBarGO, false));
-            StartCoroutine(uIManager.ToggleImage(uIManager.relicSkillGO, false));
+            //StartCoroutine(uIManager.ToggleImage(uIManager.relicSkillGO, false));
             StartCoroutine(uIManager.ToggleImage(uIManager.endTurnGO, false));
 
-            // Display enemy HUD info
+            // Display unit HUD info
             _unitHudInfo.SetValues(GetNextTurnUnit());
-
-            StartCoroutine(_unitHudInfo.ToggleUnitHUDUI(true, 0.3f));
         }
 
         // Enable relic attack bar + skills UI on relic turn
         else
         {
             StartCoroutine(uIManager.ToggleImage(uIManager.attackBarGO, true, 0.3f));
-            StartCoroutine(uIManager.ToggleImage(uIManager.relicSkillGO, true, 0.3f));
+            //StartCoroutine(uIManager.ToggleImage(uIManager.relicSkillGO, true, 0.3f));
             StartCoroutine(uIManager.ToggleImage(uIManager.endTurnGO, true, 0.3f));
             SetMaxUnitTargets(1);
 
-            //Move units to enemy turn position if they're not already
-            //_unitPositions.position = relicTurnUnitPosition.position;
-
-            StartCoroutine(_unitHudInfo.ToggleUnitHUDUI(false, 0));
+            // Display unit HUD info
+            _unitHudInfo.SetValues(GetNextTurnUnit());
         }
 
         // Update CDs
@@ -248,10 +243,10 @@ public class CombatManager : MonoBehaviour
         activeUnit.UpdateTurnEnergy(0);   // Reset active unit's turn mana
         GetNextTurnUnit().ToggleTurnImage(true);    // Enable next unit's turn image
 
+        _unitHudInfo.SetUnit(GetNextTurnUnit());
+
         if (enemyTeam)    
-        {
             yield return new WaitForSeconds(enemyUnitStartWait);    // Time to wait before unit is targeted as the active unit
-        }
 
         // Give next unit's mana for the start of their turn           
         StartCoroutine(GetNextTurnUnit().UpdateCurMana(GetNextTurnUnit().manaGainTurn));
@@ -269,29 +264,18 @@ public class CombatManager : MonoBehaviour
         }
     }
 
-    void MoveUnits(bool movedForRelicTurn)
-    {
-        if (movedForRelicTurn)
-            _animatorController.PlayAnimation(unitPositionsMovement, animationVarName, true);
-        else
-            _animatorController.PlayAnimation(unitPositionsMovement, animationVarName, false);
-    }
     public void EndTurn()
     {
         UpdateTurnOrder();     // Update turn orders
         ToggleAllTurnImages(false);  // Disable turn image 
         ClearUnitTargets();
 
-        _unitHudInfo.ToggleUnitHUDUI(false, swapTeamUnitMovespeed);    // Display enemy HUD info
-
-        /*
-        // If this unit an enemy, and the the next unit is an ally, move units
-        if (GetNextTurnUnit().unitType == Unit.UnitType.ENEMY && prevUnitType == PrevUnitType.ALLY)
-            MoveUnits(false);
-        // If this unit an ally, and the the next unit is an enemy, move units
-        else if (GetNextTurnUnit().unitType == Unit.UnitType.ALLY && prevUnitType == PrevUnitType.ENEMY)
-            MoveUnits(true);
-        */
+        // Toggle off all unit Skill Icon UI Off
+        uIManager.ToggleImage(uIManager.attackBarGO, false);
+        _unitHudInfo.TogglePanel(_unitHudInfo.eAllSkillPanel, false);
+        _unitHudInfo.TogglePanel(_unitHudInfo.eActiveSkillPanel, false);
+        _unitHudInfo.TogglePanel(_unitHudInfo.rAllSkillPanel, false);
+        _unitHudInfo.TogglePanel(_unitHudInfo.rActiveSkillPanel, false);
 
         // Set the active team for this turn
         if (GetNextTurnUnit().unitType == Unit.UnitType.ENEMY)
@@ -1019,10 +1003,6 @@ public class CombatManager : MonoBehaviour
             relic.passiveSkill.perfectProcMultiplier,
             relic.passiveSkill.maxSkillCount);
 
-        skillUIManager.relicSkillPassiveTarget.skillIconColour = relic.passiveSkill.skillIconColour;
-        skillUIManager.relicSkillPassiveTarget.skillBorderColour = relic.passiveSkill.skillBorderColour;
-        skillUIManager.relicSkillPassiveTarget.skillSelectionColour = relic.passiveSkill.skillSelectionColour;
-
         activeRelic.basicSkill.InitializeSkill(
             relic.basicSkill.skillIconColour,
             relic.basicSkill.skillBorderColour,
@@ -1060,10 +1040,6 @@ public class CombatManager : MonoBehaviour
             relic.basicSkill.greatProcMultiplier,
             relic.basicSkill.perfectProcMultiplier,
             relic.basicSkill.maxSkillCount);
-
-        skillUIManager.relicSkillBasicTarget.skillIconColour = relic.basicSkill.skillIconColour;
-        skillUIManager.relicSkillBasicTarget.skillBorderColour = relic.basicSkill.skillBorderColour;
-        skillUIManager.relicSkillBasicTarget.skillSelectionColour = relic.basicSkill.skillSelectionColour;
 
         activeRelic.primarySkill.InitializeSkill(
             relic.primarySkill.skillIconColour,
@@ -1103,10 +1079,6 @@ public class CombatManager : MonoBehaviour
             relic.primarySkill.perfectProcMultiplier,
             relic.primarySkill.maxSkillCount);
 
-        skillUIManager.relicSkillPrimaryTarget.skillIconColour = relic.primarySkill.skillIconColour;
-        skillUIManager.relicSkillPrimaryTarget.skillBorderColour = relic.primarySkill.skillBorderColour;
-        skillUIManager.relicSkillPrimaryTarget.skillSelectionColour = relic.primarySkill.skillSelectionColour;
-
         activeRelic.secondarySkill.InitializeSkill(
             relic.secondarySkill.skillIconColour,
             relic.secondarySkill.skillBorderColour,
@@ -1144,10 +1116,6 @@ public class CombatManager : MonoBehaviour
             relic.secondarySkill.greatProcMultiplier,
             relic.secondarySkill.perfectProcMultiplier,
             relic.secondarySkill.maxSkillCount);
-
-        skillUIManager.relicSkillSecondaryTarget.skillIconColour = relic.secondarySkill.skillIconColour;
-        skillUIManager.relicSkillSecondaryTarget.skillBorderColour = relic.secondarySkill.skillBorderColour;
-        skillUIManager.relicSkillSecondaryTarget.skillSelectionColour = relic.secondarySkill.skillSelectionColour;
 
         activeRelic.alternateSkill.InitializeSkill(
             relic.alternateSkill.skillIconColour,
@@ -1187,10 +1155,6 @@ public class CombatManager : MonoBehaviour
             relic.alternateSkill.perfectProcMultiplier,
             relic.alternateSkill.maxSkillCount);
 
-        skillUIManager.relicSkillAlternateTarget.skillIconColour = relic.alternateSkill.skillIconColour;
-        skillUIManager.relicSkillAlternateTarget.skillBorderColour = relic.alternateSkill.skillBorderColour;
-        skillUIManager.relicSkillAlternateTarget.skillSelectionColour = relic.alternateSkill.skillSelectionColour;
-
         activeRelic.ultimateSkill.InitializeSkill(
             relic.ultimateSkill.skillIconColour,
             relic.ultimateSkill.skillBorderColour,
@@ -1228,10 +1192,6 @@ public class CombatManager : MonoBehaviour
             relic.ultimateSkill.greatProcMultiplier,
             relic.ultimateSkill.perfectProcMultiplier,
             relic.ultimateSkill.maxSkillCount);
-
-        skillUIManager.relicSkillUltimateTarget.skillIconColour = relic.ultimateSkill.skillIconColour;
-        skillUIManager.relicSkillUltimateTarget.skillBorderColour = relic.ultimateSkill.skillBorderColour;
-        skillUIManager.relicSkillUltimateTarget.skillSelectionColour = relic.ultimateSkill.skillSelectionColour;
         #endregion
 
         #endregion

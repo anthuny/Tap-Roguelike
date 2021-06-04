@@ -88,10 +88,9 @@ public class AttackBar : MonoBehaviour
     {
         StartCoroutine(_UIManager.ToggleImage(_UIManager.cancelAttackGO, false));   // Disable cancel attack button
         StartCoroutine(_UIManager.ToggleImage(_UIManager.hitsRemainingTextGO, false));  // Hide hits remaining text
-        StartCoroutine(_UIManager.ToggleImage(_UIManager.skillsUIGO, false));   // Hide relic skills UI
+        //StartCoroutine(_UIManager.ToggleImage(_UIManager.skillsUIGO, false));   // Hide relic skills UI
         StartCoroutine(_UIManager.ToggleImage(_UIManager.endTurnGO, false));    // Enable end turn button
         StartCoroutine(_UIManager.ToggleImage(_UIManager.attackBarGO, false));    // Enable end turn button
-        StartCoroutine(_UIManager.ToggleImage(_UIManager.relicActiveSkillDetailsGO, false));    // Enable relic Active Skill Details image
     }
 
     public void Refresh()
@@ -164,7 +163,7 @@ public class AttackBar : MonoBehaviour
         {
             StartCoroutine(_UIManager.ToggleImage(_UIManager.cancelAttackGO, false));   // Disable cancel attack button
             StartCoroutine(_UIManager.ToggleImage(_UIManager.hitsRemainingTextGO, false));  // Hide hits remaining text
-            StartCoroutine(_UIManager.ToggleImage(_UIManager.skillsUIGO, true));   // Show relic skills UI
+            //StartCoroutine(_UIManager.ToggleImage(_UIManager.skillsUIGO, true));   // Show relic skills UI
             StartCoroutine(_UIManager.ToggleImage(_UIManager.endTurnGO, true));    // Show end turn button
 
             if (_combatManager)
@@ -175,7 +174,7 @@ public class AttackBar : MonoBehaviour
             StartCoroutine(_UIManager.ToggleImage(_UIManager.cancelAttackGO, true));   // Show cancel attack button
             StartCoroutine(_UIManager.ToggleImage(_UIManager.attackBarGO, true));  // Show attack bar.
             StartCoroutine(_UIManager.ToggleImage(_UIManager.hitsRemainingTextGO, true));  // Show hits remaining text
-            StartCoroutine(_UIManager.ToggleImage(_UIManager.skillsUIGO, false));   // Hide relic skills UI
+            //StartCoroutine(_UIManager.ToggleImage(_UIManager.skillsUIGO, false));   // Hide relic skills UI
             StartCoroutine(_UIManager.ToggleImage(_UIManager.endTurnGO, false));
         }
     }

@@ -7,15 +7,9 @@ public class UIManager : MonoBehaviour
     public GameObject endTurnGO;
     public GameObject startFightGO;
     public GameObject cancelAttackGO;
-    public GameObject skillsUIGO;
     public GameObject hitsRemainingTextGO;
     public GameObject attackBarGO;
-    public GameObject relicSkillGO;
-    public GameObject targetedEnemyInfoGO;
-    public GameObject enemySkillUIGO;
-    public GameObject enemySkillDetailsGO;
-    public GameObject enemyAllSkillsGO;
-    public GameObject relicActiveSkillDetailsGO;
+    public GameObject targetedUnitInfoGO;
 
     public IEnumerator ToggleImage(GameObject imageGO, bool enabled, float time = 0)
     {

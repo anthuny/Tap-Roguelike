@@ -83,9 +83,6 @@ public class HitBar : MonoBehaviour
             }
             else if (_attackBar.hitCount == _combatManager.relicActiveSkill.hitsRequired)
                 _attackBar.ResetHitCount();
-
-
-
         }
         else
             Debug.LogWarning("This hit bar isn't being collided with");

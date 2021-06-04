@@ -117,24 +117,38 @@ public class Unit : MonoBehaviour
     [HideInInspector]
     public List<SkillValueUI> storedskillValueUI = new List<SkillValueUI>();
 
+    private UnitHUDInfo _unitHudInfo;
+
     private void Awake()
     {
         _devManager = FindObjectOfType<DevManager>();
         _combatManager = FindObjectOfType<CombatManager>();
         _skillUIManager = FindObjectOfType<SkillUIManager>();
+        _unitHudInfo = FindObjectOfType<UnitHUDInfo>();
     }
 
     public IEnumerator DetermineUnitMoveChoice(Unit unit, SkillData skillData = null)
     {
         if (unitType == UnitType.ENEMY)
         {
-            yield return new WaitForSeconds(_combatManager.enemySkillAnimationTime);
-
+            // Toggle off end turn Button
             StartCoroutine(_combatManager.uIManager.ToggleImage(_combatManager.uIManager.endTurnGO, false));
+
+            //yield return new WaitForSeconds(_combatManager.enemySkillAnimationTime);
+
+            // Unit start turn
+            yield return new WaitForSeconds(.5f);
 
             // If enemy unit has enough mana for basic skill
             if (curMana >= basicSkill.manaRequired)
-                StartCoroutine(UnitSkillFunctionality(false, basicSkill, _combatManager.enemyThinkTime));    //Use enemy's basic skill
+            {
+                // Enable selection on basic skill icon 
+                _unitHudInfo.ToggleSkillIconSelection(_unitHudInfo.tBasicSkillIcon, true);
+
+                //Use enemy's basic skill
+                StartCoroutine(UnitSkillFunctionality(false, basicSkill, _combatManager.enemySelectSkillPostTime));    
+            }
+
             // If enemy unit has no mana for any skill
             else
                 _combatManager.EndTurn();    // If combat did not end, end turn 
@@ -165,15 +179,15 @@ public class Unit : MonoBehaviour
             // Update mana on first hit for skill mana cost
             if (skillData.curHitsCompleted == 0)
                 StartCoroutine(_combatManager.activeUnit.UpdateCurMana(skillData.manaRequired, false));
-                //_combatManager.activeAttackBar.MoveAttackBar(true);
+
+            // Deselect selected skill icon
+            _unitHudInfo.DeselectAllSelections();
         }
 
         yield return new WaitForSeconds(time);
 
         _combatManager.SetActiveSkill(skillData);   // Set active skill
-
         SelectEnemySkillValueMultiplier();  // Set enemy skill value multiplier
-
         AssignSelectionCount(skillData);
 
         skillData.curHitsCompleted++;   // Increase current hits completed by 1
@@ -197,7 +211,6 @@ public class Unit : MonoBehaviour
 
             if (skillData.hitsRequired == 1)
                 maxWaveCountEffects = 1;
-
             if (skillData.hitsRequired > 1)
                 maxWaveCountEffects = skillData.hitsRequired-1;
         }
@@ -415,7 +428,7 @@ public class Unit : MonoBehaviour
         power += val;
     }
     #endregion
-    #region Update Mana
+    #region Update Energy
     public void UpdateEnergy(int val)
     {
         energy += val;
@@ -545,7 +558,7 @@ public class Unit : MonoBehaviour
     }
 
     #endregion
-    #region Update Energy Stats
+    #region Update Mana
     public IEnumerator UpdateCurMana(int mana, bool positive = true)
     {
         // Increase current mana in intervals
@@ -561,6 +574,13 @@ public class Unit : MonoBehaviour
                 }
                 UpdateManaVisual();
 
+                if (_combatManager.activeUnit == this)
+                {
+                    _unitHudInfo.SetUnitMana(_unitHudInfo.eUnitManaText, curMana);
+                    _unitHudInfo.UpdateSkillInvalidImages(this);
+                    //_unitHudInfo.UpdateSkillManaRequired(this);
+                }
+
                 yield return new WaitForSeconds(_combatManager.ManaUpdateInterval);
             }
         }
@@ -574,9 +594,17 @@ public class Unit : MonoBehaviour
                     break;
                 }
                 UpdateManaVisual();
+                if (_combatManager.activeUnit == this)
+                {
+                    _unitHudInfo.SetUnitMana(_unitHudInfo.eUnitManaText, curMana);
+                    _unitHudInfo.UpdateSkillInvalidImages(this);
+                    //_unitHudInfo.UpdateSkillManaRequired(this);
+                }
 
                 yield return new WaitForSeconds(_combatManager.ManaUpdateInterval);
             }
+
+
     }
 
     public void UpdateMaxMana(int addedMaxMana)

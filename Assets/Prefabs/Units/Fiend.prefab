@@ -127,7 +127,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7101019515642094030}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
@@ -344,6 +344,7 @@ MonoBehaviour:
   alternateSkill: {fileID: 0}
   ultimateSkill: {fileID: 0}
   target: {fileID: 0}
+  activeSkill: {fileID: 0}
   targets: []
   hitWaveCount: 0
   hitWaveCountEffect: 0
@@ -620,6 +621,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Color.r
       value: 0.9995872
+      objectReference: {fileID: 0}
+    - target: {fileID: 3557343390109375835, guid: 44507f27030c44b44853e72087c5300e,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6249938650841141275, guid: 44507f27030c44b44853e72087c5300e,
         type: 3}

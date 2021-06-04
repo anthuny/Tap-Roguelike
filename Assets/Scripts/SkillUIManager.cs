@@ -19,23 +19,7 @@ public class SkillUIManager : MonoBehaviour
     [SerializeField] private SkillData _secondarySkill;
     [SerializeField] private SkillData _alternateSkill;
     [SerializeField] private SkillData _ultimateSkill;
-    [Space(5)]
-    [Header("Skill UI")]
-    [Space(2)]
-    [Header("Initialization")]
-    public Target relicSkillPassiveTarget;
-    public Target relicSkillBasicTarget;
-    public Target relicSkillPrimaryTarget;
-    public Target relicSkillSecondaryTarget;
-    public Target relicSkillAlternateTarget;
-    public Target relicSkillUltimateTarget;
-    public Target enemySkillPassiveTarget;
-    public Target enemySkillBasicTarget;
-    public Target enemySkillPrimaryTarget;
-    public Target enemySkillSecondaryTarget;
-    public Target enemySkillAlternateTarget;
-    public Target enemySkillUltimateTarget;
-    [Space(2)]
+    [Space(1)]
     [Tooltip("Text GameObject to instantiate")]
     [SerializeField] private GameObject skillUIText;
     [Tooltip("The speed at which skill UI values travel upwards")]
@@ -115,8 +99,6 @@ public class SkillUIManager : MonoBehaviour
     public void InitializeSkills(Unit unit)
     {
         AssignSkills(unit);
-        AssignRelicSkillTargets();
-        UpdateSkillAesthetics();
     }
     public void AssignSkills(Unit unit)
     {
@@ -126,25 +108,6 @@ public class SkillUIManager : MonoBehaviour
         _secondarySkill = unit.secondarySkill;
         _alternateSkill = unit.alternateSkill;
         _ultimateSkill = unit.ultimateSkill;
-    }
-    void AssignRelicSkillTargets()
-    {
-        relicSkillPassiveTarget.skillData = _combatManager.activeRelic.passiveSkill;
-        relicSkillBasicTarget.skillData = _combatManager.activeRelic.basicSkill;
-        relicSkillPrimaryTarget.skillData = _combatManager.activeRelic.primarySkill;
-        relicSkillSecondaryTarget.skillData = _combatManager.activeRelic.secondarySkill;
-        relicSkillAlternateTarget.skillData = _combatManager.activeRelic.alternateSkill;
-        relicSkillUltimateTarget.skillData = _combatManager.activeRelic.ultimateSkill;
-    }
-
-    void UpdateSkillAesthetics()
-    {
-        relicSkillPassiveTarget.AssignSkillUIAesthetics();
-        relicSkillBasicTarget.AssignSkillUIAesthetics();
-        relicSkillPrimaryTarget.AssignSkillUIAesthetics();
-        relicSkillSecondaryTarget.AssignSkillUIAesthetics();
-        relicSkillAlternateTarget.AssignSkillUIAesthetics();
-        relicSkillUltimateTarget.AssignSkillUIAesthetics();
     }
 
     public void SetActiveAttackData(AttackData attackData)
@@ -261,6 +224,7 @@ public class SkillUIManager : MonoBehaviour
 
     public void UpdateSkillCooldownVisuals(SkillData skillData, Unit.UnitType unitType)
     {
+        /*
         if (unitType == Unit.UnitType.ENEMY)
         {
             switch (skillData.skillType)
@@ -329,6 +293,7 @@ public class SkillUIManager : MonoBehaviour
             target.cooldownImage.fillAmount = 0;
             target.cooldownText.text = "";
         }
+        */
     }
 
     public void DecrementSkillCooldown()
