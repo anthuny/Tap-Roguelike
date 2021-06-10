@@ -35,7 +35,8 @@ public class Target : MonoBehaviour
     [SerializeField] private bool isSkill;
     public int enemyIndex;
 
-    private bool tempBool;
+    [HideInInspector]
+    public bool targetable;
 
     private void Awake()
     {
@@ -46,82 +47,31 @@ public class Target : MonoBehaviour
 
     private void Start()
     {
-        _selectButton.onClick.AddListener(ToggleSelectionImage); // Add a listener to the button on a unit    
+        //_selectButton.onClick.AddListener(ToggleSelectionImage); // Add a listener to the button on a unit    
     }
 
-    /// <summary>
-    /// Toggle the selection image
-    /// </summary>
     public void ToggleSelectionImage()
     {
+        // If unit is able to be targetable a skill is active
+        if (targetable && _combatManager.activeSkill)
+        {
+            // Clear unit select images
+            _combatManager.ClearUnitSelectImages();
+
+            // Start attack bar sequence if active unit is an ally
+            if (_combatManager.activeUnit.unitType == Unit.UnitType.ALLY)
+                _combatManager._unitHudInfo.StartAttack();
+        }
+
         /*
-        if (!tempBool)
-        {
-            tempBool = true;
-            return;
-        }
-        */
-
-        if (isSkill)
-        {
-            if (skillData.onCooldown || !skillData.activatable || !_combatManager.relicTurn)
-                return;
-
-            // Don't continue if unit doesnt have enough mana for skill
-            if (!_combatManager.activeUnit.HasEnoughManaForSkill())
-                return;
-
-            _combatManager.activeAttackBar.UpdateActiveSkill(true);     // Sets skill active as true
-
-            // Manage unit targets
-            _combatManager.ManageTargets(true, false, this,
-            _combatManager.curUnitTargets, _combatManager.activeSkill.maxTargetCount, skillData);
-
-            _combatManager.activeAttackBar.UpdateSkillActive(true);
-        }
+        // If selection is not displayed, display it 
+        if (!selectEnabled)
+            _combatManager.AddUnitTarget(this);
+        // If selection is displayed, hide it
         else
         {
-            if (skillData)
-            {
-                // If ally, filter all but enemy target selections
-                if (unit.unitType == Unit.UnitType.ALLY)
-                    _combatManager.ManageTargets(false, false, this,
-                    _combatManager.curUnitTargets, _combatManager.activeSkill.maxTargetCount, skillData);
-                // If enemy, filter all but ally target selections
-                else
-                    _combatManager.ManageTargets(false, true, this,
-                    _combatManager.curUnitTargets, _combatManager.activeSkill.maxTargetCount, skillData);
-
-                // If selection is not displayed, display it 
-                if (!selectEnabled)
-                    _combatManager.UpdateUnitTargets(this, enemyIndex, true);
-
-                // If selection is displayed, hide it
-                else
-                    _combatManager.UpdateUnitTargets(this, enemyIndex, false);
-            }
-
-            // If selecting a unit
-            else
-            {
-                // If selection is not displayed, display it 
-                if (!selectEnabled)
-                    _combatManager.AddUnitTarget(this);
-                // If selection is displayed, hide it
-                else
-                {
-                    _combatManager.RemoveUnitTarget(this);
-                }
-
-            }
+            _combatManager.RemoveUnitTarget(this);
         }
-    }
-
-    public void AssignSkillUIAesthetics()
-    {
-        _skillUIManager.AssignSkillAesthetics(skillIcon, skillSelectionIcon, skillBorderIcon, 
-            skillIconColour, skillSelectionColour, skillBorderColour);
-
-        skillSelectionIcon.enabled = false;
+        */
     }
 }

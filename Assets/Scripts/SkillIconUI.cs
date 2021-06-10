@@ -23,6 +23,7 @@ public class SkillIconUI : MonoBehaviour
     private void Awake()
     {
         _unitHudInfo = FindObjectOfType<UnitHUDInfo>();
+        _combatManager = FindObjectOfType<CombatManager>();
     }
 
     public void ReferenceUnit()
@@ -31,25 +32,30 @@ public class SkillIconUI : MonoBehaviour
         switch (skillType)
         {
             case SkillType.PASSIVE:
-                skillData = _combatManager.activeRelic.passiveSkill;
+                skillData = _combatManager.activeUnit.passiveSkill;
                 break;
             case SkillType.BASIC:
-                skillData = _combatManager.activeRelic.basicSkill;
+                skillData = _combatManager.activeUnit.basicSkill;
                 break;
             case SkillType.PRIMARY:
-                skillData = _combatManager.activeRelic.primarySkill;
+                skillData = _combatManager.activeUnit.primarySkill;
                 break;
             case SkillType.SECONDARY:
-                skillData = _combatManager.activeRelic.secondarySkill;
+                skillData = _combatManager.activeUnit.secondarySkill;
                 break;
         }
 
-        unit = _combatManager.activeRelic;
+        unit = _combatManager.activeUnit;
     }
-    public void StartSkillIcon()
+    public void ActiveSkillToggleUI()
     {
+        // Set active skill reference
         _combatManager.activeSkill = skillData;
 
+        // toggle correct unit select images based onskill
+        _combatManager.ToggleUnitSelectImages(_combatManager.activeSkill);
+
+        // Transition from all skills panels to active skill panel
         _unitHudInfo.SetActiveSkill(unit, skillData);
     }
 

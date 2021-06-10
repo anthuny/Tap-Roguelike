@@ -75,10 +75,11 @@ public class AttackBar : MonoBehaviour
 
     public string hitMarkerTag;
 
-    void Awake()
+    void Start()
     {
         InitialLaunch();
 
+        _combatManager = FindObjectOfType<CombatManager>();
         _UIManager = FindObjectOfType<UIManager>();
 
         HideRelicAtackUI();
@@ -86,7 +87,7 @@ public class AttackBar : MonoBehaviour
 
     public void HideRelicAtackUI()
     {
-        StartCoroutine(_UIManager.ToggleImage(_UIManager.cancelAttackGO, false));   // Disable cancel attack button
+        _combatManager._unitHudInfo.TogglePanel(_combatManager._unitHudInfo.cancelAttackGO, false);
         StartCoroutine(_UIManager.ToggleImage(_UIManager.hitsRemainingTextGO, false));  // Hide hits remaining text
         //StartCoroutine(_UIManager.ToggleImage(_UIManager.skillsUIGO, false));   // Hide relic skills UI
         StartCoroutine(_UIManager.ToggleImage(_UIManager.endTurnGO, false));    // Enable end turn button
@@ -154,44 +155,20 @@ public class AttackBar : MonoBehaviour
         skillActive = enable;
     }
 
-    public void ToggleRelicAttackUI(bool enable)
-    {
-        UpdateSkillActive(enable);
-
-        _UIManager = FindObjectOfType<UIManager>();
-        if (!enable)
-        {
-            StartCoroutine(_UIManager.ToggleImage(_UIManager.cancelAttackGO, false));   // Disable cancel attack button
-            StartCoroutine(_UIManager.ToggleImage(_UIManager.hitsRemainingTextGO, false));  // Hide hits remaining text
-            //StartCoroutine(_UIManager.ToggleImage(_UIManager.skillsUIGO, true));   // Show relic skills UI
-            StartCoroutine(_UIManager.ToggleImage(_UIManager.endTurnGO, true));    // Show end turn button
-
-            if (_combatManager)
-                _combatManager.relicActiveSkill = null;     // When exiting a skill, remove it from being the relic active skill
-        }
-        else
-        {
-            StartCoroutine(_UIManager.ToggleImage(_UIManager.cancelAttackGO, true));   // Show cancel attack button
-            StartCoroutine(_UIManager.ToggleImage(_UIManager.attackBarGO, true));  // Show attack bar.
-            StartCoroutine(_UIManager.ToggleImage(_UIManager.hitsRemainingTextGO, true));  // Show hits remaining text
-            //StartCoroutine(_UIManager.ToggleImage(_UIManager.skillsUIGO, false));   // Hide relic skills UI
-            StartCoroutine(_UIManager.ToggleImage(_UIManager.endTurnGO, false));
-        }
-    }
-    public void BackButtonFunctionality(bool wasButton)
+    public void BackButtonFunctionality()
     {
         _combatManager = FindObjectOfType<CombatManager>();
         _combatManager.ClearSkillTargets();  // Clear skill targets
-
-        ToggleRelicAttackUI(false);
 
         //Destroy hit markers
         if (activeHitMarker)
             DestroyActiveHitMarker(0);
 
-        if (wasButton)
-            // Give mana back to relic for cancelling the skill
-            StartCoroutine(_combatManager.activeUnit.UpdateCurMana(_combatManager.activeSkill.manaRequired, true));
+        // Give mana back to relic for cancelling the skill
+        StartCoroutine(_combatManager.activeUnit.UpdateCurMana(_combatManager.activeSkill.manaRequired, true));
+
+        // Toggle to all skill panel
+        _combatManager._unitHudInfo.ToggleToAllSkillsPanel();
     }
 
     public void UpdateRemainingHitsText(bool cond, int val = 0)
@@ -199,7 +176,7 @@ public class AttackBar : MonoBehaviour
         _hitsRemainingText.UpdateRemainingHitText(cond, val);
     }
 
-    public void DestroyActiveHitMarker(float time)
+    public void DestroyActiveHitMarker(float time = 0)
     {
         if (activeHitMarker)
         {
@@ -228,8 +205,8 @@ public class AttackBar : MonoBehaviour
 
         _hitBar = go.GetComponent<HitBar>();
 
-        if (_combatManager.relicActiveSkill.curHitsCompleted == 0)
-            UpdateRemainingHitsText(true, -(_combatManager.relicActiveSkill.hitsRequired - hitCount));
+        if (_combatManager.activeSkill.curHitsCompleted == 0)
+            UpdateRemainingHitsText(true, -(_combatManager.activeSkill.hitsRequired - hitCount));
 
         activeHitMarkerCollider = go.GetComponent<BoxCollider2D>();
         _hitMarkerVisual = go.transform.GetChild(0).gameObject;

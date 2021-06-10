@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillType: Basic
   skillMode: Damage
-  targetType: Multiple
+  targetType: Single
   targetsAllowed: Enemies
   hitsRequired: 2
   manaRequired: 2

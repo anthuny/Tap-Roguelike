@@ -54,10 +54,11 @@ public class Unit : MonoBehaviour
     [Space(3)]
 
     [Header("UI")]
-    private Image healthImage;
-    private Text nameText;
-    private Image energyImage;
-    private Image manaImage;
+    [SerializeField] private Image healthImage;
+    [SerializeField] private Text nameText;
+    [SerializeField] private Image energyImage;
+    [SerializeField] private Image manaImage;
+    [SerializeField] private Image selectImage;
     public Transform effectParent;
     public List<Image> effectImages = new List<Image>();
     public Transform skillUIValueParent;
@@ -98,7 +99,6 @@ public class Unit : MonoBehaviour
 
     private AttackData curAttackData;
     private AttackData prevAttackData;
-    private float time = 0;
     private bool started;
     [HideInInspector]
     public int hitWaveCount;
@@ -127,17 +127,20 @@ public class Unit : MonoBehaviour
         _unitHudInfo = FindObjectOfType<UnitHUDInfo>();
     }
 
-    public IEnumerator DetermineUnitMoveChoice(Unit unit, SkillData skillData = null)
+    public IEnumerator DetermineUnitMoveChoice()
     {
-        if (unitType == UnitType.ENEMY)
+        if (unitType == UnitType.ALLY)
+        {
+            //Use enemy's basic skill
+            //StartCoroutine(UnitSkillFunctionality(_combatManager.activeSkill));
+        }
+        else
         {
             // Toggle off end turn Button
             StartCoroutine(_combatManager.uIManager.ToggleImage(_combatManager.uIManager.endTurnGO, false));
 
-            //yield return new WaitForSeconds(_combatManager.enemySkillAnimationTime);
-
-            // Unit start turn
-            yield return new WaitForSeconds(.5f);
+            // enemy choose skill time wait
+            yield return new WaitForSeconds(_combatManager.enemySkillDetailsTime);
 
             // If enemy unit has enough mana for basic skill
             if (curMana >= basicSkill.manaRequired)
@@ -145,8 +148,23 @@ public class Unit : MonoBehaviour
                 // Enable selection on basic skill icon 
                 _unitHudInfo.ToggleSkillIconSelection(_unitHudInfo.tBasicSkillIcon, true);
 
+                // Update Unit's mana for skill cost
+                StartCoroutine(UpdateCurMana(basicSkill.manaRequired, false));
+
+                // Unit post skill select time wait
+                yield return new WaitForSeconds(_combatManager.enemySelectSkillTime);
+
+                // Start basic skill functionality
+                _unitHudInfo.tBasicSkillIcon.ActiveSkillToggleUI();
+
+                // Unit post skill details time wait
+                yield return new WaitForSeconds(_combatManager.enemyStartAttackTime);
+
+                // Sets skill active as true
+                _combatManager.activeAttackBar.UpdateActiveSkill(true);
+
                 //Use enemy's basic skill
-                StartCoroutine(UnitSkillFunctionality(false, basicSkill, _combatManager.enemySelectSkillPostTime));    
+                StartCoroutine(UnitSkillFunctionality(basicSkill));    
             }
 
             // If enemy unit has no mana for any skill
@@ -165,9 +183,9 @@ public class Unit : MonoBehaviour
     /// <summary>
     /// Caster performs a skill on a target
     /// </summary>
-    public IEnumerator UnitSkillFunctionality(bool relic, SkillData skillData, float time = 0)
+    public IEnumerator UnitSkillFunctionality(SkillData skillData)
     {
-        yield return new WaitForSeconds(time);
+        //yield return new WaitForSeconds(time);
 
         // If enemy's skill, set the target to the relic 
         if (unitType == UnitType.ENEMY)
@@ -178,24 +196,22 @@ public class Unit : MonoBehaviour
 
             // Update mana on first hit for skill mana cost
             if (skillData.curHitsCompleted == 0)
-                StartCoroutine(_combatManager.activeUnit.UpdateCurMana(skillData.manaRequired, false));
-
+                
             // Deselect selected skill icon
             _unitHudInfo.DeselectAllSelections();
         }
 
-        yield return new WaitForSeconds(time);
+        //yield return new WaitForSeconds(time);
 
         _combatManager.SetActiveSkill(skillData);   // Set active skill
         SelectEnemySkillValueMultiplier();  // Set enemy skill value multiplier
-        AssignSelectionCount(skillData);
 
         skillData.curHitsCompleted++;   // Increase current hits completed by 1
 
-        yield return new WaitForSeconds(time);  // Time for skill animation 
+        //yield return new WaitForSeconds(time);  // Time for skill animation 
 
         // Only if relic, set up for attack bar
-        if (relic)
+        if (unitType == UnitType.ALLY)
         {
             if (skillData.curHitsCompleted == skillData.hitsRequired)
             {
@@ -246,7 +262,7 @@ public class Unit : MonoBehaviour
                                 break;
                         }
 
-                        StartCoroutine(SendSkillUI(_combatManager.relicActiveSkill));
+                        StartCoroutine(SendSkillUI(_combatManager.activeSkill));
 
                         //_devManager.FlashText(this.name, targetSingle.name, skillData.name, power, targetSingle);   // Debug the attack
 
@@ -279,7 +295,7 @@ public class Unit : MonoBehaviour
                                     break;
                             }
 
-                            StartCoroutine(SendSkillUI(_combatManager.relicActiveSkill));
+                            StartCoroutine(SendSkillUI(_combatManager.activeSkill));
 
                             // If skill does not have an effect
                             //_devManager.FlashText(this.name, targetMultiple.name, skillData.name, power, targetMultiple);   // Debug the attack
@@ -308,12 +324,12 @@ public class Unit : MonoBehaviour
                 break;
         }
 
-        if (relic && skillData.curHitsCompleted == skillData.hitsRequired)
-            _combatManager.activeAttackBar.BackButtonFunctionality(false);
+        if (unitType == UnitType.ALLY && skillData.curHitsCompleted == skillData.hitsRequired)
+            _combatManager.activeAttackBar.BackButtonFunctionality();
 
         // Disable the back button after the first hit of the skill
         if (skillData.curHitsCompleted == 1 && unitType == UnitType.ALLY)
-            StartCoroutine(_combatManager.uIManager.ToggleImage(_combatManager.uIManager.cancelAttackGO, false));
+            _combatManager._unitHudInfo.TogglePanel(_combatManager._unitHudInfo.cancelAttackGO, false);
 
         // If this attack was the last required hit
         if (skillData.curHitsCompleted == skillData.hitsRequired)
@@ -326,7 +342,7 @@ public class Unit : MonoBehaviour
 
             // If enemy skill, go back to thought process after last hit of a skill
             if (unitType == UnitType.ENEMY)
-                StartCoroutine(DetermineUnitMoveChoice(this, skillData));
+                StartCoroutine(DetermineUnitMoveChoice());
         }
     }
 
@@ -358,7 +374,7 @@ public class Unit : MonoBehaviour
         curAttackData.skillUIValueParent = target.skillUIValueParent;
         curAttackData.curTargetCount = _combatManager.unitTargets.Count;
         //curAttackData.effectVal = skillData.effect.stackValue;
-        curAttackData.relicActiveSkillValueModifier = _combatManager.activeSkillValueModifier;
+        curAttackData.activeSkillValueModifier = _combatManager.activeSkillValueModifier;
     }
 
     IEnumerator SendSkillUI(SkillData skillData)
@@ -471,7 +487,7 @@ public class Unit : MonoBehaviour
         if (!attackData)
             valDefault = RoundFloatToInt(val);
         else
-            valDefault = RoundFloatToInt(val * attackData.relicActiveSkillValueModifier);
+            valDefault = RoundFloatToInt(val * attackData.activeSkillValueModifier);
 
         float valDefaultAbs = Mathf.Abs(valDefault);
         float effectVal = RoundFloatToInt(recievedDamageAmp * valDefaultAbs);
@@ -576,7 +592,7 @@ public class Unit : MonoBehaviour
 
                 if (_combatManager.activeUnit == this)
                 {
-                    _unitHudInfo.SetUnitMana(_unitHudInfo.eUnitManaText, curMana);
+                    _unitHudInfo.SetUnitMana(_unitHudInfo.tUnitManaText, curMana);
                     _unitHudInfo.UpdateSkillInvalidImages(this);
                     //_unitHudInfo.UpdateSkillManaRequired(this);
                 }
@@ -596,7 +612,7 @@ public class Unit : MonoBehaviour
                 UpdateManaVisual();
                 if (_combatManager.activeUnit == this)
                 {
-                    _unitHudInfo.SetUnitMana(_unitHudInfo.eUnitManaText, curMana);
+                    _unitHudInfo.SetUnitMana(_unitHudInfo.tUnitManaText, curMana);
                     _unitHudInfo.UpdateSkillInvalidImages(this);
                     //_unitHudInfo.UpdateSkillManaRequired(this);
                 }
@@ -651,12 +667,17 @@ public class Unit : MonoBehaviour
         this.color = color;
     }
     #endregion
+    public void ToggleSelectImage(bool enable)
+    {
+        selectImage.enabled = enable;
+    }
+
     #region Assign Effect
     public void AssignEffect(Effect effect, int effectPower, int effectDuration, SkillData skillData)
     {
         float rand = Random.Range(0f, 1f);
         // If unit successfully rolled for the proc
-        if (rand <= _combatManager.relicActiveSkillProcModifier)
+        if (rand <= _combatManager.activeSkillProcModifier)
         {
             _devManager.FlashText();
 
@@ -718,18 +739,15 @@ public class Unit : MonoBehaviour
     {
         turnImage.SetActive(toggle);
     }
-    void AssignSelectionCount(SkillData skill)
-    {
-        _combatManager.maxUnitTargets = skill.maxTargetCount;
-    }
 
     public void AssignUI()
     {
         unitGO.transform.SetParent(transform);
-        healthImage = unitGO.transform.Find("Health/Current Health Image").GetComponent<Image>();
-        nameText = unitGO.transform.Find("Name/Name Text").GetComponent<Text>();
-        energyImage = unitGO.transform.Find("Energy/Current Energy Image").GetComponent<Image>();
-        manaImage = unitGO.transform.Find("Mana/Current Mana Image").GetComponent<Image>();
+        //healthImage = unitGO.transform.Find("Health/Current Health Image").GetComponent<Image>();
+        //nameText = unitGO.transform.Find("Name/Name Text").GetComponent<Text>();
+        //energyImage = unitGO.transform.Find("Energy/Current Energy Image").GetComponent<Image>();
+        //manaImage = unitGO.transform.Find("Mana/Current Mana Image").GetComponent<Image>();
+        //selectImage = unitGO.transform.Find("Select/Select Image").GetComponent<Image>();
 
         effectParent = unitGO.transform.Find("Effects").transform; // Assign effects parent
 

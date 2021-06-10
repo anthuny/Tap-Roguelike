@@ -7,18 +7,20 @@ public class UnitHUDInfo : MonoBehaviour
     private UIManager _uiManager;
 
     [Header("Target Unit Main")]
-    public Unit unit;
-    [SerializeField] private Text _eNameText;
-    [SerializeField] private Image _eUnitPortrait;
-    [SerializeField] private Text _eUnitLevelText;
-    [SerializeField] private Text _eUnitHealthText;
-    public Text eUnitManaText;
-    [SerializeField] private Text _eUnitEnergyText;
+
+    [HideInInspector]
+    public GameObject cancelAttackGO;
+    [SerializeField] private Text _tNameText;
+    [SerializeField] private Image _tUnitPortrait;
+    [SerializeField] private Text _tUnitLevelText;
+    [SerializeField] private Text _tUnitHealthText;
+    public Text tUnitManaText;
+    [SerializeField] private Text _tUnitEnergyText;
 
     [Header("Target Unit Panels")]
-    public GameObject eTargetUnitInfoPanel;
-    public GameObject eAllSkillPanel;
-    public GameObject eActiveSkillPanel;
+    public GameObject tTargetUnitInfoPanel;
+    public GameObject tAllSkillPanel;
+    public GameObject tActiveSkillPanel;
 
     [Space(3)]
     [Header("Target Unit Skills")]
@@ -29,21 +31,22 @@ public class UnitHUDInfo : MonoBehaviour
 
     [Space(3)]
     [Header("Target Unit Active Skill")]
-    [SerializeField] private Image _eActiveSkillImage;
-    [SerializeField] private Text _eActiveSkillNameText;
-    [SerializeField] private Text _eActiveSkillDescText;
-    [SerializeField] private Text _eActiveSkillManaCost;
-    [SerializeField] private Text _eActiveSkillCD;
-    [SerializeField] private Text _eActiveSkillPerfectHitText;
-    [SerializeField] private Text _eActiveSkillGreatHitText;
-    [SerializeField] private Text _eActiveSkillGoodHitText;
-    [SerializeField] private Text _eActiveSkillMissHitText;
-    [SerializeField] private Image _eActiveSkillRemainingCDImage;
-    [SerializeField] private Text _eActiveSkillRemaingingCDText;
+    [SerializeField] private Image _tActiveSkillImage;
+    [SerializeField] private Text _tActiveSkillNameText;
+    [SerializeField] private Text _tActiveSkillDescText;
+    [SerializeField] private Text _tActiveSkillManaCost;
+    [SerializeField] private Text _tActiveSkillCD;
+    [SerializeField] private Text _tActiveSkillPerfectHitText;
+    [SerializeField] private Text _tActiveSkillGreatHitText;
+    [SerializeField] private Text _tActiveSkillGoodHitText;
+    [SerializeField] private Text _tActiveSkillMissHitText;
+    [SerializeField] private Image _tActiveSkillRemainingCDImage;
+    [SerializeField] private Text _tActiveSkillRemainingCDText;
 
     [Header("Relic Panels")]
     public GameObject rAllSkillPanel;
     public GameObject rActiveSkillPanel;
+    public GameObject rAttackBarPanel;
     public GameObject attackButton;
 
     [Space(3)]
@@ -78,27 +81,59 @@ public class UnitHUDInfo : MonoBehaviour
     [SerializeField] private Image _rActiveSkillRemainingCDImage;
     [SerializeField] private Text _rActiveSkillRemaingingCDText;
 
-    private void Awake()
-    {
-        _uiManager = FindObjectOfType<UIManager>();
-        _combatManager = FindObjectOfType<CombatManager>();
-    }
+    [HideInInspector]
+    public Unit unit;
 
     private void Start()
     {
+        _uiManager = FindObjectOfType<UIManager>();
+        _combatManager = FindObjectOfType<CombatManager>();
+
         RemoveAllUI();
     }
 
-    public void ExitSkillDetailPanel()
+    public void ExitSkillDetailsButton()
+    {
+        // Remove skill detail panel, display all skill panel
+        ExitSkillDetailPanel();
+
+        // Remove all unit select images
+        _combatManager.ClearUnitSelectImages();
+    }
+
+    public void StartAttack()
+    {
+        // Toggle UI to display attack bar
+        ToggleToAttackBar();
+
+        // Spawn Hit marker for skill
+        _combatManager.activeAttackBar.SpawnHitMarker(_combatManager.activeSkill);
+    }
+
+    void ExitSkillDetailPanel()
     {
         TogglePanel(rAllSkillPanel, true);
         TogglePanel(rActiveSkillPanel, false);
     }
+    public void ToggleToAttackBar()
+    {
+        TogglePanel(rAttackBarPanel, true);
+        TogglePanel(rActiveSkillPanel, false);
+        TogglePanel(cancelAttackGO, true);
+    }
+
+    public void ToggleToAllSkillsPanel()
+    {
+        TogglePanel(rAttackBarPanel, false);
+        TogglePanel(rActiveSkillPanel, false);
+        TogglePanel(cancelAttackGO, false);
+        TogglePanel(rAllSkillPanel, true);
+    }
     void RemoveAllUI()
     {
-        TogglePanel(eTargetUnitInfoPanel, false);
-        TogglePanel(eAllSkillPanel, false);
-        TogglePanel(eActiveSkillPanel, false);
+        TogglePanel(tTargetUnitInfoPanel, false);
+        TogglePanel(tAllSkillPanel, false);
+        TogglePanel(tActiveSkillPanel, false);
         TogglePanel(rAllSkillPanel, false);
         TogglePanel(rActiveSkillPanel, false);
     }
@@ -115,14 +150,24 @@ public class UnitHUDInfo : MonoBehaviour
         tSecondarySkillIcon.ToggleSelectionImage(false);
     }
 
-    public void AssignUnitSkillsToSkillIcon()
+    public void AssignUnitSkillsToSkillIcon(Unit unit)
     {
-        _rPassiveSkillIcon.ReferenceUnit();
-        _rBasicSkillIcon.ReferenceUnit();
-        _rPrimarySkillIcon.ReferenceUnit();
-        _rSecondarySkillIcon.ReferenceUnit();
+        if (unit.unitType == Unit.UnitType.ALLY)
+        {
+            _rPassiveSkillIcon.ReferenceUnit();
+            _rBasicSkillIcon.ReferenceUnit();
+            _rPrimarySkillIcon.ReferenceUnit();
+            _rSecondarySkillIcon.ReferenceUnit();
+        }
+        else
+        {
+            tPassiveSkillIcon.ReferenceUnit();
+            tBasicSkillIcon.ReferenceUnit();
+            tPrimarySkillIcon.ReferenceUnit();
+            tSecondarySkillIcon.ReferenceUnit();
+        }
     }
-    public void SetValues(Unit unit)
+    public void TogglePanels(Unit unit)
     {
         this.unit = unit;
         // If enemy, update enemy icon unit reference
@@ -133,8 +178,8 @@ public class UnitHUDInfo : MonoBehaviour
             tPrimarySkillIcon.SetUnit(unit);
             tSecondarySkillIcon.SetUnit(unit);
 
-            TogglePanel(eAllSkillPanel, true);
-            TogglePanel(eActiveSkillPanel, false);
+            TogglePanel(tAllSkillPanel, true);
+            TogglePanel(tActiveSkillPanel, false);
         }
         // If enemy, update relic icon unit reference
         else
@@ -148,21 +193,21 @@ public class UnitHUDInfo : MonoBehaviour
             TogglePanel(rActiveSkillPanel, false);
         }
 
-        SetUnit(unit);
-        SetSkills(unit);
+        //SetUnitInfoUI(unit);
+        SetUnitAllSkills(unit);
     }
 
-    public void SetUnit(Unit unit)
+    public void SetUnitInfoUI(Unit unit)
     {
-        TogglePanel(eTargetUnitInfoPanel, true);
-        SetUnitName(_eNameText, unit.name);
-        SetUnitLevel(_eUnitLevelText, unit.level);
-        SetUnitHealth(_eUnitHealthText, unit.curHealth);
-        SetUnitMana(eUnitManaText, unit.curMana);
-        SetUnitEnergy(_eUnitEnergyText, unit.turnEnergy);
+        TogglePanel(tTargetUnitInfoPanel, true);
+        SetUnitName(_tNameText, unit.name);
+        SetUnitLevel(_tUnitLevelText, unit.level);
+        SetUnitHealth(_tUnitHealthText, unit.curHealth);
+        SetUnitMana(tUnitManaText, unit.curMana);
+        SetUnitEnergy(_tUnitEnergyText, unit.turnEnergy);
     }
 
-    void SetSkills(Unit unit)
+    void SetUnitAllSkills(Unit unit)
     {
         // If Enemy turn
         if (!_combatManager.relicTurn)
@@ -254,18 +299,18 @@ public class UnitHUDInfo : MonoBehaviour
         if (unit.unitType == Unit.UnitType.ENEMY)
         {
             //SetActiveSkillImage();
-            SetActiveSkillNameText(_eActiveSkillNameText, skillData.name);
-            SetActiveSkillDescText(_eActiveSkillDescText, skillData.description);
-            SetActiveSkillManaCostText(_eActiveSkillManaCost, skillData.manaRequired);
-            SetActiveSkilCDText(_eActiveSkillCD, skillData.turnCooldown);
-            SetActiveSkillRemainingCDText(_eActiveSkillRemaingingCDText, skillData.curCooldown);
-            SetActiveSkillValue(_eActiveSkillMissHitText, skillData.missValueMultiplier);
-            SetActiveSkillValue(_eActiveSkillGoodHitText, skillData.goodValueMultiplier);
-            SetActiveSkillValue(_eActiveSkillGreatHitText, skillData.greatValueMultiplier);
-            SetActiveSkillValue(_eActiveSkillPerfectHitText, skillData.perfectValueMultiplier);
+            SetActiveSkillNameText(_tActiveSkillNameText, skillData.name);
+            SetActiveSkillDescText(_tActiveSkillDescText, skillData.description);
+            SetActiveSkillManaCostText(_tActiveSkillManaCost, skillData.manaRequired);
+            SetActiveSkilCDText(_tActiveSkillCD, skillData.turnCooldown);
+            SetActiveSkillRemainingCDText(_tActiveSkillRemainingCDText, skillData.curCooldown);
+            SetActiveSkillValue(_tActiveSkillMissHitText, skillData.missValueMultiplier);
+            SetActiveSkillValue(_tActiveSkillGoodHitText, skillData.goodValueMultiplier);
+            SetActiveSkillValue(_tActiveSkillGreatHitText, skillData.greatValueMultiplier);
+            SetActiveSkillValue(_tActiveSkillPerfectHitText, skillData.perfectValueMultiplier);
 
-            TogglePanel(eActiveSkillPanel, true);
-            TogglePanel(eAllSkillPanel, false);
+            TogglePanel(tActiveSkillPanel, true);
+            TogglePanel(tAllSkillPanel, false);
         }
         else
         {
@@ -282,7 +327,7 @@ public class UnitHUDInfo : MonoBehaviour
 
             TogglePanel(rActiveSkillPanel, true);
             TogglePanel(rAllSkillPanel, false);
-            TogglePanel(attackButton, skillData.activatable);   // Display attack button if skill is activatable
+            //TogglePanel(attackButton, skillData.activatable);   // Display attack button if skill is activatable
         }
     }
 

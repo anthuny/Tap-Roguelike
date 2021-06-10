@@ -15,8 +15,9 @@ MonoBehaviour:
   skillType: Passive
   skillMode: BaseDamage
   targetType: Single
-  targetsAllowed: Enemies
+  targetsAllowed: 
   hitsRequired: 0
+  manaRequired: 0
   timeBetweenHitUI: 0
   timeTillEffectInflict: 0
   timeForNextHitMarker: 0
@@ -30,7 +31,7 @@ MonoBehaviour:
   stackValue: 0
   targetAmountPowerInc: 0
   isTargetCountValAmp: 0
-  maxTargetSelections: 0
+  maxTargetCount: 1
   activatable: 0
   name: Bleed
   description: Attacks have a chance to apply bleed, Higher accuracy attacks increase

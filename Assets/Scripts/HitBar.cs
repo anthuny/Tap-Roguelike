@@ -48,40 +48,40 @@ public class HitBar : MonoBehaviour
             {
                 case BarType.PERFECT:
                     Debug.Log("Perfect Hit");
-                    _combatManager.activeSkillValueModifier = _combatManager.relicActiveSkill.perfectValueMultiplier;
-                    _combatManager.relicActiveSkillProcModifier = _combatManager.relicActiveSkill.perfectProcMultiplier;
+                    _combatManager.activeSkillValueModifier = _combatManager.activeSkill.perfectValueMultiplier;
+                    _combatManager.activeSkillProcModifier = _combatManager.activeSkill.perfectProcMultiplier;
                     break;
 
                 case BarType.GREAT:
                     Debug.Log("Great Hit");
-                    _combatManager.activeSkillValueModifier = _combatManager.relicActiveSkill.greatValueMultiplier;
-                    _combatManager.relicActiveSkillProcModifier = _combatManager.relicActiveSkill.greatProcMultiplier;
+                    _combatManager.activeSkillValueModifier = _combatManager.activeSkill.greatValueMultiplier;
+                    _combatManager.activeSkillProcModifier = _combatManager.activeSkill.greatProcMultiplier;
                     break;
 
                 case BarType.GOOD:
                     Debug.Log("Good Hit");
-                    _combatManager.activeSkillValueModifier = _combatManager.relicActiveSkill.goodValueMultiplier;
-                    _combatManager.relicActiveSkillProcModifier = _combatManager.relicActiveSkill.goodProcMultiplier;
+                    _combatManager.activeSkillValueModifier = _combatManager.activeSkill.goodValueMultiplier;
+                    _combatManager.activeSkillProcModifier = _combatManager.activeSkill.goodProcMultiplier;
                     break;
 
                 case BarType.MISS:
                     Debug.Log("Miss Hit");
-                    _combatManager.activeSkillValueModifier = _combatManager.relicActiveSkill.missValueMultiplier;
-                    _combatManager.relicActiveSkillProcModifier = _combatManager.relicActiveSkill.missProcMultiplier;
+                    _combatManager.activeSkillValueModifier = _combatManager.activeSkill.missValueMultiplier;
+                    _combatManager.activeSkillProcModifier = _combatManager.activeSkill.missProcMultiplier;
                     break;
             }
 
-            StartCoroutine(_combatManager.activeRelic.UnitSkillFunctionality(true, _combatManager.relicActiveSkill));
+            StartCoroutine(_combatManager.activeRelic.UnitSkillFunctionality(_combatManager.activeSkill));
 
-            _attackBar.UpdateRemainingHitsText(true, -(_combatManager.relicActiveSkill.hitsRequired - _attackBar.hitCount));
+            _attackBar.UpdateRemainingHitsText(true, -(_combatManager.activeSkill.hitsRequired - _attackBar.hitCount));
 
             _attackBar.DestroyActiveHitMarker(_combatManager.activeAttackBar.timeTillBarTurnsInvis);
 
-            if (_attackBar.hitCount != _combatManager.relicActiveSkill.hitsRequired)
+            if (_attackBar.hitCount != _combatManager.activeSkill.hitsRequired)
             {
-                _attackBar.SpawnHitMarker(_combatManager.relicActiveSkill);
+                _attackBar.SpawnHitMarker(_combatManager.activeSkill);
             }
-            else if (_attackBar.hitCount == _combatManager.relicActiveSkill.hitsRequired)
+            else if (_attackBar.hitCount == _combatManager.activeSkill.hitsRequired)
                 _attackBar.ResetHitCount();
         }
         else

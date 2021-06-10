@@ -7,7 +7,7 @@ public class AttackData : MonoBehaviour
     public SkillData skillData;
     public Unit target;
     public float val;
-    public float relicActiveSkillValueModifier;
+    public float activeSkillValueModifier;
     public float effectVal;
     public bool inCombat;
     public Effect effect;

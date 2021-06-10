@@ -55,37 +55,8 @@ public class SkillUIManager : MonoBehaviour
         StartCoroutine(_UIManager.ToggleImage(_UIManager.endTurnGO, false));
     }
 
-    // When Relic selects a skill to attack with
-    public void AssignActiveSkill(Button button)
-    {
-        // If it's not relic's turn, exit
-        if (!_combatManager.relicTurn)
-            return;
-
-        SkillData skillData = button.transform.parent.parent.GetComponent<Target>().skillData;
-        AssignFirstSkill(skillData);
-
-        // If unit has enough for the active skill, cast it
-        if (_combatManager.activeUnit.HasEnoughManaForSkill())
-        {
-            // If the skill is not activatable, don't continue
-            if (!skillData.activatable || skillData.onCooldown)
-                return;
-
-            // Update mana on first hit for skill mana cost
-            StartCoroutine(_combatManager.activeUnit.UpdateCurMana(_combatManager.activeSkill.manaRequired, false));
-            _combatManager.activeAttackBar.ToggleRelicAttackUI(true);       
-        }
-        // If the unit doesnt have enough mana for active skill, dont cast skill
-        else
-        {
-
-        }     
-    }
-
     public void AssignFirstSkill(SkillData skillData)
     {
-        _combatManager.relicActiveSkill = skillData;
         _combatManager.activeSkill = skillData;
     }
     public void AssignSkillAesthetics(Image skillIcon, Image skillSelectionIcon, Image skillBorderIcon,
@@ -162,19 +133,19 @@ public class SkillUIManager : MonoBehaviour
             text.text = Mathf.Abs(val).ToString();  // Display damage
 
             // Set font size
-            if (attackData.relicActiveSkillValueModifier == attackData.skillData.perfectValueMultiplier)
+            if (attackData.activeSkillValueModifier == attackData.skillData.perfectValueMultiplier)
                 text.fontSize = _combatManager.activeAttackBar.skillUIPerfectFontSize;
             else
                 text.fontSize = _combatManager.activeAttackBar.skillUIFontSize;
 
             // Set text UI Colour
-            if (attackData.relicActiveSkillValueModifier == attackData.skillData.perfectValueMultiplier)
+            if (attackData.activeSkillValueModifier == attackData.skillData.perfectValueMultiplier)
                 text.color = _combatManager.activeAttackBar.perfectSkillUIColour;
-            else if (attackData.relicActiveSkillValueModifier == attackData.skillData.greatValueMultiplier)
+            else if (attackData.activeSkillValueModifier == attackData.skillData.greatValueMultiplier)
                 text.color = _combatManager.activeAttackBar.greatSkillUIColour;
-            else if (attackData.relicActiveSkillValueModifier == attackData.skillData.goodValueMultiplier)
+            else if (attackData.activeSkillValueModifier == attackData.skillData.goodValueMultiplier)
                 text.color = _combatManager.activeAttackBar.goodSkillUIColour;
-            else if (attackData.relicActiveSkillValueModifier == attackData.skillData.missValueMultiplier)
+            else if (attackData.activeSkillValueModifier == attackData.skillData.missValueMultiplier)
                 text.color = _combatManager.activeAttackBar.missSkillUIColour;
         }
         // If value is 0

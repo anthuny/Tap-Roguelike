@@ -6,7 +6,6 @@ public class UIManager : MonoBehaviour
 {
     public GameObject endTurnGO;
     public GameObject startFightGO;
-    public GameObject cancelAttackGO;
     public GameObject hitsRemainingTextGO;
     public GameObject attackBarGO;
     public GameObject targetedUnitInfoGO;
