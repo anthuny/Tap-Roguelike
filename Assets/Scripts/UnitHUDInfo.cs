@@ -7,9 +7,8 @@ public class UnitHUDInfo : MonoBehaviour
     private UIManager _uiManager;
 
     [Header("Target Unit Main")]
-
-    [HideInInspector]
     public GameObject cancelAttackGO;
+    [SerializeField] private GameObject attackBarDarkenerGO;
     [SerializeField] private Text _tNameText;
     [SerializeField] private Image _tUnitPortrait;
     [SerializeField] private Text _tUnitLevelText;
@@ -120,6 +119,7 @@ public class UnitHUDInfo : MonoBehaviour
         TogglePanel(rAttackBarPanel, true);
         TogglePanel(rActiveSkillPanel, false);
         TogglePanel(cancelAttackGO, true);
+        TogglePanel(attackBarDarkenerGO, true);
     }
 
     public void ToggleToAllSkillsPanel()
@@ -128,6 +128,7 @@ public class UnitHUDInfo : MonoBehaviour
         TogglePanel(rActiveSkillPanel, false);
         TogglePanel(cancelAttackGO, false);
         TogglePanel(rAllSkillPanel, true);
+        TogglePanel(attackBarDarkenerGO, false);
     }
     void RemoveAllUI()
     {
@@ -136,6 +137,7 @@ public class UnitHUDInfo : MonoBehaviour
         TogglePanel(tActiveSkillPanel, false);
         TogglePanel(rAllSkillPanel, false);
         TogglePanel(rActiveSkillPanel, false);
+        TogglePanel(attackBarDarkenerGO, false);
     }
     public void ToggleSkillIconSelection(SkillIconUI skillIcon, bool enable)
     {

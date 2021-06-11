@@ -6,9 +6,8 @@ using UnityEngine.UI;
 public class Target : MonoBehaviour
 {
     private CombatManager _combatManager;
-    public SkillUIManager _skillUIManager;
-    private UIManager _uIManager;
-    public Unit unit;
+
+    [SerializeField] private Unit unit;
     [SerializeField] private Button _selectButton;
     [HideInInspector]
     public bool selectEnabled;
@@ -42,7 +41,6 @@ public class Target : MonoBehaviour
     {
         _combatManager = FindObjectOfType<CombatManager>();
         selectionImage = GetComponent<Image>();
-        _uIManager = FindObjectOfType<UIManager>();
     }
 
     private void Start()
@@ -57,6 +55,12 @@ public class Target : MonoBehaviour
         {
             // Clear unit select images
             _combatManager.ClearUnitSelectImages();
+
+            // toggle this unit's select image on
+            unit.ToggleSelectImage(true);
+
+            // Declare the target in combat
+            _combatManager.DeclareTarget(unit);
 
             // Start attack bar sequence if active unit is an ally
             if (_combatManager.activeUnit.unitType == Unit.UnitType.ALLY)

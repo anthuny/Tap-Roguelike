@@ -33,7 +33,7 @@ public class Unit : MonoBehaviour
     public int turnEnergy;
 
     [Space(3)]
-
+        
     [Header("Growth Stats")]
     public int powerGrowth;
     public int healthGrowth;
@@ -58,7 +58,7 @@ public class Unit : MonoBehaviour
     [SerializeField] private Text nameText;
     [SerializeField] private Image energyImage;
     [SerializeField] private Image manaImage;
-    [SerializeField] private Image selectImage;
+    [SerializeField] private UnitSelect _unitSelect;
     public Transform effectParent;
     public List<Image> effectImages = new List<Image>();
     public Transform skillUIValueParent;
@@ -160,9 +160,6 @@ public class Unit : MonoBehaviour
                 // Unit post skill details time wait
                 yield return new WaitForSeconds(_combatManager.enemyStartAttackTime);
 
-                // Sets skill active as true
-                _combatManager.activeAttackBar.UpdateActiveSkill(true);
-
                 //Use enemy's basic skill
                 StartCoroutine(UnitSkillFunctionality(basicSkill));    
             }
@@ -180,36 +177,8 @@ public class Unit : MonoBehaviour
             _combatManager.activeSkillValueModifier = _combatManager.activeSkill.goodValueMultiplier;
     }
 
-    /// <summary>
-    /// Caster performs a skill on a target
-    /// </summary>
     public IEnumerator UnitSkillFunctionality(SkillData skillData)
     {
-        //yield return new WaitForSeconds(time);
-
-        // If enemy's skill, set the target to the relic 
-        if (unitType == UnitType.ENEMY)
-        {
-            // Set target 
-            _combatManager.activeRelic.target.ToggleSelectionImage();
-            _combatManager.unitTargets.Add(_combatManager.activeRelic.target);
-
-            // Update mana on first hit for skill mana cost
-            if (skillData.curHitsCompleted == 0)
-                
-            // Deselect selected skill icon
-            _unitHudInfo.DeselectAllSelections();
-        }
-
-        //yield return new WaitForSeconds(time);
-
-        _combatManager.SetActiveSkill(skillData);   // Set active skill
-        SelectEnemySkillValueMultiplier();  // Set enemy skill value multiplier
-
-        skillData.curHitsCompleted++;   // Increase current hits completed by 1
-
-        //yield return new WaitForSeconds(time);  // Time for skill animation 
-
         // Only if relic, set up for attack bar
         if (unitType == UnitType.ALLY)
         {
@@ -228,8 +197,27 @@ public class Unit : MonoBehaviour
             if (skillData.hitsRequired == 1)
                 maxWaveCountEffects = 1;
             if (skillData.hitsRequired > 1)
-                maxWaveCountEffects = skillData.hitsRequired-1;
+                maxWaveCountEffects = skillData.hitsRequired - 1;
         }
+
+        // If enemy's skill, set the target to the relic 
+        if (unitType == UnitType.ENEMY)
+        {
+            // Set target 
+            _combatManager.activeRelic.target.ToggleSelectionImage();
+            _combatManager.unitTargets.Add(_combatManager.activeRelic.target);
+
+            // Update mana on first hit for skill mana cost
+            if (skillData.curHitsCompleted == 0)
+                
+            // Deselect selected skill icon
+            _unitHudInfo.DeselectAllSelections();
+        }
+
+        _combatManager.SetActiveSkill(skillData);   // Set active skill
+        SelectEnemySkillValueMultiplier();  // Set enemy skill value multiplier
+
+        skillData.curHitsCompleted++;   // Increase current hits completed by 1
 
         switch (skillData.targetsAllowed)
         {
@@ -239,42 +227,80 @@ public class Unit : MonoBehaviour
                 {
                     case "Single":
 
-                        Unit targetSingle = _combatManager.unitTargets[0].GetComponentInParent<Unit>();
-
                         attackCount++;
 
+                        #region Store skill values based on the value type of the skill
                         switch (skillData.skillMode)
                         {
                             case "Damage":
-                                StoreSkillCause(targetSingle, this, skillData, -power, true); 
+                                StoreSkillCause(_combatManager.targetUnit, this, skillData, -power, true); 
                                 break;
 
                             case "PercentMaxHealthDamage":
-                                StoreSkillCause(targetSingle, this, skillData, -((power / 100) * targetSingle.maxHealth), true);
+                                StoreSkillCause(_combatManager.targetUnit, this, skillData, -((power / 100) * _combatManager.targetUnit.maxHealth), true);
                                 break;
 
                             case "Heal":
-                                StoreSkillCause(targetSingle, this, skillData, power, true);
+                                StoreSkillCause(_combatManager.targetUnit, this, skillData, power, true);
                                 break;
 
                             case "PercentMaxHealHeal":
-                                StoreSkillCause(targetSingle, this, skillData, ((power / 100) * targetSingle.maxHealth), true);
+                                StoreSkillCause(_combatManager.targetUnit, this, skillData, ((power / 100) * _combatManager.targetUnit.maxHealth), true);
                                 break;
                         }
+                        #endregion
 
+                        // Display Skill Value UI
                         StartCoroutine(SendSkillUI(_combatManager.activeSkill));
 
-                        //_devManager.FlashText(this.name, targetSingle.name, skillData.name, power, targetSingle);   // Debug the attack
+                        // toggle this unit's select image off
+                        _combatManager.targetUnit.ToggleSelectImage(false);   
 
                         break;
 
 
                     case "Multiple":
 
-                        for (int i = 0; i < _combatManager.unitTargets.Count; i++)
+                        attackCount++;
+
+                        #region Store skill values based on the value type of the skill
+                        Unit targetMultiple;
+
+                        // If unit is ally, loop through all enemies
+                        if (_combatManager.activeUnit.unitType == UnitType.ALLY)
                         {
-                            Unit targetMultiple = _combatManager.unitTargets[i].GetComponentInParent<Unit>();
-                            attackCount++;
+                            for (int i = 0; i < _combatManager._enemies.Count; i++)
+                            {
+                                targetMultiple = _combatManager._enemies[i];
+
+                                switch (skillData.skillMode)
+                                {
+                                    case "Damage":
+                                        StoreSkillCause(targetMultiple, this, skillData, -power, true);
+                                        break;
+
+                                    case "PercentMaxHealthDamage":
+                                        StoreSkillCause(targetMultiple, this, skillData, -((power / 100) * targetMultiple.maxHealth), true);
+                                        break;
+
+                                    case "Heal":
+                                        StoreSkillCause(targetMultiple, this, skillData, power, true);
+                                        break;
+
+                                    case "PercentMaxHealHeal":
+                                        StoreSkillCause(targetMultiple, this, skillData, ((power / 100) * targetMultiple.maxHealth), true);
+                                        break;
+                                }
+
+                                // toggle this unit's select image off
+                                targetMultiple.ToggleSelectImage(false);
+                            }
+                        }
+
+                        // If unit is enemy, target active relic | TODO : Refactor so multiple relics are looped through
+                        else
+                        {
+                            targetMultiple = _combatManager.activeRelic;
 
                             switch (skillData.skillMode)
                             {
@@ -295,12 +321,14 @@ public class Unit : MonoBehaviour
                                     break;
                             }
 
-                            StartCoroutine(SendSkillUI(_combatManager.activeSkill));
-
-                            // If skill does not have an effect
-                            //_devManager.FlashText(this.name, targetMultiple.name, skillData.name, power, targetMultiple);   // Debug the attack
+                            // toggle this unit's select image off
+                            targetMultiple.ToggleSelectImage(false);
                         }
-                            break;
+                        #endregion
+
+                        // Display Skill Value UI
+                        StartCoroutine(SendSkillUI(_combatManager.activeSkill));
+                        break;
 
                     case "None":
                         break;
@@ -324,6 +352,14 @@ public class Unit : MonoBehaviour
                 break;
         }
 
+        // If unit is ally, and this is not the final required hit of the active skill, flash off the attack bar
+        if (unitType == UnitType.ALLY && skillData.curHitsCompleted != skillData.hitsRequired)
+        {
+            _combatManager.activeAttackBar.FlashOffAttackBar();
+        }
+
+
+        // Hide attack bar if this is the last required hit of active skill
         if (unitType == UnitType.ALLY && skillData.curHitsCompleted == skillData.hitsRequired)
             _combatManager.activeAttackBar.BackButtonFunctionality();
 
@@ -335,7 +371,6 @@ public class Unit : MonoBehaviour
         if (skillData.curHitsCompleted == skillData.hitsRequired)
         {
             _combatManager.activeAttackBar.UpdateActiveSkill(false);
-            _combatManager.ClearUnitTargets();
             skillData.curHitsCompleted = 0;
             _skillUIManager.HideValueUI();
             _skillUIManager.ResetTextOffset();
@@ -381,8 +416,8 @@ public class Unit : MonoBehaviour
     {
         for (int i = 0; i < _combatManager.activeAttackData.Count; i++)
         {
-            // After looping through all targets
-            if (i % curAttackData.curTargetCount == 0 && i != 0)
+            // If unit is a relic, and after looping through all enemy targets
+            if (unitType == UnitType.ALLY && i % _combatManager.enemyCount() == 0 && i != 0)
             {
                 hitWaveCount++;
                 yield return new WaitForSeconds(curAttackData.timeBetweenHitUI);
@@ -669,7 +704,11 @@ public class Unit : MonoBehaviour
     #endregion
     public void ToggleSelectImage(bool enable)
     {
-        selectImage.enabled = enable;
+        _unitSelect.ToggleTurnImage(enable);
+    }
+    public void ToggleTurnImage(bool enable)
+    {
+        turnImage.SetActive(enable);
     }
 
     #region Assign Effect
@@ -735,10 +774,7 @@ public class Unit : MonoBehaviour
     }
     #endregion
 
-    public void ToggleTurnImage(bool toggle)
-    {
-        turnImage.SetActive(toggle);
-    }
+
 
     public void AssignUI()
     {

@@ -32,6 +32,8 @@ public class CombatManager : MonoBehaviour
     private bool movedForRelicTurn;
     [HideInInspector]
     public Unit activeUnit;
+    [HideInInspector]
+    public Unit targetUnit;
     public GameObject relicGO;
 
     [Space(3)]
@@ -50,6 +52,7 @@ public class CombatManager : MonoBehaviour
     [Space(3)]
 
     [Header("Combat")]
+    public float attackBarHideTime;
     public float postHitTime;
     public float enemySelectSkillTime;
     public float enemySkillDetailsTime;
@@ -246,7 +249,6 @@ public class CombatManager : MonoBehaviour
                 break;
         }
     }
-
     public void ClearUnitSelectImages()
     {
         for (int i = 0; i < _enemies.Count; i++)
@@ -257,6 +259,11 @@ public class CombatManager : MonoBehaviour
 
         activeRelic.ToggleSelectImage(false);
         activeRelic.target.targetable = false;
+    }
+
+    public void DeclareTarget(Unit unit)
+    {
+        targetUnit = unit;
     }
 
     public IEnumerator BeginUnitTurn(bool enemyTeam)
@@ -426,251 +433,6 @@ public class CombatManager : MonoBehaviour
         return 0;
     }
 
-    public void UpdateActiveSkillTarget(Target target)
-    {
-        activeSkillTarget = target;
-    }
-
-    public void ClearUnitTargets()
-    {
-        // Clear all current target selections
-        for (int i = 0; i < unitTargets.Count; i++)
-        {
-            unitTargets[i].selectEnabled = false; // Tell the oldest image script in stored selection list that the image is disabled
-            unitTargets[i].selectionImage.enabled = false; // Disable the oldest image in stored selection list
-        }
-
-        curUnitTargets = 0;
-        if (activeSkill)
-            activeSkill.curTargetCount = 0;
-        unitTargets.Clear();
-        //_attackBar.UpdateUIAlpha(_attackBar.relicUIHider, _attackBar._relicUIHiderSelectVal);
-    }
-
-    void AddUnitTargets(int maxTargetSelections, bool enemy)
-    {
-        if (maxTargetSelections == 0)
-        {
-            if (enemy)
-            {
-                unitTargets.Add(activeRelic.target);    // Add relic target to target selections
-                unitTargets[0].selectEnabled = true;    // update image enabled to true
-                unitTargets[0].selectionImage.enabled = true;    // Disable the oldest image in stored selection list
-                return;
-            }
-        }
-        // Add current target selections
-        if (maxTargetSelections > 0)
-        {
-            if (enemy)
-            {
-                curUnitTargets++;
-
-                unitTargets.Add(activeRelic.transform.GetChild(0).GetComponent<Target>());    // Add relic target to target selections
-                unitTargets[0].transform.GetChild(0).GetComponent<Target>().selectEnabled = true;    // update image enabled to true
-                unitTargets[0].transform.GetChild(0).GetComponent<Image>().enabled = true;    // Disable the oldest image in stored selection list
-            }
-            else
-            {
-                for (int i = 0; i < maxTargetSelections; i++)
-                {
-                    curUnitTargets++;
-                    activeSkill.curTargetCount++;
-                    unitTargets.Add(_enemiesPosition[i].target);
-
-                    _enemiesPosition[i].target.selectEnabled = true;
-                    _enemiesPosition[i].target.selectionImage.enabled = true;
-                }
-            }
-        }
-    }
-
-    public void AddUnitTarget(Target targetUnit)
-    {
-        // If not currently at max unit targets
-        if (curUnitTargets < maxUnitTargets)
-        {
-            AddCurrentUnitTargets(1);
-            AddUnitTarget2(targetUnit);
-            unitTargets[unitTargets.IndexOf(targetUnit)].selectEnabled = true;    // update image enabled to true
-            unitTargets[unitTargets.IndexOf(targetUnit)].selectionImage.enabled = true;    // Disable the oldest image in stored selection list
-        }
-        // If current unit targets is equal to max unit targets
-        else if (curUnitTargets == maxUnitTargets && curUnitTargets != 0)
-        {
-            unitTargets[0].selectEnabled = false;
-            unitTargets[0].selectionImage.enabled = false;
-            unitTargets.RemoveAt(0);
-
-            unitTargets.Add(targetUnit);
-            unitTargets[unitTargets.IndexOf(targetUnit)].selectEnabled = true;    // update image enabled to true
-            unitTargets[unitTargets.IndexOf(targetUnit)].selectionImage.enabled = true;    // Disable the oldest image in stored selection list
-        }
-        // Add normally
-        else if (curUnitTargets == maxUnitTargets && curUnitTargets == 0)
-        {
-            unitTargets.Add(targetUnit);
-            unitTargets[unitTargets.IndexOf(targetUnit)].selectEnabled = true;    // update image enabled to true
-            unitTargets[unitTargets.IndexOf(targetUnit)].selectionImage.enabled = true;    // Disable the oldest image in stored selection list
-        }
-    }
-
-    public void RemoveUnitTarget(Target targetUnit)
-    {
-        curUnitTargets--;
-        unitTargets[unitTargets.IndexOf(targetUnit)].selectEnabled = false;    // update image enabled to true
-        unitTargets[unitTargets.IndexOf(targetUnit)].selectionImage.enabled = false;    // Disable the oldest image in stored selection list
-        unitTargets.RemoveAt(unitTargets.IndexOf(targetUnit));
-    }
-
-    public void UpdateUnitTargets(Target selector, int selectedTargetIndex, bool cond, bool fromEnemy = false)
-    {
-        // False
-        if (!cond)
-        {
-            if (unitTargets.Count != 0)
-            {
-                if (unitTargets.Count != 1)
-                {
-                    unitTargets.Remove(selector);
-                    curUnitTargets--;
-                    _enemiesPosition[selectedTargetIndex].transform.GetChild(0).GetComponent<Target>().selectEnabled = cond; // Tell the oldest image script in stored selection list that the image is disabled
-                    _enemiesPosition[selectedTargetIndex].transform.GetChild(0).GetComponent<Image>().enabled = cond; // Disable the oldest image in stored selection list
-                }
-            }
-        }
-        // True
-        else
-        {
-            // If player has 1 max selection and 1 already active, replace the current selection with the new one.
-            if (curUnitTargets == maxUnitTargets && curUnitTargets == 1)
-            {
-                unitTargets[0].transform.GetComponent<Target>().selectEnabled = false;
-                unitTargets[0].transform.GetComponent<Image>().enabled = false;
-                _enemiesPosition[selectedTargetIndex].transform.GetChild(0).GetComponent<Target>().selectEnabled = cond; // Tell the oldest image script in stored selection list that the image is disabled
-                _enemiesPosition[selectedTargetIndex].transform.GetChild(0).GetComponent<Image>().enabled = cond; // Disable the oldest image in stored selection list
-                unitTargets.RemoveAt(0);
-                unitTargets.Add(selector);
-
-                //_attackBar.UpdateUIAlpha(_attackBar.relicUIHider, _attackBar._relicUIHiderOffVal);
-                return;
-            }
-
-            if (curUnitTargets < maxUnitTargets)
-            {
-                curUnitTargets++;
-                unitTargets.Add(selector);
-                _enemiesPosition[selectedTargetIndex].transform.GetChild(0).GetComponent<Target>().selectEnabled = cond; // Tell the oldest image script in stored selection list that the image is disabled
-                _enemiesPosition[selectedTargetIndex].transform.GetChild(0).GetComponent<Image>().enabled = cond; // Disable the oldest image in stored selection list
-                return;
-            }
-
-            if (curUnitTargets == maxUnitTargets)
-            {
-                unitTargets[0].transform.GetComponent<Target>().selectEnabled = false;
-                unitTargets[0].transform.GetComponent<Image>().enabled = false;
-                unitTargets.RemoveAt(0);
-                unitTargets.Add(selector);
-                _enemiesPosition[selectedTargetIndex].transform.GetChild(0).GetComponent<Target>().selectEnabled = cond; // Tell the oldest image script in stored selection list that the image is disabled
-                _enemiesPosition[selectedTargetIndex].transform.GetChild(0).GetComponent<Image>().enabled = cond; // Disable the oldest image in stored selection list
-            }
-        }
-        //_attackBar.UpdateUIAlpha(_attackBar.relicUIHider, _attackBar._relicUIHiderOffVal);
-    }
-
-    #region Edit Skill Selections
-    public void ClearSkillTargets()
-    {
-        // Clear all current target selections
-        for (int i = 0; i < curSkillTargets; i++)
-        {
-            curSkillTargets--;
-   
-            skillTargets[i].transform.GetComponent<Target>().selectEnabled = false; // Tell the oldest image script in stored selection list that the image is disabled
-            skillTargets[i].transform.GetComponent<Image>().enabled = false; // Disable the oldest image in stored selection list
-        }
-
-        skillTargets.Clear();
-    }
-
-    public void AddSkillTarget(Target target, SkillData skillData, bool spawnHitMarker)
-    {
-        curSkillTargets++;
-
-        skillTargets.Add(target);
-        target.transform.GetComponent<Target>().selectEnabled = true; // Tell the oldest image script in stored selection list that the image is disabled
-        target.transform.GetComponent<Image>().enabled = true; // Disable the oldest image in stored selection list
-
-        if (spawnHitMarker)
-            _attackBar.SpawnHitMarker(skillData);
-    }
-    #endregion
-
-    /// <summary>
-    /// Updates selection images
-    /// </summary>
-    public void ManageTargets(bool isSkill, bool enemy, Target selectionInput, 
-        int curTargetSelections, int maxTargetSelections = 0, SkillData skillData = null)
-    {
-        //this.curSkillSelections = curSkillSelections;
-        //this.maxSkillSelections = maxSkillSelections;
-        this.curUnitTargets = curTargetSelections;
-        this.maxUnitTargets = maxTargetSelections;
-
-        if (isSkill)
-        {
-            ClearSkillTargets();
-            AddSkillTarget(selectionInput, skillData, true);
-        }
-
-        ClearUnitTargets();
-        AddUnitTargets(maxTargetSelections, enemy);
-    }
-
-    #region Adjusting Unit Targets list / CurUnitTargets / MaxUnitTargets
-    void SetCurrentUnitTargets(int val)
-    {
-        curUnitTargets = val;
-    }
-
-    void AddCurrentUnitTargets(int val)
-    {
-        curUnitTargets += val;
-    }
-
-    void RemoveCurrentUnitTargets(int val)
-    {
-        curUnitTargets -= val;
-    }
-
-    void SetMaxUnitTargets(int val)
-    {
-        maxUnitTargets = val;
-    }
-
-    void SetUnitTargets(List<Target> tars)
-    {
-        for (int i = 0; i < tars.Count; i++)
-        {
-            unitTargets.Add(tars[i]);
-        }
-    }
-
-    void AddUnitTarget2(Target t)
-    {
-        unitTargets.Add(t);
-    }
-
-    void RemoveUnitTarget2(Target t)
-    {
-        unitTargets.Remove(t);
-    }
-
-    void RemoveAllUnitTargets()
-    {
-        unitTargets.Clear();
-    }
-
     void UpdateActiveRelic(Unit relic)
     {
         if (activeRelic != relic)
@@ -682,7 +444,6 @@ public class CombatManager : MonoBehaviour
         if (activeEnemy != enemy)
             activeEnemy = enemy;
     }
-    #endregion
 
     public float CalculateDamageDealt(float value = 0, float valueModifier = 1, float targetCountPowerInc = 1, float targetCountValAmp = 1)
     {

@@ -40,10 +40,11 @@ public class HitBar : MonoBehaviour
 
         Collider2D coll = _attackBar.activeHitMarkerCollider;
 
+        #region Update Active Skill Value + Proc Modifiers based on hit accuracy
         // Check if the hit marker collider is touching any hit bar collider
         if (coll.IsTouching(hitAreaCollider))
         {
-            // Determine which type of hit bar this is
+            // Determine which type of hit bar the hit marker hit
             switch (curBarType)
             {
                 case BarType.PERFECT:
@@ -71,20 +72,25 @@ public class HitBar : MonoBehaviour
                     break;
             }
 
+            // Attempt to continue to deal another attack for the skill
             StartCoroutine(_combatManager.activeRelic.UnitSkillFunctionality(_combatManager.activeSkill));
 
+            // TODO : Updating remaining hits text - doesnt work
             _attackBar.UpdateRemainingHitsText(true, -(_combatManager.activeSkill.hitsRequired - _attackBar.hitCount));
 
+            // Destroy the active hit marker
             _attackBar.DestroyActiveHitMarker(_combatManager.activeAttackBar.timeTillBarTurnsInvis);
 
+            // Spawn another hit marker if there are still remaining hits
             if (_attackBar.hitCount != _combatManager.activeSkill.hitsRequired)
-            {
                 _attackBar.SpawnHitMarker(_combatManager.activeSkill);
-            }
+
+            // If no more hits are required, reset
             else if (_attackBar.hitCount == _combatManager.activeSkill.hitsRequired)
                 _attackBar.ResetHitCount();
         }
         else
             Debug.LogWarning("This hit bar isn't being collided with");
+        #endregion
     }
 }

@@ -101,8 +101,28 @@ public class AttackBar : MonoBehaviour
     public void LandHitMarker()
     {      
         // Check if the user performed the land hit marker input
-        if (skillActive)
-            BeginHitMarkerStoppingSequence(); // Stop the hit marker
+        if (skillActive)          
+            curCollidingHitArea.CheckIfMarkerHit(); // Check to see which hit bar the hit marker hit
+    }
+
+    public void FlashOffAttackBar()
+    {
+        // Toggle Attack Bar off
+        StartCoroutine(_UIManager.ToggleImage(_UIManager.attackBarGO, false));
+
+        StartCoroutine(FlashOnAttackBar());
+    }
+
+    IEnumerator FlashOnAttackBar()
+    {
+        // Wait for attack bar hide to elapse
+        yield return new WaitForSeconds(_combatManager.attackBarHideTime);
+
+        // Toggle Attack Bar on
+        StartCoroutine(_UIManager.ToggleImage(_UIManager.attackBarGO, true));
+
+        // Toggle targeted unit's select image on
+        _combatManager.targetUnit.ToggleSelectImage(true);
     }
 
     public void UpdateActiveSkill(bool active)
@@ -158,7 +178,6 @@ public class AttackBar : MonoBehaviour
     public void BackButtonFunctionality()
     {
         _combatManager = FindObjectOfType<CombatManager>();
-        _combatManager.ClearSkillTargets();  // Clear skill targets
 
         //Destroy hit markers
         if (activeHitMarker)
@@ -166,6 +185,9 @@ public class AttackBar : MonoBehaviour
 
         // Give mana back to relic for cancelling the skill
         StartCoroutine(_combatManager.activeUnit.UpdateCurMana(_combatManager.activeSkill.manaRequired, true));
+
+        // Sets skill active as true
+        _combatManager.activeAttackBar.UpdateActiveSkill(false);
 
         // Toggle to all skill panel
         _combatManager._unitHudInfo.ToggleToAllSkillsPanel();
@@ -210,18 +232,6 @@ public class AttackBar : MonoBehaviour
 
         activeHitMarkerCollider = go.GetComponent<BoxCollider2D>();
         _hitMarkerVisual = go.transform.GetChild(0).gameObject;
-    }
-
-    /// <summary>
-    /// Stop hit marker, 
-    /// check to see which hit bar the hit marker landed on, 
-    /// turn hit marker invisible,
-    /// Make hit marker start again
-    /// </summary>
-    public void BeginHitMarkerStoppingSequence()
-    {
-        // Check to see which hit bar the hit marker hit
-        curCollidingHitArea.CheckIfMarkerHit();
     }
 
     public IEnumerator ToggleHitMarkerVisibility(HitMarker hitMarker, GameObject visual, bool toggle, float time = 0)

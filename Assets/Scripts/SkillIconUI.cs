@@ -55,6 +55,9 @@ public class SkillIconUI : MonoBehaviour
         // toggle correct unit select images based onskill
         _combatManager.ToggleUnitSelectImages(_combatManager.activeSkill);
 
+        // Sets skill active as true
+        _combatManager.activeAttackBar.UpdateActiveSkill(true);
+
         // Transition from all skills panels to active skill panel
         _unitHudInfo.SetActiveSkill(unit, skillData);
     }
