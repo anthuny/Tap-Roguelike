@@ -179,6 +179,9 @@ public class AttackBar : MonoBehaviour
     {
         _combatManager = FindObjectOfType<CombatManager>();
 
+        // Remove all unit select images
+        _combatManager.ClearUnitSelectImages();
+
         //Destroy hit markers
         if (activeHitMarker)
             DestroyActiveHitMarker(0);

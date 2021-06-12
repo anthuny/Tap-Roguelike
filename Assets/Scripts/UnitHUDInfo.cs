@@ -34,7 +34,7 @@ public class UnitHUDInfo : MonoBehaviour
     [SerializeField] private Text _tActiveSkillNameText;
     [SerializeField] private Text _tActiveSkillDescText;
     [SerializeField] private Text _tActiveSkillManaCost;
-    [SerializeField] private Text _tActiveSkillCD;
+    //[SerializeField] private Text _tActiveSkillCD;
     [SerializeField] private Text _tActiveSkillPerfectHitText;
     [SerializeField] private Text _tActiveSkillGreatHitText;
     [SerializeField] private Text _tActiveSkillGoodHitText;
@@ -304,7 +304,7 @@ public class UnitHUDInfo : MonoBehaviour
             SetActiveSkillNameText(_tActiveSkillNameText, skillData.name);
             SetActiveSkillDescText(_tActiveSkillDescText, skillData.description);
             SetActiveSkillManaCostText(_tActiveSkillManaCost, skillData.manaRequired);
-            SetActiveSkilCDText(_tActiveSkillCD, skillData.turnCooldown);
+            //SetActiveSkilCDText(_tActiveSkillCD, skillData.turnCooldown);
             SetActiveSkillRemainingCDText(_tActiveSkillRemainingCDText, skillData.curCooldown);
             SetActiveSkillValue(_tActiveSkillMissHitText, skillData.missValueMultiplier);
             SetActiveSkillValue(_tActiveSkillGoodHitText, skillData.goodValueMultiplier);
