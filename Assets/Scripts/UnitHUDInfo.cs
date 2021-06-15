@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.UI;
 
 public class UnitHUDInfo : MonoBehaviour
@@ -8,7 +9,7 @@ public class UnitHUDInfo : MonoBehaviour
 
     [Header("Target Unit Main")]
     public GameObject cancelAttackGO;
-    [SerializeField] private GameObject attackBarDarkenerGO;
+    public GameObject attackBarDarkenerGO;
     [SerializeField] private Text _tNameText;
     [SerializeField] private Image _tUnitPortrait;
     [SerializeField] private Text _tUnitLevelText;
@@ -79,6 +80,17 @@ public class UnitHUDInfo : MonoBehaviour
     [SerializeField] private Text _rActiveSkillMissHitText;
     [SerializeField] private Image _rActiveSkillRemainingCDImage;
     [SerializeField] private Text _rActiveSkillRemaingingCDText;
+
+    [Space(1)]
+
+    [Header("Other")]
+    [Tooltip("The prefab GameObject of Selected Unit Portrait")]
+    [SerializeField] private GameObject _selectedUnitPortrait;
+    [Tooltip("The Grid Layout Group component attached to selected unit portraits parent.")]
+    [SerializeField] private List<SelectedUnitPortrait> _selectedUnitPortraits = new List<SelectedUnitPortrait>();
+    [SerializeField] private Image _allyTeamPortraitImage;
+    [SerializeField] private Image _enemyTeamPortraitImage;
+
 
     [HideInInspector]
     public Unit unit;
@@ -311,11 +323,13 @@ public class UnitHUDInfo : MonoBehaviour
             SetActiveSkillValue(_tActiveSkillGreatHitText, skillData.greatValueMultiplier);
             SetActiveSkillValue(_tActiveSkillPerfectHitText, skillData.perfectValueMultiplier);
 
-            TogglePanel(tActiveSkillPanel, true);
-            TogglePanel(tAllSkillPanel, false);
+            //TogglePanel(tActiveSkillPanel, true);
+            //TogglePanel(tAllSkillPanel, false);
         }
         else
         {
+            // Set active skill icon
+            _combatManager.activeAttackBar.SetActiveSkillImage(skillData.sprite);
             //SetActiveSkillImage();
             SetActiveSkillNameText(_rActiveSkillNameText, skillData.name);
             SetActiveSkillDescText(_rActiveSkillDescText, skillData.description);
@@ -328,7 +342,7 @@ public class UnitHUDInfo : MonoBehaviour
             SetActiveSkillValue(_rActiveSkillPerfectHitText, skillData.perfectValueMultiplier);
 
             TogglePanel(rActiveSkillPanel, true);
-            TogglePanel(rAllSkillPanel, false);
+            //TogglePanel(rAllSkillPanel, false);
             //TogglePanel(attackButton, skillData.activatable);   // Display attack button if skill is activatable
         }
     }
@@ -401,7 +415,7 @@ public class UnitHUDInfo : MonoBehaviour
     {
         float f = value * 100;
         int val = Mathf.RoundToInt(f);
-        text.text = val.ToString() + " %";
+        text.text = val.ToString() + "%";
     }
     void SetActiveSkillRemainingCDImage(Image image, float curCD, float maxCD)
     {
@@ -415,4 +429,48 @@ public class UnitHUDInfo : MonoBehaviour
             text.text = cooldown.ToString();
     }
     #endregion
+
+    public void ToggleTargetedUnitsPortrait(bool enable)
+    {
+        // Continue if active unit is an ally unit
+        if (_combatManager.activeUnit.unitType == Unit.UnitType.ENEMY)
+            return;
+
+        if (enable)
+        {
+            #region Initialization
+            bool allyTeam;
+            if (_combatManager.activeUnit.unitType == Unit.UnitType.ALLY)
+                allyTeam = true;
+            else
+                allyTeam = false;
+            Image teamImage = allyTeam ? _allyTeamPortraitImage : _enemyTeamPortraitImage;
+            #endregion
+
+            for (int i = 0; i < _combatManager.CalculateTargetAmount(); i++)
+            {
+                SelectedUnitPortrait selectedUnitPortrait = _selectedUnitPortraits[i];
+
+                if (_combatManager.activeSkill.targetsAllowed == "Enemies")
+                {
+                    selectedUnitPortrait.SetTargetUnitPortrait(_combatManager._enemies[i].portraitSprite, teamImage,
+                    _combatManager._enemies[i].curHealth, _combatManager._enemies[i].maxHealth, _combatManager._enemies[i].curMana,
+                    _combatManager._enemies[i].maxMana);
+                }
+                else if (_combatManager.activeSkill.targetsAllowed == "Allys")
+                {
+                    selectedUnitPortrait.SetTargetUnitPortrait(_combatManager.activeRelic.portraitSprite, teamImage,
+                    _combatManager.activeRelic.curHealth, _combatManager.activeRelic.maxHealth, _combatManager.activeRelic.curMana,
+                    _combatManager.activeRelic.maxMana);
+                }
+            }
+        }
+        else
+        {
+            for (int i = 0; i < _selectedUnitPortraits.Count; i++)
+            {
+                _selectedUnitPortraits[i].ToggleUnitPortrait(false);
+            }
+        }
+    }
 }

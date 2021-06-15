@@ -40,6 +40,7 @@ public class AttackBar : MonoBehaviour
     public float _relicUIHiderSelectVal;
     public float _relicUIHiderOnVal;
     [SerializeField] private HitsRemainingText _hitsRemainingText;
+    [SerializeField] private Image activeSkillImage;
 
     [Space(3)]
     [SerializeField] GameObject backGO;
@@ -110,6 +111,12 @@ public class AttackBar : MonoBehaviour
         // Toggle Attack Bar off
         StartCoroutine(_UIManager.ToggleImage(_UIManager.attackBarGO, false));
 
+        // Toggle targeted unit portraits off
+        _combatManager._unitHudInfo.ToggleTargetedUnitsPortrait(false);
+
+        // Toggle attack bar darkerner off
+        _combatManager._unitHudInfo.TogglePanel(_combatManager._unitHudInfo.attackBarDarkenerGO, false);
+
         StartCoroutine(FlashOnAttackBar());
     }
 
@@ -121,8 +128,11 @@ public class AttackBar : MonoBehaviour
         // Toggle Attack Bar on
         StartCoroutine(_UIManager.ToggleImage(_UIManager.attackBarGO, true));
 
-        // Toggle targeted unit's select image on
-        _combatManager.targetUnit.ToggleSelectImage(true);
+        // Toggle targeted unit portraits on
+        _combatManager._unitHudInfo.ToggleTargetedUnitsPortrait(true);
+
+        // Toggle attack bar darkerner on
+        _combatManager._unitHudInfo.TogglePanel(_combatManager._unitHudInfo.attackBarDarkenerGO, true);
     }
 
     public void UpdateActiveSkill(bool active)
@@ -179,6 +189,9 @@ public class AttackBar : MonoBehaviour
     {
         _combatManager = FindObjectOfType<CombatManager>();
 
+        // Toggle selected unit portraits off 
+        _combatManager._unitHudInfo.ToggleTargetedUnitsPortrait(false);
+
         // Remove all unit select images
         _combatManager.ClearUnitSelectImages();
 
@@ -189,7 +202,10 @@ public class AttackBar : MonoBehaviour
         // Give mana back to relic for cancelling the skill
         StartCoroutine(_combatManager.activeUnit.UpdateCurMana(_combatManager.activeSkill.manaRequired, true));
 
-        // Sets skill active as true
+        // Clear targets
+        _combatManager.ClearTargets();
+
+        // Sets skill active as false
         _combatManager.activeAttackBar.UpdateActiveSkill(false);
 
         // Toggle to all skill panel
@@ -256,5 +272,10 @@ public class AttackBar : MonoBehaviour
     public void UpdateUIAlpha(CanvasGroup canvasGroup, float alpha)
     {
         canvasGroup.alpha = alpha;
+    }
+
+    public void SetActiveSkillImage(Sprite skillSprite)
+    {
+        activeSkillImage.sprite = skillSprite;
     }
 }

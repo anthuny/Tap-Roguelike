@@ -7,7 +7,7 @@ public class Target : MonoBehaviour
 {
     private CombatManager _combatManager;
 
-    [SerializeField] private Unit unit;
+    public Unit unit;
     [SerializeField] private Button _selectButton;
     [HideInInspector]
     public bool selectEnabled;
@@ -48,34 +48,36 @@ public class Target : MonoBehaviour
         //_selectButton.onClick.AddListener(ToggleSelectionImage); // Add a listener to the button on a unit    
     }
 
-    public void ToggleSelectionImage()
+    public void ToggleSelectionImage(bool ifTargetIsMultiple)
     {
-        // If unit is able to be targetable a skill is active
+        // If unit is able to be targetable and a skill is active
         if (targetable && _combatManager.activeSkill)
         {
             // Clear unit select images
             _combatManager.ClearUnitSelectImages();
 
-            // toggle this unit's select image on
-            unit.ToggleSelectImage(true);
+            // Add target to the selected targets
+            _combatManager.AddTarget(unit);
 
-            // Declare the target in combat
-            _combatManager.DeclareTarget(unit);
+            // If active skill target type is multiple
+            if (ifTargetIsMultiple)
+            {
+                // Add all other enemies to the selected targets
+                if (_combatManager.activeSkill.targetType == "Multiple")
+                    if (_combatManager.activeUnit.unitType == Unit.UnitType.ALLY)
+                        for (int i = 0; i < _combatManager._enemies.Count; i++)
+                            _combatManager._enemies[i].target.ToggleSelectionImage(false);
+            }
+
+            // Display target unit portraits
+            _combatManager._unitHudInfo.ToggleTargetedUnitsPortrait(true);
+
+            // toggle this unit's select image on
+            //unit.ToggleSelectImage(true);
 
             // Start attack bar sequence if active unit is an ally
             if (_combatManager.activeUnit.unitType == Unit.UnitType.ALLY)
                 _combatManager._unitHudInfo.StartAttack();
         }
-
-        /*
-        // If selection is not displayed, display it 
-        if (!selectEnabled)
-            _combatManager.AddUnitTarget(this);
-        // If selection is displayed, hide it
-        else
-        {
-            _combatManager.RemoveUnitTarget(this);
-        }
-        */
     }
 }

@@ -3,6 +3,7 @@
 [CreateAssetMenu(fileName = "New Skill", menuName = "Skill")]
 public class Skill : ScriptableObject
 {
+    public Sprite sprite;
     public string skillType;
     public string skillMode;
     public string targetType;

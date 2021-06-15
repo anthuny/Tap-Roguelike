@@ -11,6 +11,7 @@ public class SkillData : MonoBehaviour
     public float relicActiveSkillValueModifier;
     public bool onCooldown;
 
+    public Sprite sprite;
     public string skillType;
     public string skillMode;
     public string targetType;
@@ -70,7 +71,7 @@ public class SkillData : MonoBehaviour
     public Color skillSelectionColour;
     public int maxSkillCount = 1;
 
-    public void InitializeSkill(Color skillIconColour, Color skillBorderColour, Color skillSelectionColour, string skillType = "Basic", string skillMode = "None",
+    public void InitializeSkill(Color skillIconColour, Color skillBorderColour, Color skillSelectionColour, Sprite sprite = null, string skillType = "Basic", string skillMode = "None",
         string targetType = "None", string targetsAllowed = "0", int hitsRequired = 0, int energyRequired = 0, float timeBetweenHitUI = 0, float timeTillEffectInflict = 0, float timeForNextHitMarker = 0, Effect effect = null, string effectTarget = "None", int effectPower = 0,
         int effectDuration = 0, string effectHitEffect = "None", string effectDurationDecrease = "None", bool counterSkill = false, float stackValue = 0,
         float targetAmountPowerInc = 1, bool isTargetCountValAmp = false, int targetCount = 0, bool activatable = true, string name = "", string description = "", int turnCooldown = 0, float missDamageMultiplier = 0, float goodDamageMultiplier = 0,
@@ -80,6 +81,7 @@ public class SkillData : MonoBehaviour
         this.skillIconColour = skillIconColour;
         this.skillBorderColour = skillBorderColour;
         this.skillSelectionColour = skillSelectionColour;
+        this.sprite = sprite;
         this.skillType = skillType;
         this.skillMode = skillMode;
         this.targetType = targetType;

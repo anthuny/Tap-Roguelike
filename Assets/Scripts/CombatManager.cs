@@ -33,7 +33,7 @@ public class CombatManager : MonoBehaviour
     [HideInInspector]
     public Unit activeUnit;
     [HideInInspector]
-    public Unit targetUnit;
+    public List<Unit> targetUnits = new List<Unit>();
     public GameObject relicGO;
 
     [Space(3)]
@@ -116,6 +116,7 @@ public class CombatManager : MonoBehaviour
     public List<Unit> turnOrder = new List<Unit>();
     [HideInInspector]
     public Unit activeRelic, activeEnemy;
+    private int targetAmount;
 
     [Header("Skill Keywords")]
     public string[] skillType;
@@ -261,9 +262,19 @@ public class CombatManager : MonoBehaviour
         activeRelic.target.targetable = false;
     }
 
-    public void DeclareTarget(Unit unit)
+    public void AddTarget(Unit unit)
     {
-        targetUnit = unit;
+        targetUnits.Add(unit);
+    }
+
+    public void RemoveTarget(Unit unit)
+    {
+        targetUnits.Remove(unit);
+    }
+
+    public void ClearTargets()
+    {
+        targetUnits.Clear();
     }
 
     public IEnumerator BeginUnitTurn(bool enemyTeam)
@@ -450,10 +461,30 @@ public class CombatManager : MonoBehaviour
         return (value * valueModifier) * (targetCountValAmp * targetCountPowerInc);
     }
 
-    #region Utility
+    public int CalculateTargetAmount()
+    {
+        int targetAmount = 0;
 
-    #endregion
+        if (activeSkill)
+        {
+            switch (activeSkill.targetType)
+            {
+                case "Single":
+                    targetAmount = 1;
+                    break;
 
+                case "Multiple":
+                    if (activeSkill.targetsAllowed == "Enemies")
+                        targetAmount = _enemies.Count;
+                    else
+                        targetAmount = 1;
+                    break;
+                case "Random":
+                    break;
+            }
+        }
+        return targetAmount;
+    }
     /// <summary>
     /// Spawn enemies in room
     /// </summary>
@@ -473,6 +504,8 @@ public class CombatManager : MonoBehaviour
             UpdateActiveEnemy(go.GetComponent<Unit>());
 
             activeEnemy.skillUIValueParent = go.transform.Find("Skill UI Values");
+
+            activeEnemy.SetPortraitImage(room.roomEnemies[i].portraitSprite);
 
             activeEnemy.UpdateUnitType(Unit.UnitType.ENEMY);
             activeEnemy.AssignUI(); // Initialize Unit UI
@@ -498,10 +531,11 @@ public class CombatManager : MonoBehaviour
             InitializeUnitSkills(activeEnemy);
 
             #region Initialize Enemy Skills
-            activeEnemy.passiveSkill.InitializeSkill(
+            activeEnemy.passiveSkill.InitializeSkill(                
                 room.roomEnemies[i].passiveSkill.skillIconColour,
                 room.roomEnemies[i].passiveSkill.skillBorderColour,
                 room.roomEnemies[i].passiveSkill.skillSelectionColour,
+                room.roomEnemies[i].passiveSkill.sprite,
                 room.roomEnemies[i].passiveSkill.skillType,
                 room.roomEnemies[i].passiveSkill.skillMode,
                 room.roomEnemies[i].passiveSkill.targetType,
@@ -539,6 +573,7 @@ public class CombatManager : MonoBehaviour
                 room.roomEnemies[i].basicSkill.skillIconColour,
                 room.roomEnemies[i].basicSkill.skillBorderColour,
                 room.roomEnemies[i].basicSkill.skillSelectionColour,
+                room.roomEnemies[i].basicSkill.sprite,
                 room.roomEnemies[i].basicSkill.skillType,
                 room.roomEnemies[i].basicSkill.skillMode,
                 room.roomEnemies[i].basicSkill.targetType,
@@ -576,6 +611,7 @@ public class CombatManager : MonoBehaviour
                 room.roomEnemies[i].primarySkill.skillIconColour,
                 room.roomEnemies[i].primarySkill.skillBorderColour,
                 room.roomEnemies[i].primarySkill.skillSelectionColour,
+                room.roomEnemies[i].primarySkill.sprite,
                 room.roomEnemies[i].primarySkill.skillType,
                 room.roomEnemies[i].primarySkill.skillMode,
                 room.roomEnemies[i].primarySkill.targetType,
@@ -613,6 +649,7 @@ public class CombatManager : MonoBehaviour
                 room.roomEnemies[i].secondarySkill.skillIconColour,
                 room.roomEnemies[i].secondarySkill.skillBorderColour,
                 room.roomEnemies[i].secondarySkill.skillSelectionColour,
+                room.roomEnemies[i].secondarySkill.sprite,
                 room.roomEnemies[i].secondarySkill.skillType,
                 room.roomEnemies[i].secondarySkill.skillMode,
                 room.roomEnemies[i].secondarySkill.targetType,
@@ -650,6 +687,7 @@ public class CombatManager : MonoBehaviour
                 room.roomEnemies[i].alternateSkill.skillIconColour,
                 room.roomEnemies[i].alternateSkill.skillBorderColour,
                 room.roomEnemies[i].alternateSkill.skillSelectionColour,
+                room.roomEnemies[i].alternateSkill.sprite,
                 room.roomEnemies[i].alternateSkill.skillType,
                 room.roomEnemies[i].alternateSkill.skillMode,
                 room.roomEnemies[i].alternateSkill.targetType,
@@ -687,6 +725,7 @@ public class CombatManager : MonoBehaviour
                 room.roomEnemies[i].ultimateSkill.skillIconColour,
                 room.roomEnemies[i].ultimateSkill.skillBorderColour,
                 room.roomEnemies[i].ultimateSkill.skillSelectionColour,
+                room.roomEnemies[i].ultimateSkill.sprite,
                 room.roomEnemies[i].ultimateSkill.skillType,
                 room.roomEnemies[i].ultimateSkill.skillMode,
                 room.roomEnemies[i].ultimateSkill.targetType,
@@ -760,6 +799,8 @@ public class CombatManager : MonoBehaviour
 
         activeRelic.skillUIValueParent = go.transform.Find("Skill UI Values");
 
+        activeRelic.SetPortraitImage(relic.portraitSprite);
+
         activeRelic.UpdateUnitType(Unit.UnitType.ALLY);
         activeRelic.AssignUI(); // Initialize Unit UI
         activeRelic.UpdateName(relic.name);
@@ -782,6 +823,7 @@ public class CombatManager : MonoBehaviour
             relic.passiveSkill.skillIconColour,
             relic.passiveSkill.skillBorderColour,
             relic.passiveSkill.skillSelectionColour,
+            relic.passiveSkill.sprite,
             relic.passiveSkill.skillType,
             relic.passiveSkill.skillMode,
             relic.passiveSkill.targetType,
@@ -820,6 +862,7 @@ public class CombatManager : MonoBehaviour
             relic.basicSkill.skillIconColour,
             relic.basicSkill.skillBorderColour,
             relic.basicSkill.skillSelectionColour,
+            relic.basicSkill.sprite,
             relic.basicSkill.skillType,
             relic.basicSkill.skillMode,
             relic.basicSkill.targetType,
@@ -858,6 +901,7 @@ public class CombatManager : MonoBehaviour
             relic.primarySkill.skillIconColour,
             relic.primarySkill.skillBorderColour,
             relic.primarySkill.skillSelectionColour,
+            relic.primarySkill.sprite,
             relic.primarySkill.skillType,
             relic.primarySkill.skillMode,
             relic.primarySkill.targetType,
@@ -896,6 +940,7 @@ public class CombatManager : MonoBehaviour
             relic.secondarySkill.skillIconColour,
             relic.secondarySkill.skillBorderColour,
             relic.secondarySkill.skillSelectionColour,
+            relic.secondarySkill.sprite,
             relic.secondarySkill.skillType,
             relic.secondarySkill.skillMode,
             relic.secondarySkill.targetType,
@@ -934,7 +979,8 @@ public class CombatManager : MonoBehaviour
             relic.alternateSkill.skillIconColour,
             relic.alternateSkill.skillBorderColour,
             relic.alternateSkill.skillSelectionColour,
-            relic.alternateSkill.skillType,
+            relic.alternateSkill.sprite,
+            relic.alternateSkill.skillType,            
             relic.alternateSkill.skillMode,
             relic.alternateSkill.targetType,
             relic.alternateSkill.targetsAllowed,
@@ -972,6 +1018,7 @@ public class CombatManager : MonoBehaviour
             relic.ultimateSkill.skillIconColour,
             relic.ultimateSkill.skillBorderColour,
             relic.ultimateSkill.skillSelectionColour,
+            relic.ultimateSkill.sprite,
             relic.ultimateSkill.skillType,
             relic.ultimateSkill.skillMode,
             relic.ultimateSkill.targetType,
@@ -1012,10 +1059,6 @@ public class CombatManager : MonoBehaviour
         skillUIManager.InitializeSkills(activeRelic); // Sets relics skills
                                            // Add relic and enemies to stored list
         turnOrder.Add(activeRelic);
-
-        //activeRelic.selector.enemyIndex = _enemiesPosition.Count + 1;
-
-        //activeRelic.CalculateEnergy();
     }
 }
 

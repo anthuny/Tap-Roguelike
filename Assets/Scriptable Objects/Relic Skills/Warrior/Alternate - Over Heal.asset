@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bdb88ad8c39cf8843bc7940801a6441f, type: 3}
   m_Name: Alternate - Over Heal
   m_EditorClassIdentifier: 
+  sprite: {fileID: 21300000, guid: a08f82491c46aa5439b18816c04236f8, type: 3}
   skillType: Ultimate
   skillMode: None
   targetType: Multiple

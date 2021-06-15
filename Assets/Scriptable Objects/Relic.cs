@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 [CreateAssetMenu(fileName = "New Relic", menuName = "Relic")]
 public class Relic : ScriptableObject
@@ -8,6 +9,7 @@ public class Relic : ScriptableObject
     [Header("Main")]
     public new string name;
     public int level = 1;
+    public Sprite portraitSprite;
 
     [Space(3)]
 

@@ -58,6 +58,8 @@ public class SkillIconUI : MonoBehaviour
         // Sets skill active as true
         _combatManager.activeAttackBar.UpdateActiveSkill(true);
 
+        _unitHudInfo = FindObjectOfType<UnitHUDInfo>();
+
         // Transition from all skills panels to active skill panel
         _unitHudInfo.SetActiveSkill(unit, skillData);
     }

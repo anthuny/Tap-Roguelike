@@ -194,14 +194,14 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 4464987981520524008}
         m_MethodName: ToggleSelectionImage
-        m_Mode: 1
+        m_Mode: 6
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
           m_StringArgument: 
-          m_BoolArgument: 0
+          m_BoolArgument: 1
         m_CallState: 2
 --- !u!1 &8018923753790422319
 GameObject:
@@ -369,6 +369,7 @@ MonoBehaviour:
   hitRecievedCount: 0
   effectHitCount: 0
   storedskillValueUI: []
+  portraitSprite: {fileID: 0}
 --- !u!1 &8731582223746177283
 GameObject:
   m_ObjectHideFlags: 0
@@ -428,7 +429,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 62a652c9e231a2a49b164620c476b6e6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _skillUIManager: {fileID: 0}
   unit: {fileID: 8048469803087997631}
   _selectButton: {fileID: 5101653388698665898}
   selectEnabled: 0

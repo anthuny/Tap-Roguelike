@@ -67,7 +67,7 @@ public class HitMarker : MonoBehaviour
 
     void ToggleDisplay()
     {
-        StartCoroutine(attackBar.ToggleHitMarkerVisibility(this, _hitMarkerImageGO, true, .1f));
+        StartCoroutine(attackBar.ToggleHitMarkerVisibility(this, _hitMarkerImageGO, true, .005f));
     }
 
     void PingPong()

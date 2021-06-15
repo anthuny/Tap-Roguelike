@@ -9,6 +9,7 @@ public class Enemy : ScriptableObject
     [Header("Main")]
     public new string name;
     public int level = 1;
+    public Sprite portraitSprite;
 
     [Space(3)]
 

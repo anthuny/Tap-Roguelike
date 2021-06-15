@@ -11,6 +11,8 @@ public class Unit : MonoBehaviour
     public enum UnitState { ALIVE, DEAD };
     public UnitState unitState;
 
+    private UnitHUDInfo _unitHudInfo;
+
     [Header("Main")]
     public new string name;
     public int level = 1;
@@ -117,8 +119,8 @@ public class Unit : MonoBehaviour
     [HideInInspector]
     public List<SkillValueUI> storedskillValueUI = new List<SkillValueUI>();
 
-    private UnitHUDInfo _unitHudInfo;
-
+    [HideInInspector]
+    public Sprite portraitSprite;
     private void Awake()
     {
         _devManager = FindObjectOfType<DevManager>();
@@ -204,7 +206,7 @@ public class Unit : MonoBehaviour
         if (unitType == UnitType.ENEMY)
         {
             // Set target 
-            _combatManager.activeRelic.target.ToggleSelectionImage();
+            _combatManager.activeRelic.target.ToggleSelectionImage(false);
             _combatManager.unitTargets.Add(_combatManager.activeRelic.target);
 
             // Update mana on first hit for skill mana cost
@@ -233,19 +235,19 @@ public class Unit : MonoBehaviour
                         switch (skillData.skillMode)
                         {
                             case "Damage":
-                                StoreSkillCause(_combatManager.targetUnit, this, skillData, -power, true); 
+                                StoreSkillCause(_combatManager.targetUnits[0], this, skillData, -power, true); 
                                 break;
 
                             case "PercentMaxHealthDamage":
-                                StoreSkillCause(_combatManager.targetUnit, this, skillData, -((power / 100) * _combatManager.targetUnit.maxHealth), true);
+                                StoreSkillCause(_combatManager.targetUnits[0], this, skillData, -((power / 100) * _combatManager.targetUnits[0].maxHealth), true);
                                 break;
 
                             case "Heal":
-                                StoreSkillCause(_combatManager.targetUnit, this, skillData, power, true);
+                                StoreSkillCause(_combatManager.targetUnits[0], this, skillData, power, true);
                                 break;
 
                             case "PercentMaxHealHeal":
-                                StoreSkillCause(_combatManager.targetUnit, this, skillData, ((power / 100) * _combatManager.targetUnit.maxHealth), true);
+                                StoreSkillCause(_combatManager.targetUnits[0], this, skillData, ((power / 100) * _combatManager.targetUnits[0].maxHealth), true);
                                 break;
                         }
                         #endregion
@@ -254,7 +256,7 @@ public class Unit : MonoBehaviour
                         StartCoroutine(SendSkillUI(_combatManager.activeSkill));
 
                         // toggle this unit's select image off
-                        _combatManager.targetUnit.ToggleSelectImage(false);   
+                        _combatManager.targetUnits[0].ToggleSelectImage(false);   
 
                         break;
 
@@ -358,7 +360,6 @@ public class Unit : MonoBehaviour
             _combatManager.activeAttackBar.FlashOffAttackBar();
         }
 
-
         // Hide attack bar if this is the last required hit of active skill
         if (unitType == UnitType.ALLY && skillData.curHitsCompleted == skillData.hitsRequired)
             _combatManager.activeAttackBar.BackButtonFunctionality();
@@ -390,11 +391,8 @@ public class Unit : MonoBehaviour
         curAttackData.inCombat = inCombat;
         curAttackData.target = target;
 
-        // if skill is not dealing more damage based on the amount of targets selected
-        if (!skillData.isTargetCountValAmp)
-            curAttackData.val = _combatManager.CalculateDamageDealt(val, _combatManager.activeSkillValueModifier);
-        else
-            curAttackData.val = _combatManager.CalculateDamageDealt(val, _combatManager.activeSkillValueModifier, skillData.targetAmountPowerInc, _combatManager.unitTargets.Count);
+        // Calculate value of skill
+        curAttackData.val = _combatManager.CalculateDamageDealt(val, _combatManager.activeSkillValueModifier);
 
         curAttackData.effect = skillData.effect;
         curAttackData.skillName = skillData.name;
@@ -407,9 +405,12 @@ public class Unit : MonoBehaviour
         curAttackData.timeBetweenHitUI = skillData.timeBetweenHitUI;
         curAttackData.timeTillEffectInflict = skillData.timeTillEffectInflict;
         curAttackData.skillUIValueParent = target.skillUIValueParent;
+
+        curAttackData.activeSkillValueModifier = _combatManager.activeSkillValueModifier;
+
         curAttackData.curTargetCount = _combatManager.unitTargets.Count;
         //curAttackData.effectVal = skillData.effect.stackValue;
-        curAttackData.activeSkillValueModifier = _combatManager.activeSkillValueModifier;
+
     }
 
     IEnumerator SendSkillUI(SkillData skillData)
@@ -452,6 +453,11 @@ public class Unit : MonoBehaviour
     {
         this.unitState = unitState;
 
+    }
+
+    public void SetPortraitImage(Sprite portraitSprite)
+    {
+        this.portraitSprite = portraitSprite;
     }
 
     #region Update Unit Type
@@ -581,8 +587,8 @@ public class Unit : MonoBehaviour
             yield return new WaitForSeconds(0);
 
         // Remove from unit selection if in one
-        if (target.selectEnabled)
-            target.ToggleSelectionImage();
+        if (_combatManager.targetUnits.Contains(this))
+            _combatManager.RemoveTarget(this);
 
         DestroyAllSkillValueUI();   // Destroy persisting skill value UI
 
