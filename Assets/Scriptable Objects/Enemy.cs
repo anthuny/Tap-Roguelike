@@ -48,10 +48,8 @@ public class Enemy : ScriptableObject
     [Space(3)]
 
     [Header("Skills")]
-    public Skill passiveSkill;
     public Skill basicSkill;
     public Skill primarySkill;
     public Skill secondarySkill;
     public Skill alternateSkill;
-    public Skill ultimateSkill;
 }

@@ -38,6 +38,9 @@ public class CombatManager : MonoBehaviour
 
     [Space(3)]
     [Header("Combat Settings")]
+    public float displayAttackBarTimeWait = 1;
+    public float unitSelectImageActiveAlpha;
+    public float unitSelectImageInactiveAlpha;
     [SerializeField] private float enemyUnitStartWait;
     [SerializeField] private float postAllyAttackWait;
 
@@ -133,6 +136,9 @@ public class CombatManager : MonoBehaviour
         uIManager = FindObjectOfType<UIManager>();
         _unitHudInfo = FindObjectOfType<UnitHUDInfo>();      
         _animatorController = FindObjectOfType<AnimatorController>();
+
+        StartCoroutine(uIManager.ToggleImage(uIManager.startFightGO, true));   // Toggle start button on
+        StartCoroutine(uIManager.ToggleImage(uIManager.selectedUnitPortraitsGO, true));
     }
 
     public void StartBattle()
@@ -223,7 +229,17 @@ public class CombatManager : MonoBehaviour
                     for (int i = 0; i < _enemies.Count; i++)
                     {
                         _enemies[i].ToggleSelectImage(true);
-                        _enemies[i].target.targetable = true;
+
+                        if (activeUnit.HasEnoughManaForSkill())
+                        {
+                            _enemies[i].ToggleTargetable(true);
+                            _enemies[i].UpdateSelectImageAlpha(true);
+                        }
+                        else
+                        {
+                            _enemies[i].ToggleTargetable(false);
+                            _enemies[i].UpdateSelectImageAlpha(false);
+                        }
                     }
                 // If enemy, toggle allies select
                 else
@@ -239,6 +255,16 @@ public class CombatManager : MonoBehaviour
                 {
                     activeRelic.ToggleSelectImage(true);
                     activeRelic.target.targetable = true;
+                    if (activeUnit.HasEnoughManaForSkill())
+                    {
+                        activeRelic.ToggleTargetable(true);
+                        activeRelic.UpdateSelectImageAlpha(true);
+                    }
+                    else
+                    {
+                        activeRelic.ToggleTargetable(false);
+                        activeRelic.UpdateSelectImageAlpha(false);
+                    }
                 }
                 // If enemy, toggle enemies select
                 else
@@ -342,8 +368,7 @@ public class CombatManager : MonoBehaviour
 
         // Toggle off all unit Skill Icon UI Off
         uIManager.ToggleImage(uIManager.attackBarGO, false);
-        _unitHudInfo.TogglePanel(_unitHudInfo.tAllSkillPanel, false);
-        _unitHudInfo.TogglePanel(_unitHudInfo.tActiveSkillPanel, false);
+        _unitHudInfo.TogglePanel(_unitHudInfo.eAllSkillPanel, false);
         _unitHudInfo.TogglePanel(_unitHudInfo.rAllSkillPanel, false);
         _unitHudInfo.TogglePanel(_unitHudInfo.rActiveSkillPanel, false);
 
@@ -423,12 +448,10 @@ public class CombatManager : MonoBehaviour
 
     private void InitializeUnitSkills(Unit unit)
     {
-        unit.passiveSkill = unit.gameObject.AddComponent<SkillData>();
         unit.basicSkill = unit.gameObject.AddComponent<SkillData>();
         unit.primarySkill = unit.gameObject.AddComponent<SkillData>();
         unit.secondarySkill = unit.gameObject.AddComponent<SkillData>();
         unit.alternateSkill = unit.gameObject.AddComponent<SkillData>();
-        unit.ultimateSkill = unit.gameObject.AddComponent<SkillData>();
     }
 
     private int ApplyTurnOrder(Unit a, Unit b)
@@ -531,44 +554,6 @@ public class CombatManager : MonoBehaviour
             InitializeUnitSkills(activeEnemy);
 
             #region Initialize Enemy Skills
-            activeEnemy.passiveSkill.InitializeSkill(                
-                room.roomEnemies[i].passiveSkill.skillIconColour,
-                room.roomEnemies[i].passiveSkill.skillBorderColour,
-                room.roomEnemies[i].passiveSkill.skillSelectionColour,
-                room.roomEnemies[i].passiveSkill.sprite,
-                room.roomEnemies[i].passiveSkill.skillType,
-                room.roomEnemies[i].passiveSkill.skillMode,
-                room.roomEnemies[i].passiveSkill.targetType,
-                room.roomEnemies[i].passiveSkill.targetsAllowed,
-                room.roomEnemies[i].passiveSkill.hitsRequired,
-                room.roomEnemies[i].passiveSkill.manaRequired,
-                room.roomEnemies[i].passiveSkill.timeBetweenHitUI,
-                room.roomEnemies[i].passiveSkill.timeTillEffectInflict,
-                room.roomEnemies[i].passiveSkill.timeForNextHitMarker,
-                room.roomEnemies[i].passiveSkill.effect,
-                room.roomEnemies[i].passiveSkill.effectTarget,
-                room.roomEnemies[i].passiveSkill.effectPower,
-                room.roomEnemies[i].passiveSkill.effectDuration,
-                room.roomEnemies[i].passiveSkill.effectHitEffect,
-                room.roomEnemies[i].passiveSkill.effectDurationDecrease,
-                room.roomEnemies[i].passiveSkill.counterSkill,
-                room.roomEnemies[i].passiveSkill.stackValue,
-                room.roomEnemies[i].passiveSkill.targetAmountPowerInc,
-                room.roomEnemies[i].passiveSkill.isTargetCountValAmp,
-                room.roomEnemies[i].passiveSkill.maxTargetCount,
-                room.roomEnemies[i].passiveSkill.activatable,
-                room.roomEnemies[i].passiveSkill.name,
-                room.roomEnemies[i].passiveSkill.description,
-                room.roomEnemies[i].passiveSkill.turnCooldown,
-                room.roomEnemies[i].passiveSkill.missValueMultiplier,
-                room.roomEnemies[i].passiveSkill.goodValueMultiplier,
-                room.roomEnemies[i].passiveSkill.greatValueMultiplier,
-                room.roomEnemies[i].passiveSkill.perfectValueMultiplier,
-                room.roomEnemies[i].passiveSkill.missProcMultiplier,
-                room.roomEnemies[i].passiveSkill.goodProcMultiplier,
-                room.roomEnemies[i].passiveSkill.greatProcMultiplier,
-                room.roomEnemies[i].passiveSkill.perfectProcMultiplier);
-
             activeEnemy.basicSkill.InitializeSkill(
                 room.roomEnemies[i].basicSkill.skillIconColour,
                 room.roomEnemies[i].basicSkill.skillBorderColour,
@@ -645,7 +630,45 @@ public class CombatManager : MonoBehaviour
                 room.roomEnemies[i].primarySkill.greatProcMultiplier,
                 room.roomEnemies[i].primarySkill.perfectProcMultiplier);
 
-            activeEnemy.secondarySkill.InitializeSkill(
+            activeEnemy.primarySkill.InitializeSkill(
+                room.roomEnemies[i].primarySkill.skillIconColour,
+                room.roomEnemies[i].primarySkill.skillBorderColour,
+                room.roomEnemies[i].primarySkill.skillSelectionColour,
+                room.roomEnemies[i].primarySkill.sprite,
+                room.roomEnemies[i].primarySkill.skillType,
+                room.roomEnemies[i].primarySkill.skillMode,
+                room.roomEnemies[i].primarySkill.targetType,
+                room.roomEnemies[i].primarySkill.targetsAllowed,
+                room.roomEnemies[i].primarySkill.hitsRequired,
+                room.roomEnemies[i].primarySkill.manaRequired,
+                room.roomEnemies[i].primarySkill.timeBetweenHitUI,
+                room.roomEnemies[i].primarySkill.timeTillEffectInflict,
+                room.roomEnemies[i].primarySkill.timeForNextHitMarker,
+                room.roomEnemies[i].primarySkill.effect,
+                room.roomEnemies[i].primarySkill.effectTarget,
+                room.roomEnemies[i].primarySkill.effectPower,
+                room.roomEnemies[i].primarySkill.effectDuration,
+                room.roomEnemies[i].primarySkill.effectHitEffect,
+                room.roomEnemies[i].primarySkill.effectDurationDecrease,
+                room.roomEnemies[i].primarySkill.counterSkill,
+                room.roomEnemies[i].primarySkill.stackValue,
+                room.roomEnemies[i].primarySkill.targetAmountPowerInc,
+                room.roomEnemies[i].primarySkill.isTargetCountValAmp,
+                room.roomEnemies[i].primarySkill.maxTargetCount,
+                room.roomEnemies[i].primarySkill.activatable,
+                room.roomEnemies[i].primarySkill.name,
+                room.roomEnemies[i].primarySkill.description,
+                room.roomEnemies[i].primarySkill.turnCooldown,
+                room.roomEnemies[i].primarySkill.missValueMultiplier,
+                room.roomEnemies[i].primarySkill.goodValueMultiplier,
+                room.roomEnemies[i].primarySkill.greatValueMultiplier,
+                room.roomEnemies[i].primarySkill.perfectValueMultiplier,
+                room.roomEnemies[i].primarySkill.missProcMultiplier,
+                room.roomEnemies[i].primarySkill.goodProcMultiplier,
+                room.roomEnemies[i].primarySkill.greatProcMultiplier,
+                room.roomEnemies[i].primarySkill.perfectProcMultiplier);
+
+            activeEnemy.alternateSkill.InitializeSkill(
                 room.roomEnemies[i].secondarySkill.skillIconColour,
                 room.roomEnemies[i].secondarySkill.skillBorderColour,
                 room.roomEnemies[i].secondarySkill.skillSelectionColour,
@@ -721,44 +744,6 @@ public class CombatManager : MonoBehaviour
                 room.roomEnemies[i].alternateSkill.greatProcMultiplier,
                 room.roomEnemies[i].alternateSkill.perfectProcMultiplier);
 
-            activeEnemy.ultimateSkill.InitializeSkill(
-                room.roomEnemies[i].ultimateSkill.skillIconColour,
-                room.roomEnemies[i].ultimateSkill.skillBorderColour,
-                room.roomEnemies[i].ultimateSkill.skillSelectionColour,
-                room.roomEnemies[i].ultimateSkill.sprite,
-                room.roomEnemies[i].ultimateSkill.skillType,
-                room.roomEnemies[i].ultimateSkill.skillMode,
-                room.roomEnemies[i].ultimateSkill.targetType,
-                room.roomEnemies[i].ultimateSkill.targetsAllowed,
-                room.roomEnemies[i].ultimateSkill.hitsRequired,
-                room.roomEnemies[i].ultimateSkill.manaRequired,
-                room.roomEnemies[i].ultimateSkill.timeBetweenHitUI,
-                room.roomEnemies[i].ultimateSkill.timeTillEffectInflict,
-                room.roomEnemies[i].ultimateSkill.timeForNextHitMarker,
-                room.roomEnemies[i].ultimateSkill.effect,
-                room.roomEnemies[i].ultimateSkill.effectTarget,
-                room.roomEnemies[i].ultimateSkill.effectPower,
-                room.roomEnemies[i].ultimateSkill.effectDuration,
-                room.roomEnemies[i].ultimateSkill.effectHitEffect,
-                room.roomEnemies[i].ultimateSkill.effectDurationDecrease,
-                room.roomEnemies[i].ultimateSkill.counterSkill,
-                room.roomEnemies[i].ultimateSkill.stackValue,
-                room.roomEnemies[i].ultimateSkill.targetAmountPowerInc,
-                room.roomEnemies[i].ultimateSkill.isTargetCountValAmp,
-                room.roomEnemies[i].ultimateSkill.maxTargetCount,
-                room.roomEnemies[i].ultimateSkill.activatable,
-                room.roomEnemies[i].ultimateSkill.name,
-                room.roomEnemies[i].ultimateSkill.description,
-                room.roomEnemies[i].ultimateSkill.turnCooldown,
-                room.roomEnemies[i].ultimateSkill.missValueMultiplier,
-                room.roomEnemies[i].ultimateSkill.goodValueMultiplier,
-                room.roomEnemies[i].ultimateSkill.greatValueMultiplier,
-                room.roomEnemies[i].ultimateSkill.perfectValueMultiplier,
-                room.roomEnemies[i].ultimateSkill.missProcMultiplier,
-                room.roomEnemies[i].ultimateSkill.goodProcMultiplier,
-                room.roomEnemies[i].ultimateSkill.greatProcMultiplier,
-                room.roomEnemies[i].ultimateSkill.perfectProcMultiplier);
-
             #endregion
 
             #endregion
@@ -787,8 +772,8 @@ public class CombatManager : MonoBehaviour
         go.transform.SetParent(_relicSpawnPoint.transform);
         go.transform.position = _relicSpawnPoint.transform.position;
 
-        Image image = go.AddComponent<Image>();
-        image.color = relic.color;
+        //Image image = go.AddComponent<Image>();
+        //image.color = relic.color;
 
         UpdateActiveRelic(go.GetComponent<Unit>());
 
@@ -819,45 +804,6 @@ public class CombatManager : MonoBehaviour
         InitializeUnitSkills(activeRelic);
 
         #region Initialize Relic Skills
-        activeRelic.passiveSkill.InitializeSkill(
-            relic.passiveSkill.skillIconColour,
-            relic.passiveSkill.skillBorderColour,
-            relic.passiveSkill.skillSelectionColour,
-            relic.passiveSkill.sprite,
-            relic.passiveSkill.skillType,
-            relic.passiveSkill.skillMode,
-            relic.passiveSkill.targetType,
-            relic.passiveSkill.targetsAllowed,
-            relic.passiveSkill.hitsRequired,
-            relic.passiveSkill.manaRequired,
-            relic.passiveSkill.timeBetweenHitUI,
-            relic.passiveSkill.timeTillEffectInflict,
-            relic.passiveSkill.timeForNextHitMarker,
-            relic.passiveSkill.effect,
-            relic.passiveSkill.effectTarget,
-            relic.passiveSkill.effectPower,
-            relic.passiveSkill.effectDuration,
-            relic.passiveSkill.effectHitEffect,
-            relic.passiveSkill.effectDurationDecrease,
-            relic.passiveSkill.counterSkill,
-            relic.passiveSkill.stackValue,
-            relic.passiveSkill.targetAmountPowerInc,
-            relic.passiveSkill.isTargetCountValAmp,
-            relic.passiveSkill.maxTargetCount,
-            relic.passiveSkill.activatable,
-            relic.passiveSkill.name,
-            relic.passiveSkill.description,
-            relic.passiveSkill.turnCooldown,
-            relic.passiveSkill.missValueMultiplier,
-            relic.passiveSkill.goodValueMultiplier,
-            relic.passiveSkill.greatValueMultiplier,
-            relic.passiveSkill.perfectValueMultiplier,
-            relic.passiveSkill.missProcMultiplier,
-            relic.passiveSkill.goodProcMultiplier,
-            relic.passiveSkill.greatProcMultiplier,
-            relic.passiveSkill.perfectProcMultiplier,
-            relic.passiveSkill.maxSkillCount);
-
         activeRelic.basicSkill.InitializeSkill(
             relic.basicSkill.skillIconColour,
             relic.basicSkill.skillBorderColour,
@@ -1014,44 +960,44 @@ public class CombatManager : MonoBehaviour
             relic.alternateSkill.perfectProcMultiplier,
             relic.alternateSkill.maxSkillCount);
 
-        activeRelic.ultimateSkill.InitializeSkill(
-            relic.ultimateSkill.skillIconColour,
-            relic.ultimateSkill.skillBorderColour,
-            relic.ultimateSkill.skillSelectionColour,
-            relic.ultimateSkill.sprite,
-            relic.ultimateSkill.skillType,
-            relic.ultimateSkill.skillMode,
-            relic.ultimateSkill.targetType,
-            relic.ultimateSkill.targetsAllowed,
-            relic.ultimateSkill.hitsRequired,
-            relic.ultimateSkill.manaRequired,
-            relic.ultimateSkill.timeBetweenHitUI,
-            relic.ultimateSkill.timeTillEffectInflict,
-            relic.ultimateSkill.timeForNextHitMarker,
-            relic.ultimateSkill.effect,
-            relic.ultimateSkill.effectTarget,
-            relic.ultimateSkill.effectPower,
-            relic.ultimateSkill.effectDuration,
-            relic.ultimateSkill.effectHitEffect,
-            relic.ultimateSkill.effectDurationDecrease,
-            relic.ultimateSkill.counterSkill,
-            relic.ultimateSkill.stackValue,
-            relic.ultimateSkill.targetAmountPowerInc,
-            relic.ultimateSkill.isTargetCountValAmp,
-            relic.ultimateSkill.maxTargetCount,
-            relic.ultimateSkill.activatable,
-            relic.ultimateSkill.name,
-            relic.ultimateSkill.description,
-            relic.ultimateSkill.turnCooldown,
-            relic.ultimateSkill.missValueMultiplier,
-            relic.ultimateSkill.goodValueMultiplier,
-            relic.ultimateSkill.greatValueMultiplier,
-            relic.ultimateSkill.perfectValueMultiplier,
-            relic.ultimateSkill.missProcMultiplier,
-            relic.ultimateSkill.goodProcMultiplier,
-            relic.ultimateSkill.greatProcMultiplier,
-            relic.ultimateSkill.perfectProcMultiplier,
-            relic.ultimateSkill.maxSkillCount);
+        activeRelic.alternateSkill.InitializeSkill(
+            relic.alternateSkill.skillIconColour,
+            relic.alternateSkill.skillBorderColour,
+            relic.alternateSkill.skillSelectionColour,
+            relic.alternateSkill.sprite,
+            relic.alternateSkill.skillType,
+            relic.alternateSkill.skillMode,
+            relic.alternateSkill.targetType,
+            relic.alternateSkill.targetsAllowed,
+            relic.alternateSkill.hitsRequired,
+            relic.alternateSkill.manaRequired,
+            relic.alternateSkill.timeBetweenHitUI,
+            relic.alternateSkill.timeTillEffectInflict,
+            relic.alternateSkill.timeForNextHitMarker,
+            relic.alternateSkill.effect,
+            relic.alternateSkill.effectTarget,
+            relic.alternateSkill.effectPower,
+            relic.alternateSkill.effectDuration,
+            relic.alternateSkill.effectHitEffect,
+            relic.alternateSkill.effectDurationDecrease,
+            relic.alternateSkill.counterSkill,
+            relic.alternateSkill.stackValue,
+            relic.alternateSkill.targetAmountPowerInc,
+            relic.alternateSkill.isTargetCountValAmp,
+            relic.alternateSkill.maxTargetCount,
+            relic.alternateSkill.activatable,
+            relic.alternateSkill.name,
+            relic.alternateSkill.description,
+            relic.alternateSkill.turnCooldown,
+            relic.alternateSkill.missValueMultiplier,
+            relic.alternateSkill.goodValueMultiplier,
+            relic.alternateSkill.greatValueMultiplier,
+            relic.alternateSkill.perfectValueMultiplier,
+            relic.alternateSkill.missProcMultiplier,
+            relic.alternateSkill.goodProcMultiplier,
+            relic.alternateSkill.greatProcMultiplier,
+            relic.alternateSkill.perfectProcMultiplier,
+            relic.alternateSkill.maxSkillCount);
         #endregion
 
         #endregion

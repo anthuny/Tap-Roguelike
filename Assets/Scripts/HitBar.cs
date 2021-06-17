@@ -73,7 +73,7 @@ public class HitBar : MonoBehaviour
             }
 
             // Attempt to continue to deal another attack for the skill
-            StartCoroutine(_combatManager.activeRelic.UnitSkillFunctionality(_combatManager.activeSkill));
+            _combatManager.activeRelic.UnitSkillFunctionality(_combatManager.activeSkill);
 
             // TODO : Updating remaining hits text - doesnt work
             _attackBar.UpdateRemainingHitsText(true, -(_combatManager.activeSkill.hitsRequired - _attackBar.hitCount));

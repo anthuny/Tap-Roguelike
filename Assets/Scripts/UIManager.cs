@@ -9,6 +9,7 @@ public class UIManager : MonoBehaviour
     public GameObject hitsRemainingTextGO;
     public GameObject attackBarGO;
     public GameObject targetedUnitInfoGO;
+    public GameObject selectedUnitPortraitsGO;
 
     public IEnumerator ToggleImage(GameObject imageGO, bool enabled, float time = 0)
     {

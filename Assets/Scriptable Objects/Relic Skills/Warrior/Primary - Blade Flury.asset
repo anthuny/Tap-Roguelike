@@ -18,7 +18,7 @@ MonoBehaviour:
   targetType: Multiple
   targetsAllowed: Enemies
   hitsRequired: 3
-  manaRequired: 1
+  manaRequired: 3
   timeBetweenHitUI: 0.15
   timeTillEffectInflict: 0.9
   timeForNextHitMarker: 0.1

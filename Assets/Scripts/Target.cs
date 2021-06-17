@@ -68,16 +68,14 @@ public class Target : MonoBehaviour
                         for (int i = 0; i < _combatManager._enemies.Count; i++)
                             _combatManager._enemies[i].target.ToggleSelectionImage(false);
             }
+            // Update Unit's mana for skill cost
+            StartCoroutine(_combatManager.activeUnit.UpdateCurMana(_combatManager.activeSkill.manaRequired, false));
 
-            // Display target unit portraits
-            _combatManager._unitHudInfo.ToggleTargetedUnitsPortrait(true);
+            // Toggle off selected skill image
+            _combatManager._unitHudInfo.ToggleSkillSelectionImage(_combatManager.activeSkill, false);
 
-            // toggle this unit's select image on
-            //unit.ToggleSelectImage(true);
-
-            // Start attack bar sequence if active unit is an ally
-            if (_combatManager.activeUnit.unitType == Unit.UnitType.ALLY)
-                _combatManager._unitHudInfo.StartAttack();
+            // Prepare attack bar opening sequence
+            StartCoroutine(_combatManager.activeAttackBar.PrepareAttackBarOpen());
         }
     }
 }

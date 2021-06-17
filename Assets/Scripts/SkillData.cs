@@ -115,4 +115,9 @@ public class SkillData : MonoBehaviour
         this.perfectProcMultiplier = perfectProcMultiplier;
         this.maxSkillCount = maxSkillCount;
     } 
+
+    public string GetSkillDataType()
+    {
+        return skillType;
+    }
 }

@@ -35,7 +35,8 @@ MonoBehaviour:
   maxTargetCount: 2
   activatable: 1
   name: Quick Slash
-  description: Attack up to two enemies twice.
+  description: Attack an enemy 2 times. Each attack has a chance to slow the enemy
+    for 1 turn.
   turnCooldown: 1
   missValueMultiplier: 0
   goodValueMultiplier: 1

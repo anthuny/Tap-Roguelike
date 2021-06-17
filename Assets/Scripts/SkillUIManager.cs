@@ -73,12 +73,10 @@ public class SkillUIManager : MonoBehaviour
     }
     public void AssignSkills(Unit unit)
     {
-        _passiveSkill = unit.passiveSkill;
         _basicSkill = unit.basicSkill;
         _primarySkill = unit.primarySkill;
         _secondarySkill = unit.secondarySkill;
         _alternateSkill = unit.alternateSkill;
-        _ultimateSkill = unit.ultimateSkill;
     }
 
     public void SetActiveAttackData(AttackData attackData)

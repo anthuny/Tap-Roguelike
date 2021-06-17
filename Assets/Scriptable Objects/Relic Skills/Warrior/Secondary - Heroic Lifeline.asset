@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Secondary - Heroic Lifeline
   m_EditorClassIdentifier: 
   sprite: {fileID: 21300000, guid: a08f82491c46aa5439b18816c04236f8, type: 3}
-  skillType: Alternate
+  skillType: Secondary
   skillMode: PercentMaxHpHeal
   targetType: None
   targetsAllowed: None

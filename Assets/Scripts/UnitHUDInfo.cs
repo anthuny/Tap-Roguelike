@@ -17,31 +17,15 @@ public class UnitHUDInfo : MonoBehaviour
     public Text tUnitManaText;
     [SerializeField] private Text _tUnitEnergyText;
 
-    [Header("Target Unit Panels")]
-    public GameObject tTargetUnitInfoPanel;
-    public GameObject tAllSkillPanel;
-    public GameObject tActiveSkillPanel;
+    [Header("Enemy Unit Panels")]
+    public GameObject eAllSkillPanel;
 
     [Space(3)]
-    [Header("Target Unit Skills")]
-    public SkillIconUI tPassiveSkillIcon;
-    public SkillIconUI tBasicSkillIcon;
-    public SkillIconUI tPrimarySkillIcon;
-    public SkillIconUI tSecondarySkillIcon;
-
-    [Space(3)]
-    [Header("Target Unit Active Skill")]
-    [SerializeField] private Image _tActiveSkillImage;
-    [SerializeField] private Text _tActiveSkillNameText;
-    [SerializeField] private Text _tActiveSkillDescText;
-    [SerializeField] private Text _tActiveSkillManaCost;
-    //[SerializeField] private Text _tActiveSkillCD;
-    [SerializeField] private Text _tActiveSkillPerfectHitText;
-    [SerializeField] private Text _tActiveSkillGreatHitText;
-    [SerializeField] private Text _tActiveSkillGoodHitText;
-    [SerializeField] private Text _tActiveSkillMissHitText;
-    [SerializeField] private Image _tActiveSkillRemainingCDImage;
-    [SerializeField] private Text _tActiveSkillRemainingCDText;
+    [Header("Enemy Unit Skills")]
+    public SkillIconUI eBasicSkillIcon;
+    public SkillIconUI ePrimarySkillIcon;
+    public SkillIconUI eSecondarySkillIcon;
+    public SkillIconUI eAlternateSkillIcon;
 
     [Header("Relic Panels")]
     public GameObject rAllSkillPanel;
@@ -50,11 +34,11 @@ public class UnitHUDInfo : MonoBehaviour
     public GameObject attackButton;
 
     [Space(3)]
-    [Header("Relic Skills")]
-    [SerializeField] private SkillIconUI _rPassiveSkillIcon;
+    [Header("Relic Unit Skills")]
     [SerializeField] private SkillIconUI _rBasicSkillIcon;
     [SerializeField] private SkillIconUI _rPrimarySkillIcon;
     [SerializeField] private SkillIconUI _rSecondarySkillIcon;
+    [SerializeField] private SkillIconUI _rAlternateSkillIcon;
 
     [Space(1)]
     /*
@@ -103,6 +87,63 @@ public class UnitHUDInfo : MonoBehaviour
         RemoveAllUI();
     }
 
+    public void ToggleSkillSelectionImage(SkillData activeSkill, bool enable)
+    {
+        if (_combatManager.activeUnit.GetUnitType() == Unit.UnitType.ALLY)
+        {
+            switch (activeSkill.skillType)
+            {
+                case "Basic":
+                    _rBasicSkillIcon.ToggleSelectionImage(enable);
+                    break;
+                case "Primary":
+                    _rPrimarySkillIcon.ToggleSelectionImage(enable);
+                    break;
+                case "Secondary":
+                    _rSecondarySkillIcon.ToggleSelectionImage(enable);
+                    break;
+                case "Alternate":
+                    _rAlternateSkillIcon.ToggleSelectionImage(enable);
+                    break;
+            }
+        }
+        else
+        {
+            switch (activeSkill.skillType)
+            {
+                case "Basic":
+                    eBasicSkillIcon.ToggleSelectionImage(enable);
+                    break;
+                case "Primary":
+                    ePrimarySkillIcon.ToggleSelectionImage(enable);
+                    break;
+                case "Secondary":
+                    eSecondarySkillIcon.ToggleSelectionImage(enable);
+                    break;
+                case "Alternate":
+                    eAlternateSkillIcon.ToggleSelectionImage(enable);
+                    break;
+            }
+        }
+    }
+
+    public void DisableAllSkillSelectionImages()
+    {
+        if (_combatManager.activeUnit.GetUnitType() == Unit.UnitType.ALLY)
+        {
+            _rBasicSkillIcon.ToggleSelectionImage(false);
+            _rPrimarySkillIcon.ToggleSelectionImage(false);
+            _rSecondarySkillIcon.ToggleSelectionImage(false);
+            _rAlternateSkillIcon.ToggleSelectionImage(false);
+        }
+        else
+        {
+            eBasicSkillIcon.ToggleSelectionImage(false);
+            ePrimarySkillIcon.ToggleSelectionImage(false);
+            eSecondarySkillIcon.ToggleSelectionImage(false);
+            eAlternateSkillIcon.ToggleSelectionImage(false);
+        }
+    }
     public void ExitSkillDetailsButton()
     {
         // Remove skill detail panel, display all skill panel
@@ -144,42 +185,38 @@ public class UnitHUDInfo : MonoBehaviour
     }
     void RemoveAllUI()
     {
-        TogglePanel(tTargetUnitInfoPanel, false);
-        TogglePanel(tAllSkillPanel, false);
-        TogglePanel(tActiveSkillPanel, false);
+        TogglePanel(eAllSkillPanel, false);
         TogglePanel(rAllSkillPanel, false);
         TogglePanel(rActiveSkillPanel, false);
         TogglePanel(attackBarDarkenerGO, false);
     }
-    public void ToggleSkillIconSelection(SkillIconUI skillIcon, bool enable)
-    {
-        skillIcon.ToggleSelectionImage(enable);
-    }
 
     public void DeselectAllSelections()
     {
-        tPassiveSkillIcon.ToggleSelectionImage(false);
-        tBasicSkillIcon.ToggleSelectionImage(false);
-        tPrimarySkillIcon.ToggleSelectionImage(false);
-        tSecondarySkillIcon.ToggleSelectionImage(false);
+        eBasicSkillIcon.ToggleSelectionImage(false);
+        ePrimarySkillIcon.ToggleSelectionImage(false);
+        eSecondarySkillIcon.ToggleSelectionImage(false);
+        eAlternateSkillIcon.ToggleSelectionImage(false);
     }
 
     public void AssignUnitSkillsToSkillIcon(Unit unit)
     {
         if (unit.unitType == Unit.UnitType.ALLY)
         {
-            _rPassiveSkillIcon.ReferenceUnit();
             _rBasicSkillIcon.ReferenceUnit();
             _rPrimarySkillIcon.ReferenceUnit();
             _rSecondarySkillIcon.ReferenceUnit();
+            _rAlternateSkillIcon.ReferenceUnit();
         }
         else
         {
-            tPassiveSkillIcon.ReferenceUnit();
-            tBasicSkillIcon.ReferenceUnit();
-            tPrimarySkillIcon.ReferenceUnit();
-            tSecondarySkillIcon.ReferenceUnit();
+            eBasicSkillIcon.ReferenceUnit();
+            ePrimarySkillIcon.ReferenceUnit();
+            eSecondarySkillIcon.ReferenceUnit();
+            eAlternateSkillIcon.ReferenceUnit();
         }
+
+        UpdateSkillInvalidImages(unit);
     }
     public void TogglePanels(Unit unit)
     {
@@ -187,21 +224,20 @@ public class UnitHUDInfo : MonoBehaviour
         // If enemy, update enemy icon unit reference
         if (unit.unitType == Unit.UnitType.ENEMY)
         {
-            tPassiveSkillIcon.SetUnit(unit);
-            tBasicSkillIcon.SetUnit(unit);
-            tPrimarySkillIcon.SetUnit(unit);
-            tSecondarySkillIcon.SetUnit(unit);
+            eBasicSkillIcon.SetUnit(unit);
+            ePrimarySkillIcon.SetUnit(unit);
+            eSecondarySkillIcon.SetUnit(unit);
+            eAlternateSkillIcon.SetUnit(unit);
 
-            TogglePanel(tAllSkillPanel, true);
-            TogglePanel(tActiveSkillPanel, false);
+            TogglePanel(eAllSkillPanel, true);
         }
         // If enemy, update relic icon unit reference
         else
         {
-            _rPassiveSkillIcon.SetUnit(unit);
             _rBasicSkillIcon.SetUnit(unit);
             _rPrimarySkillIcon.SetUnit(unit);
             _rSecondarySkillIcon.SetUnit(unit);
+            _rAlternateSkillIcon.SetUnit(unit);
 
             TogglePanel(rAllSkillPanel, true);
             TogglePanel(rActiveSkillPanel, false);
@@ -211,16 +247,6 @@ public class UnitHUDInfo : MonoBehaviour
         SetUnitAllSkills(unit);
     }
 
-    public void SetUnitInfoUI(Unit unit)
-    {
-        TogglePanel(tTargetUnitInfoPanel, true);
-        SetUnitName(_tNameText, unit.name);
-        SetUnitLevel(_tUnitLevelText, unit.level);
-        SetUnitHealth(_tUnitHealthText, unit.curHealth);
-        SetUnitMana(tUnitManaText, unit.curMana);
-        SetUnitEnergy(_tUnitEnergyText, unit.turnEnergy);
-    }
-
     void SetUnitAllSkills(Unit unit)
     {
         // If Enemy turn
@@ -228,6 +254,7 @@ public class UnitHUDInfo : MonoBehaviour
         {
             //_ePassiveSkillIcon.SetSkillImage(_ePassiveSkillIcon.skillImage, )
 
+            /*
             // Set Enemy all skill CD Image Value
             tPassiveSkillIcon.SetCDImageValue(tPassiveSkillIcon.cdImage, unit.passiveSkill.curCooldown, unit.passiveSkill.turnCooldown);
             tBasicSkillIcon.SetCDImageValue(tBasicSkillIcon.cdImage, unit.basicSkill.curCooldown, unit.basicSkill.turnCooldown);
@@ -245,88 +272,48 @@ public class UnitHUDInfo : MonoBehaviour
             tBasicSkillIcon.SetCDText(tBasicSkillIcon.cdText, unit.basicSkill.curCooldown);
             tPrimarySkillIcon.SetCDText(tPrimarySkillIcon.cdText, unit.primarySkill.curCooldown);
             tSecondarySkillIcon.SetCDText(tSecondarySkillIcon.cdText, unit.secondarySkill.curCooldown);
+            */
         }
         // If Relic turn
         else
         {
             //_rPassiveSkillIcon.SetSkillImage(_rPassiveSkillIcon.skillImage, )
 
+            /*
             // Set ERelicnemy all skill CD Image Value
             _rPassiveSkillIcon.SetCDImageValue(_rPassiveSkillIcon.cdImage, unit.passiveSkill.curCooldown, unit.passiveSkill.turnCooldown);
             _rBasicSkillIcon.SetCDImageValue(_rBasicSkillIcon.cdImage, unit.basicSkill.curCooldown, unit.basicSkill.turnCooldown);
             _rPrimarySkillIcon.SetCDImageValue(_rPrimarySkillIcon.cdImage, unit.primarySkill.curCooldown, unit.primarySkill.turnCooldown);
             _rSecondarySkillIcon.SetCDImageValue(_rSecondarySkillIcon.cdImage, unit.secondarySkill.curCooldown, unit.secondarySkill.turnCooldown);
 
-            // Update Relic all skill cd image value
-            _rPassiveSkillIcon.SetCDImageValue(_rPassiveSkillIcon.cdImage, unit.passiveSkill.curCooldown, unit.passiveSkill.turnCooldown);
-            _rBasicSkillIcon.SetCDImageValue(_rBasicSkillIcon.cdImage, unit.basicSkill.curCooldown, unit.basicSkill.turnCooldown);
-            _rPrimarySkillIcon.SetCDImageValue(_rPrimarySkillIcon.cdImage, unit.primarySkill.curCooldown, unit.primarySkill.turnCooldown);
-            _rSecondarySkillIcon.SetCDImageValue(_rSecondarySkillIcon.cdImage, unit.secondarySkill.curCooldown, unit.secondarySkill.turnCooldown);
-
-            // Update Relic all skill cd text value
-            _rPassiveSkillIcon.SetCDText(_rPassiveSkillIcon.cdText, unit.passiveSkill.curCooldown);
-            _rBasicSkillIcon.SetCDText(_rBasicSkillIcon.cdText, unit.basicSkill.curCooldown);
-            _rPrimarySkillIcon.SetCDText(_rPrimarySkillIcon.cdText, unit.primarySkill.curCooldown);
-            _rSecondarySkillIcon.SetCDText(_rSecondarySkillIcon.cdText, unit.secondarySkill.curCooldown);
+            */
         }
 
-        UpdateSkillInvalidImages(unit);
+        //UpdateSkillInvalidImages(unit);
         //UpdateSkillManaRequired(unit);
     }
 
     public void UpdateSkillInvalidImages(Unit unit)
     {
-        tPassiveSkillIcon.ToggleSkillInvalidImage(tPassiveSkillIcon.disabledImage, tPassiveSkillIcon.manaCostText, unit.passiveSkill.manaRequired, unit.curMana);
-        tBasicSkillIcon.ToggleSkillInvalidImage(tBasicSkillIcon.disabledImage, tBasicSkillIcon.manaCostText, unit.basicSkill.manaRequired, unit.curMana);
-        tPrimarySkillIcon.ToggleSkillInvalidImage(tPrimarySkillIcon.disabledImage, tPrimarySkillIcon.manaCostText, unit.primarySkill.manaRequired, unit.curMana);
-        tSecondarySkillIcon.ToggleSkillInvalidImage(tSecondarySkillIcon.disabledImage, tSecondarySkillIcon.manaCostText, unit.secondarySkill.manaRequired, unit.curMana);
-    }
-
-    public void UpdateSkillManaRequired(Unit unit)
-    {
-        // If the skill Icon's disabled image is enabled, display the mana UI
-        if (tPassiveSkillIcon.disabledImage.enabled)
-            tPassiveSkillIcon.SetSkillManaCost(true, tPassiveSkillIcon.manaCostText, unit.passiveSkill.manaRequired, unit.curMana);
-        else   // If the skill Icon's disabled image is disabled, hide the mana UI
-            tPassiveSkillIcon.SetSkillManaCost(false, tPassiveSkillIcon.manaCostText);
-
-        // If the skill Icon's disabled image is enabled, display the mana UI
-        if (tBasicSkillIcon.disabledImage.enabled)
-            tBasicSkillIcon.SetSkillManaCost(true, tBasicSkillIcon.manaCostText, unit.basicSkill.manaRequired, unit.curMana);
-        else   // If the skill Icon's disabled image is disabled, hide the mana UI
-            tPassiveSkillIcon.SetSkillManaCost(false, tBasicSkillIcon.manaCostText);
-
-        // If the skill Icon's disabled image is enabled, display the mana UI
-        if (tPrimarySkillIcon.disabledImage.enabled)
-            tPrimarySkillIcon.SetSkillManaCost(true, tPrimarySkillIcon.manaCostText, unit.primarySkill.manaRequired, unit.curMana);
-        else   // If the skill Icon's disabled image is disabled, hide the mana UI
-            tPassiveSkillIcon.SetSkillManaCost(false, tPrimarySkillIcon.manaCostText);
-
-        // If the skill Icon's disabled image is enabled, display the mana UI
-        if (tSecondarySkillIcon.disabledImage.enabled)
-            tSecondarySkillIcon.SetSkillManaCost(true, tSecondarySkillIcon.manaCostText, unit.secondarySkill.manaRequired, unit.curMana);
-        else   // If the skill Icon's disabled image is disabled, hide the mana UI
-            tPassiveSkillIcon.SetSkillManaCost(false, tSecondarySkillIcon.manaCostText);
-    }
-    public void SetActiveSkill(Unit unit, SkillData skillData)
-    {
-        if (unit.unitType == Unit.UnitType.ENEMY)
+        if (unit.GetUnitType() == Unit.UnitType.ALLY)
         {
-            //SetActiveSkillImage();
-            SetActiveSkillNameText(_tActiveSkillNameText, skillData.name);
-            SetActiveSkillDescText(_tActiveSkillDescText, skillData.description);
-            SetActiveSkillManaCostText(_tActiveSkillManaCost, skillData.manaRequired);
-            //SetActiveSkilCDText(_tActiveSkillCD, skillData.turnCooldown);
-            SetActiveSkillRemainingCDText(_tActiveSkillRemainingCDText, skillData.curCooldown);
-            SetActiveSkillValue(_tActiveSkillMissHitText, skillData.missValueMultiplier);
-            SetActiveSkillValue(_tActiveSkillGoodHitText, skillData.goodValueMultiplier);
-            SetActiveSkillValue(_tActiveSkillGreatHitText, skillData.greatValueMultiplier);
-            SetActiveSkillValue(_tActiveSkillPerfectHitText, skillData.perfectValueMultiplier);
-
-            //TogglePanel(tActiveSkillPanel, true);
-            //TogglePanel(tAllSkillPanel, false);
+            _rBasicSkillIcon.ToggleSkillInvalidImage(_rBasicSkillIcon.disabledImage, _rBasicSkillIcon.manaCostText, unit.basicSkill.manaRequired, unit.curMana);
+            _rPrimarySkillIcon.ToggleSkillInvalidImage(_rPrimarySkillIcon.disabledImage, _rPrimarySkillIcon.manaCostText, unit.primarySkill.manaRequired, unit.curMana);
+            _rSecondarySkillIcon.ToggleSkillInvalidImage(_rSecondarySkillIcon.disabledImage, _rSecondarySkillIcon.manaCostText, unit.secondarySkill.manaRequired, unit.curMana);
+            _rAlternateSkillIcon.ToggleSkillInvalidImage(_rAlternateSkillIcon.disabledImage, _rAlternateSkillIcon.manaCostText, unit.alternateSkill.manaRequired, unit.curMana);
         }
         else
+        {
+            eBasicSkillIcon.ToggleSkillInvalidImage(eBasicSkillIcon.disabledImage, eBasicSkillIcon.manaCostText, unit.basicSkill.manaRequired, unit.curMana);
+            ePrimarySkillIcon.ToggleSkillInvalidImage(ePrimarySkillIcon.disabledImage, ePrimarySkillIcon.manaCostText, unit.primarySkill.manaRequired, unit.curMana);
+            eSecondarySkillIcon.ToggleSkillInvalidImage(eSecondarySkillIcon.disabledImage, eSecondarySkillIcon.manaCostText, unit.secondarySkill.manaRequired, unit.curMana);
+            eAlternateSkillIcon.ToggleSkillInvalidImage(eAlternateSkillIcon.disabledImage, eAlternateSkillIcon.manaCostText, unit.alternateSkill.manaRequired, unit.curMana);
+        }
+    }
+
+    public void SetActiveSkill(Unit unit, SkillData skillData)
+    {
+        if (unit.GetUnitType() == Unit.UnitType.ALLY)
         {
             // Set active skill icon
             _combatManager.activeAttackBar.SetActiveSkillImage(skillData.sprite);
@@ -342,8 +329,6 @@ public class UnitHUDInfo : MonoBehaviour
             SetActiveSkillValue(_rActiveSkillPerfectHitText, skillData.perfectValueMultiplier);
 
             TogglePanel(rActiveSkillPanel, true);
-            //TogglePanel(rAllSkillPanel, false);
-            //TogglePanel(attackButton, skillData.activatable);   // Display attack button if skill is activatable
         }
     }
 
@@ -351,39 +336,6 @@ public class UnitHUDInfo : MonoBehaviour
     {
         go.SetActive(enable);
     }
-
-    #region Main Properties
-    void SetUnitName(Text text, string name)
-    {
-        text.text = name;
-    }
-
-    void SetUnitPortrait(Image imageRef, Image image)
-    {
-        imageRef.sprite = image.sprite;
-    }
-
-    void SetUnitLevel(Text text, int level)
-    {
-        text.text = level.ToString();
-    }
-
-    void SetUnitHealth(Text text, float health)
-    {
-        int val = Mathf.RoundToInt(health);
-        text.text = val.ToString();
-    }
-
-    public void SetUnitMana(Text text, int mana)
-    {
-        text.text = mana.ToString();
-    }
-
-    void SetUnitEnergy(Text text, int energy)
-    {
-        text.text = energy.ToString();
-    }
-    #endregion
 
     #region Active Skill    
     void SetActiveSkillImage(Image imageRef, Image image)

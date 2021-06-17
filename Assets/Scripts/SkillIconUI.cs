@@ -5,13 +5,11 @@ using UnityEngine.UI;
 
 public class SkillIconUI : MonoBehaviour
 {
-    public enum SkillType { PASSIVE, BASIC, PRIMARY, SECONDARY}
+    public enum SkillType { BASIC, PRIMARY, SECONDARY, ALTERNATE}
     public SkillType skillType;
     [SerializeField] private Image selectionImage;
     public Image skillImage;
-    public Image cdImage;
     public Image disabledImage;
-    public Text cdText;
     public Text manaCostText;
     public Button button;
     private UnitHUDInfo _unitHudInfo;
@@ -31,9 +29,6 @@ public class SkillIconUI : MonoBehaviour
         _combatManager = FindObjectOfType<CombatManager>();
         switch (skillType)
         {
-            case SkillType.PASSIVE:
-                skillData = _combatManager.activeUnit.passiveSkill;
-                break;
             case SkillType.BASIC:
                 skillData = _combatManager.activeUnit.basicSkill;
                 break;
@@ -43,25 +38,29 @@ public class SkillIconUI : MonoBehaviour
             case SkillType.SECONDARY:
                 skillData = _combatManager.activeUnit.secondarySkill;
                 break;
+            case SkillType.ALTERNATE:
+                skillData = _combatManager.activeUnit.alternateSkill;
+                break;
         }
 
         unit = _combatManager.activeUnit;
     }
     public void ActiveSkillToggleUI()
     {
-        // Set active skill reference
-        _combatManager.activeSkill = skillData;
+        // Sets skill active as true
+        _combatManager.activeAttackBar.UpdateActiveSkill(true);
+
+        // Set active skill
+        _unitHudInfo = FindObjectOfType<UnitHUDInfo>();
+        _unitHudInfo.SetActiveSkill(unit, skillData);
+        _combatManager.SetActiveSkill(skillData);
 
         // toggle correct unit select images based onskill
         _combatManager.ToggleUnitSelectImages(_combatManager.activeSkill);
 
-        // Sets skill active as true
-        _combatManager.activeAttackBar.UpdateActiveSkill(true);
+        _unitHudInfo.DisableAllSkillSelectionImages();  // Disable all skill selection images
 
-        _unitHudInfo = FindObjectOfType<UnitHUDInfo>();
-
-        // Transition from all skills panels to active skill panel
-        _unitHudInfo.SetActiveSkill(unit, skillData);
+        ToggleSelectionImage(true);  // Toggle selection image of selected skill icon
     }
 
     public void SetUnit(Unit unit)

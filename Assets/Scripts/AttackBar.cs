@@ -28,9 +28,7 @@ public class AttackBar : MonoBehaviour
     public float timeTillAttackBarReturns;
 
     [Header("Declerations")]
-    public List<Transform> _checkPoints = new List<Transform>();
-    [SerializeField] private List<Transform> _spawnPoints = new List<Transform>();
-    [SerializeField] private List<Transform> _hitAreas = new List<Transform>();
+    [SerializeField] private List<Transform> _checkPoints = new List<Transform>();
 
     [Header("Relic UI")]
     public GameObject skillsUIGO;
@@ -106,6 +104,20 @@ public class AttackBar : MonoBehaviour
             curCollidingHitArea.CheckIfMarkerHit(); // Check to see which hit bar the hit marker hit
     }
 
+    public IEnumerator PrepareAttackBarOpen()
+    {
+        yield return new WaitForSeconds(_combatManager.displayAttackBarTimeWait);
+
+        // Display target unit portraits
+        _combatManager._unitHudInfo.ToggleTargetedUnitsPortrait(true);
+
+        // toggle this unit's select image on
+        //unit.ToggleSelectImage(true);
+
+        // Start attack bar sequence if active unit is an ally
+        if (_combatManager.activeUnit.unitType == Unit.UnitType.ALLY)
+            _combatManager._unitHudInfo.StartAttack();
+    }
     public void FlashOffAttackBar()
     {
         // Toggle Attack Bar off
@@ -185,7 +197,7 @@ public class AttackBar : MonoBehaviour
         skillActive = enable;
     }
 
-    public void BackButtonFunctionality()
+    public void BackButtonFunctionality(bool buttonPressed)
     {
         _combatManager = FindObjectOfType<CombatManager>();
 
@@ -199,8 +211,10 @@ public class AttackBar : MonoBehaviour
         if (activeHitMarker)
             DestroyActiveHitMarker(0);
 
-        // Give mana back to relic for cancelling the skill
-        StartCoroutine(_combatManager.activeUnit.UpdateCurMana(_combatManager.activeSkill.manaRequired, true));
+        // If the user pressed the 'back' button, give back mana to the user for the skill
+        if (buttonPressed)
+            // Give mana back to relic for cancelling the skill
+            StartCoroutine(_combatManager.activeUnit.UpdateCurMana(_combatManager.activeSkill.manaRequired, true));
 
         // Clear targets
         _combatManager.ClearTargets();
